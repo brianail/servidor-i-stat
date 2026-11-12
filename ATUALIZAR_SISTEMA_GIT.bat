@@ -33,6 +33,7 @@ copy /y "%SCRIPT_DIR%lyda_istat_*.json" "%SNAPSHOT_DIR%\" >nul 2>&1
 copy /y "%SCRIPT_DIR%lyda_zebra_web_config.json" "%SNAPSHOT_DIR%\" >nul 2>&1
 
 echo [3/5] Baixando atualizacoes do Git (git pull)...
+git stash >nul 2>&1
 git pull origin main 2>nul || git pull origin master 2>nul || git pull
 
 echo [4/5] Garantindo a integridade dos dados da producao local...

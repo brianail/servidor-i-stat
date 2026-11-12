@@ -361,6 +361,7 @@ class IStatDatabaseManager:
                 with open(self.db_path, "r", encoding="utf-8") as f:
                     self.items = json.load(f)
                 if self.items:
+                    self._normalize_stock_and_deduplicate()
                     self._enrich_missing_hospital_addresses()
                     self._sync_clients_from_items()
                     self._record_disk_mtimes()
@@ -371,9 +372,70 @@ class IStatDatabaseManager:
         # Se ainda não existe banco JSON local, importa automaticamente da planilha Mapeamento Equipamento i-STAT - LYDA.xlsx
         if os.path.exists(self.default_excel_path):
             self.import_from_lyda_excel(self.default_excel_path)
+            self._normalize_stock_and_deduplicate()
             self._enrich_missing_hospital_addresses()
             self._sync_clients_from_items()
         self._record_disk_mtimes()
+
+    def _normalize_stock_and_deduplicate(self):
+        """
+        Garante que equipamentos em ESTOQUE USADOS ou ESTOQUE tenham sempre
+        CLIENTE: SEM CLIENTE (ESTOQUE LYDA) e MODALIDADE: PROPRIEDADE LYDA,
+        e remove qualquer duplicata antiga de mesmo serial presente no banco do servidor.
+        """
+        if not self.items:
+            return
+        unique = []
+        seen = set()
+        changed = False
+
+        for it in self.items:
+            bc = clean_barcode_serial(it.get("CODIGO", ""))
+            tipo = normalize_equipment_type(it.get("TIPO", "ANALISADOR"))
+            k = (tipo, bc)
+
+            st_up = str(it.get("STATUS", "")).strip().upper()
+            cli_up = str(it.get("CLIENTE", "")).strip().upper()
+
+            # Normalização de Estoque solicitada pelo usuário
+            if "ESTOQUE USADOS" in st_up or cli_up == "ESTOQUE USADOS":
+                if it.get("CLIENTE") != "SEM CLIENTE (ESTOQUE LYDA)":
+                    it["CLIENTE"] = "SEM CLIENTE (ESTOQUE LYDA)"
+                    changed = True
+                if it.get("MODALIDADE") != "PROPRIEDADE LYDA":
+                    it["MODALIDADE"] = "PROPRIEDADE LYDA"
+                    changed = True
+                if it.get("SETOR") in ("Usado", "USADO", "", None):
+                    it["SETOR"] = "ESTOQUE LYDA"
+                    changed = True
+            elif "ESTOQUE LYDA NOVOS" in st_up or cli_up == "ESTOQUE LYDA NOVOS":
+                if it.get("CLIENTE") != "SEM CLIENTE (ESTOQUE LYDA)":
+                    it["CLIENTE"] = "SEM CLIENTE (ESTOQUE LYDA)"
+                    changed = True
+                if it.get("MODALIDADE") != "PROPRIEDADE LYDA":
+                    it["MODALIDADE"] = "PROPRIEDADE LYDA"
+                    changed = True
+                if it.get("SETOR") in ("Novo", "NOVO", "", None):
+                    it["SETOR"] = "ESTOQUE LYDA (NOVOS)"
+                    changed = True
+            elif "ESTOQUE" in st_up:
+                if it.get("CLIENTE") != "SEM CLIENTE (ESTOQUE LYDA)":
+                    it["CLIENTE"] = "SEM CLIENTE (ESTOQUE LYDA)"
+                    changed = True
+                if it.get("MODALIDADE") != "PROPRIEDADE LYDA":
+                    it["MODALIDADE"] = "PROPRIEDADE LYDA"
+                    changed = True
+
+            if k[1]:
+                if k in seen:
+                    changed = True
+                    continue
+                seen.add(k)
+            unique.append(it)
+
+        if changed or len(unique) != len(self.items):
+            self.items = unique
+            self.save()
 
     def _enrich_missing_hospital_addresses(self):
         """Preenche automaticamente endereços conhecidos dos hospitais da carteira LYDA e da Sede Lyda quando vazios."""
