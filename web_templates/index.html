@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LYDA — Controle de Estoque i-STAT, Radar 6 Meses & Rota da Enfermeira</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="/static/app.css?v=20261106_prn4" />
+</head>
+<body>
+
+  <!-- ===================================================================== -->
+  <!-- TELA DE LOGIN ENTERPRISE SPLIT-SCREEN (MODERNA & CORPORATIVA)         -->
+  <!-- ===================================================================== -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-split-card">
+
+      <!-- PAINEL ESQUERDO: BRANDING LYDA & SHOWCASE DO SISTEMA -->
+      <div class="login-showcase">
+        <div class="login-showcase-top">
+          <div class="login-brand-row">
+            <div class="brand-logo-transparent" id="loginLogoContainer">
+              <span class="brand-fallback-wordmark">LYDA</span>
+            </div>
+            <span class="brand-pill-tag">i-STAT Platform</span>
+          </div>
+
+          <h1 class="login-showcase-title">
+            Gestão Inteligente de Equipamentos & Logística Hospitalar
+          </h1>
+          <p class="login-showcase-desc">
+            Controle centralizado de analisadores i-STAT, monitoramento preventivo do ciclo semestral de atualização e roteirização externa integrada ao Google Maps.
+          </p>
+
+          <div class="login-feature-list">
+            <div class="login-feature-item">
+              <div class="login-feature-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+              </div>
+              <div>
+                <strong>Radar Semestral (6 em 6 Meses)</strong>
+                <span>Alertas automáticos quando faltam 45 dias ou menos para atualização CLEW / JAMS.</span>
+              </div>
+            </div>
+
+            <div class="login-feature-item">
+              <div class="login-feature-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+              </div>
+              <div>
+                <strong>Rota da Enfermeira & PDF Oficial</strong>
+                <span>Otimização de paradas por proximidade, mapa interativo e protocolo pronto para WhatsApp.</span>
+              </div>
+            </div>
+
+            <div class="login-feature-item">
+              <div class="login-feature-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <strong>Rastreabilidade & Backup SharePoint</strong>
+                <span>Auditoria completa por operador, leitura de código de barras USB e backup diário automático.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="login-showcase-footer">
+          <span>LYDA Comércio Importação e Exportação Ltda.</span>
+          <span>Ambiente Corporativo Seguro</span>
+        </div>
+      </div>
+
+      <!-- PAINEL DIREITO: FORMULÁRIO DE ACESSO MODERNO -->
+      <div class="login-form-side">
+        <div class="login-form-header">
+          <h2>Acesse sua conta</h2>
+          <p>Entre com suas credenciais para acessar o painel da LYDA.</p>
+        </div>
+
+        <form onsubmit="submitLogin(event)" class="login-modern-form" autocomplete="on">
+          <div class="login-field-group">
+            <label for="inpLoginUsername">Usuário ou E-mail</label>
+            <div class="login-input-wrap">
+              <svg class="login-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input type="text" id="inpLoginUsername" placeholder="Seu usuário ou e-mail" required autocomplete="username" autocapitalize="none" spellcheck="false" />
+            </div>
+          </div>
+
+          <div class="login-field-group">
+            <label for="inpLoginPassword">Senha de Acesso</label>
+            <div class="login-input-wrap">
+              <svg class="login-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="inpLoginPassword" placeholder="Digite sua senha" required autocomplete="current-password" onkeyup="onLoginPasswordKey(event)" onkeydown="onLoginPasswordKey(event)" />
+              <button type="button" class="login-eye-btn" onclick="toggleLoginPasswordVisibility()" title="Mostrar / ocultar senha" aria-label="Mostrar ou ocultar senha">
+                <svg id="loginEyeOn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="loginEyeOff" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <div id="lblLoginCaps" class="login-caps-warn" style="display:none;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Caps Lock está ativado
+            </div>
+          </div>
+
+          <label class="login-remember">
+            <input type="checkbox" id="chkLoginRemember" checked />
+            <span>Lembrar meu usuário neste computador (a senha nunca é salva pelo sistema)</span>
+          </label>
+
+          <div id="lblLoginError" class="login-error-alert" style="display:none;"></div>
+
+          <button type="submit" id="btnLoginSubmit" class="login-submit-btn">
+            <span>Entrar na Plataforma</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+
+        <div class="login-quick-section" id="loginQuickSection" style="display:none;">
+          <div class="login-quick-divider">
+            <span>Usuários recentes neste computador</span>
+          </div>
+          <div class="quick-user-pills" id="divLoginQuickPills"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SHELL PRINCIPAL: SIDEBAR ESQUERDA + ÁREA CENTRAL                      -->
+  <!-- ===================================================================== -->
+  <div class="app-shell" id="appShell">
+
+    <!-- SIDEBAR DE NAVEGAÇÃO PADRONIZADA -->
+    <aside class="sidebar">
+      <div>
+        <!-- CABEÇALHO DA MARCA SEM LOGO QUADRADO E SEM TEXTO FATIADO -->
+        <div class="sidebar-brand">
+          <div class="sidebar-brand-top">
+            <div class="sidebar-logo-clean" id="logoContainer">
+              <span class="brand-fallback-wordmark">LYDA</span>
+            </div>
+            <span class="brand-pill-tag">i-STAT</span>
+            <button class="sidebar-collapse-btn" id="btnSidebarCollapse" onclick="toggleSidebarCollapsed()" title="Recolher / Expandir Menu Lateral">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><polyline points="15 9 12 12 15 15"/></svg>
+            </button>
+          </div>
+          <div class="sidebar-brand-sub">Controle de Estoque & Rotas</div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="sidebar-section-label">Painel & Operação</div>
+
+          <button class="nav-tab active" data-tab="tab-dashboard" data-title="Dashboard & Relatórios Executivos" onclick="switchTab('tab-dashboard')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              <span>Dashboard & Relatórios</span>
+            </span>
+          </button>
+
+          <button class="nav-tab" data-tab="tab-estoque" data-title="Estoque & Mapeamento" onclick="switchTab('tab-estoque')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+              <span>Estoque & Mapeamento</span>
+            </span>
+            <span class="tab-badge" id="badgeCountEstoque">0</span>
+          </button>
+
+          <button class="nav-tab" data-tab="tab-radar6m" data-title="Central de Atualizações Semestrais (6m)" onclick="switchTab('tab-radar6m')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+              <span>Atualizações (6 Meses)</span>
+            </span>
+            <span class="tab-badge tab-badge-alert" id="badgeCountRadar6m">0</span>
+          </button>
+
+          <button class="nav-tab" data-tab="tab-clientes" data-title="Clientes & Hospitais" onclick="switchTab('tab-clientes')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+              <span>Clientes & Hospitais</span>
+            </span>
+            <span class="tab-badge" id="badgeCountClientes">0</span>
+          </button>
+
+          <button class="nav-tab" data-tab="tab-rota" data-title="Rota da Enfermeira" onclick="switchTab('tab-rota')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+              <span>Rota da Enfermeira</span>
+            </span>
+          </button>
+
+          <button class="nav-tab" data-tab="tab-etiquetas" data-title="Impressão de Etiquetas — Zebra ZD230" onclick="switchTab('tab-etiquetas')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Etiquetas Zebra ZD230</span>
+            </span>
+          </button>
+
+          <div class="sidebar-section-label">Administração & Rede</div>
+
+          <button class="nav-tab" id="navTabAdminUsers" data-tab="tab-admin" data-title="Usuários & Auditoria (Admin)" onclick="switchTab('tab-admin')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Usuários & Logs (Admin)</span>
+            </span>
+            <span class="tab-badge" id="badgeCountAdminUsers">0</span>
+          </button>
+
+          <button class="nav-tab" data-tab="tab-servidor" data-title="Servidor Local & SharePoint" onclick="switchTab('tab-servidor')">
+            <span class="nav-tab-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+              <span>Servidor & SharePoint</span>
+            </span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- RODAPÉ DA SIDEBAR: POD COMPACTO E MODERNO DO USUÁRIO LOGADO -->
+      <div class="sidebar-footer">
+        <div class="user-pod">
+          <div class="user-pod-left" onclick="openProfileModal()" title="Editar Meu Perfil e Senha">
+            <div class="user-avatar" id="topUserAvatar">LY</div>
+            <div class="user-chip-info">
+              <span class="user-chip-name" id="topUserName">Usuário</span>
+              <span class="user-chip-role" id="topUserRole">Administrador</span>
+            </div>
+          </div>
+          <div class="user-pod-actions">
+            <button class="user-icon-btn" onclick="openProfileModal()" title="Meu Perfil & Alterar Senha">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <button class="user-icon-btn logout" onclick="logoutUser()" title="Encerrar Sessão (Sair)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <div class="main-area">
+
+      <!-- TOPBAR EM LINHA ÚNICA LIMPA E PADRONIZADA -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-nav-group">
+            <button class="topbar-nav-btn" id="btnTopbarSidebarToggle" onclick="toggleSidebarCollapsed()" title="Recolher / Expandir Menu Lateral">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+            </button>
+            <button class="topbar-nav-btn" id="btnNavBack" onclick="navigateAppHistory(-1)" title="Voltar para a tela anterior" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Voltar</span>
+            </button>
+            <button class="topbar-nav-btn" id="btnNavForward" onclick="navigateAppHistory(1)" title="Avançar" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+          <h1 class="topbar-title" id="lblTopPageTitle">Dashboard & Relatórios Executivos</h1>
+          <div class="server-status-pill" onclick="switchTab('tab-servidor')" style="cursor:pointer;" title="Clique para ver o link de acesso na rede e status do backup SharePoint">
+            <span class="status-dot-green"></span>
+            <span id="lblServerUrl">Online</span>
+            <span style="color:#CBD5E1;">•</span>
+            <span id="lblSharepointStatus">Backup Ativo</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="scan-box" title="Bipe com o leitor USB a qualquer momento ou digite o serial e aperte Enter">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg>
+            <input type="text" id="inpQuickScan" placeholder="Bipar Leitor USB ou Serial..." autocomplete="off" />
+            <button class="btn btn-secondary btn-sm" onclick="handleQuickScanInput()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>Buscar</button>
+          </div>
+
+          <button class="btn btn-amber btn-sm" id="btnTopRadarAlert" onclick="switchTab('tab-radar6m')" title="Ver aparelhos perto de bater 6 meses ou pendentes de atualização">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span id="lblTopRadarBtnText">Avisos 6m: 0</span>
+          </button>
+
+          <button class="btn btn-secondary btn-sm" onclick="triggerImmediateSharePointBackup()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Backup SharePoint</button>
+          <button class="btn btn-primary btn-sm" onclick="openItemModal(null)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo Aparelho</button>
+        </div>
+      </header>
+
+      <main class="container">
+
+        <!-- =============================================================== -->
+        <!-- ABA 0 (INICIAL): DASHBOARD EXECUTIVO, GRÁFICOS & RELATÓRIOS     -->
+        <!-- =============================================================== -->
+        <section id="tab-dashboard" class="tab-pane active">
+
+          <!-- CABEÇALHO DO DASHBOARD + CENTRAL DE RELATÓRIOS EM 1 CLIQUE -->
+          <div class="dash-hero-bar">
+            <div class="dash-hero-left">
+              <div class="dash-hero-tag">PAINEL EXECUTIVO EM TEMPO REAL</div>
+              <h2 class="dash-hero-title" id="lblDashWelcomeTitle">Visão Geral de Equipamentos Abbott i-STAT — LYDA</h2>
+              <p class="dash-hero-sub" id="lblDashWelcomeSub">Acompanhamento consolidado de analisadores, impressoras, comodatos, estoque sede, cidades atendidas e ciclo semestral (6m).</p>
+            </div>
+            <div class="dash-reports-bar">
+              <div class="dash-reports-label">Relatórios Oficiais (A4 / PDF / Excel)</div>
+              <div class="dash-reports-buttons">
+                <button class="dash-report-card blue" onclick="openExecutiveReportPrintWindow('GERAL')">
+                  <span class="drc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+                  <span class="drc-text"><strong>Relatório Geral</strong><small>PDF • todos os aparelhos</small></span>
+                </button>
+                <button class="dash-report-card amber" onclick="openExecutiveReportPrintWindow('RADAR_6M')">
+                  <span class="drc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></span>
+                  <span class="drc-text"><strong>Ciclo 6 Meses</strong><small>PDF • atualizações pendentes</small></span>
+                </button>
+                <button class="dash-report-card sky" onclick="openExecutiveReportPrintWindow('HOSPITAIS')">
+                  <span class="drc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></span>
+                  <span class="drc-text"><strong>Por Hospital</strong><small>PDF • carteira de clientes</small></span>
+                </button>
+                <button class="dash-report-card rose" onclick="openExecutiveReportPrintWindow('MANUTENCAO')">
+                  <span class="drc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+                  <span class="drc-text"><strong>Manutenção / Defeitos</strong><small>PDF • reparo e assistência</small></span>
+                </button>
+                <a class="dash-report-card green" href="/api/excel/export">
+                  <span class="drc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+                  <span class="drc-text"><strong>Exportar Excel</strong><small>Planilha .xlsx completa</small></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7 KPI CARDS EXECUTIVOS COM CORES E BARRA DE PROPORÇÃO -->
+          <div class="kpi-grid kpi-grid-7" id="dashKpiGrid">
+            <div class="kpi-card dash-kpi-card kpi-accent-blue" onclick="switchTab('tab-estoque'); applyKpiQuickFilter('ALL');">
+              <div class="kpi-label">
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Total de Aparelhos</span>
+                <span class="badge badge-ana">100%</span>
+              </div>
+              <div class="kpi-value" style="color:#1D4ED8;" id="valDashTotal">0</div>
+              <div class="kpi-sub" id="subDashTotal">Analisadores, Imp., Sim. e Dwl.</div>
+              <div class="dash-kpi-bar"><div class="dash-kpi-bar-fill" style="width:100%; background:#2563EB;"></div></div>
+            </div>
+
+            <div class="kpi-card dash-kpi-card kpi-accent-sky" onclick="switchTab('tab-estoque'); applyKpiQuickFilter('ATIVO');">
+              <div class="kpi-label">
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>Em Hospitais / Clientes</span>
+                <span class="badge badge-sim" id="pctDashCliente">0%</span>
+              </div>
+              <div class="kpi-value" style="color:#0369A1;" id="valDashCliente">0</div>
+              <div class="kpi-sub" id="subDashCliente">Em operação externa ativa</div>
+              <div class="dash-kpi-bar"><div class="dash-kpi-bar-fill" id="barDashCliente" style="width:0%; background:#0284C7;"></div></div>
+            </div>
+
+            <div class="kpi-card dash-kpi-card kpi-accent-emerald" onclick="switchTab('tab-estoque'); applyKpiQuickFilter('ESTOQUE');">
+              <div class="kpi-label">
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><polyline points="3 8 12 13 21 8"/><line x1="12" y1="13" x2="12" y2="21"/></svg>No Estoque da LYDA</span>
+                <span class="badge badge-em-dia" id="pctDashEstoque">0%</span>
+              </div>
+              <div class="kpi-value" style="color:#047857;" id="valDashEstoque">0</div>
+              <div class="kpi-sub" id="subDashEstoque">Disponíveis na sede</div>
+              <div class="dash-kpi-bar"><div class="dash-kpi-bar-fill" id="barDashEstoque" style="width:0%; background:#10B981;"></div></div>
+            </div>
+
+            <div class="kpi-card dash-kpi-card kpi-accent-sky" onclick="switchTab('tab-estoque'); applyKpiQuickFilter('COMODATO');">
+              <div class="kpi-label">
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Em Comodato</span>
+                <span class="badge badge-sim" id="pctDashComodato">0%</span>
+              </div>
+              <div class="kpi-value" style="color:#0284C7;" id="valDashComodato">0</div>
+              <div class="kpi-sub" id="subDashComodato">Patrimônio LYDA em hospitais</div>
+              <div class="dash-kpi-bar"><div class="dash-kpi-bar-fill" id="barDashComodato" style="width:0%; background:#0284C7;"></div></div>
+            </div>
+
+            <div class="kpi-card dash-kpi-card kpi-accent-purple" onclick="switchTab('tab-estoque'); applyKpiQuickFilter('VENDA');">
+              <div class="kpi-label">
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>Venda (Clientes)</span>
+                <span class="badge badge-dwl" id="pctDashVenda">0%</span>
+              </div>
+              <div class="kpi-value" style="color:#4F46E5;" id="valDashVenda">0</div>
+              <div class="kpi-sub" id="subDashVenda">Equipamentos vendidos</div>
+              <div class="dash-kpi-bar"><div class="dash-kpi-bar-fill" id="barDashVenda" style="width:0%; background:#6366F1;"></div></div>
+            </div>
+
+            <div class="kpi-card dash-kpi-card kpi-accent-amber" onclick="switchTab('tab-radar6m');">
+              <div class="kpi-label">
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>Pendentes Ciclo 6m</span>
+                <span class="badge badge-vencendo" id="pctDashPend6m">0%</span>
+              </div>
+              <div class="kpi-value" style="color:#D97706;" id="valDashPend6m">0</div>
+              <div class="kpi-sub" id="subDashPend6m">Clique p/ abrir o Radar Semestral</div>
+              <div class="dash-kpi-bar"><div class="dash-kpi-bar-fill" id="barDashPend6m" style="width:0%; background:#F59E0B;"></div></div>
+            </div>
+
+            <div class="kpi-card dash-kpi-card kpi-accent-rose" onclick="switchTab('tab-estoque'); applyKpiQuickFilter('DEFEITO');">
+              <div class="kpi-label">
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Manutenção / Reparo</span>
+                <span class="badge badge-vencida" id="pctDashDefeito">0%</span>
+              </div>
+              <div class="kpi-value" style="color:#E11D48;" id="valDashDefeito">0</div>
+              <div class="kpi-sub" id="subDashDefeito">Com defeito ou assistência SP</div>
+              <div class="dash-kpi-bar"><div class="dash-kpi-bar-fill" id="barDashDefeito" style="width:0%; background:#E11D48;"></div></div>
+            </div>
+          </div>
+
+          <!-- GRADE DE 4 GRÁFICOS ANALÍTICOS INTERATIVOS -->
+          <div class="dash-charts-grid">
+
+            <!-- GRÁFICO 1: DONUT INTERATIVO DE SITUAÇÃO DOS APARELHOS -->
+            <div class="panel-card dash-chart-card">
+              <div class="section-title">
+                <span>1. Distribuição Completa dos Aparelhos</span>
+                <div class="dash-mode-switch" id="dashDonutModeSwitch">
+                  <button class="dash-mode-btn active" data-mode="COMPLETO" onclick="setDashDonutMode('COMPLETO')">Situação &amp; Modalidade</button>
+                  <button class="dash-mode-btn" data-mode="TIPOS" onclick="setDashDonutMode('TIPOS')">Por Tipo</button>
+                  <button class="btn btn-secondary btn-sm" onclick="switchTab('tab-estoque')">Ver Estoque</button>
+                </div>
+              </div>
+              <div class="dash-donut-layout" id="divDashDonutSituacao"></div>
+            </div>
+
+            <!-- GRÁFICO 2: BARRAS PROPORCIONAIS DE MODALIDADE COMERCIAL -->
+            <div class="panel-card dash-chart-card">
+              <div class="section-title">
+                <span>2. Modalidade Comercial & Patrimônio LYDA</span>
+                <span class="badge badge-ana" id="lblDashModSummary">Por Contrato</span>
+              </div>
+              <div id="divDashBarsModalidade" class="dash-bars-list"></div>
+            </div>
+
+            <!-- GRÁFICO 3: CICLO DE ATUALIZAÇÃO SEMESTRAL (6M) & TIPOS DE APARELHO -->
+            <div class="panel-card dash-chart-card">
+              <div class="section-title">
+                <span>3. Radar de Atualização (6 Meses) & Tipos de Equipamento</span>
+                <button class="btn btn-amber btn-sm" onclick="switchTab('tab-radar6m')">Abrir Radar 6m</button>
+              </div>
+              <div id="divDashCycleAndTypes"></div>
+            </div>
+
+            <!-- GRÁFICO 4: DISTRIBUIÇÃO GEOGRÁFICA POR CIDADE / REGIÃO DO RS -->
+            <div class="panel-card dash-chart-card">
+              <div class="section-title">
+                <span>4. Top Cidades / Regiões Atendidas (Hospitais & Aparelhos)</span>
+                <button class="btn btn-secondary btn-sm" onclick="switchTab('tab-rota')">Planejar Rota</button>
+              </div>
+              <div id="divDashBarsCidades" class="dash-bars-list"></div>
+            </div>
+
+          </div>
+
+          <!-- GRADE INFERIOR: TOP HOSPITAIS/CLIENTES + ÚLTIMAS MOVIMENTAÇÕES -->
+          <div class="dash-bottom-grid">
+
+            <!-- RANKING DOS PRINCIPAIS HOSPITAIS / CLIENTES -->
+            <div class="panel-card" style="margin-bottom:0;">
+              <div class="section-title">
+                <span>Principais Hospitais & Clínicas por Volume de Equipamentos</span>
+                <button class="btn btn-secondary btn-sm" onclick="switchTab('tab-clientes')">Ver Todos os 44 Clientes</button>
+              </div>
+              <div class="table-wrap" style="max-height:370px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Hospital / Clínica</th>
+                      <th>Cidade / UF</th>
+                      <th>Modalidade & Setores</th>
+                      <th style="text-align:center;">Aparelhos</th>
+                      <th>Status 6m</th>
+                      <th style="text-align:right;">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyDashTopClients"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ÚLTIMAS MOVIMENTAÇÕES E ATIVIDADES DA OPERAÇÃO -->
+            <div class="panel-card" style="margin-bottom:0;">
+              <div class="section-title">
+                <span>Últimas Movimentações & Histórico Recente</span>
+                <button class="btn btn-secondary btn-sm" onclick="openExecutiveReportPrintWindow('GERAL')">Emitir Relatório PDF</button>
+              </div>
+              <div class="dash-activity-list" id="divDashRecentActivity"></div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ABA 1: ESTOQUE & MAPEAMENTO i-STAT                              -->
+        <!-- =============================================================== -->
+        <section id="tab-estoque" class="tab-pane">
+
+          <!-- BANNER INTELIGENTE DE AVISO DE ATUALIZAÇÃO (CICLO DE 6 MESES) -->
+          <div class="cycle-alert-banner" id="divCycleWarningBanner" style="display:none;">
+            <div class="cycle-alert-left">
+              <div class="cycle-alert-icon">6m</div>
+              <div class="cycle-alert-text">
+                <h3 id="lblBannerCycleTitle">Atenção ao Ciclo Semestral de Atualização (6 em 6 Meses)</h3>
+                <p id="lblBannerCycleSub">Existem aparelhos próximos de completar 6 meses ou aguardando atualização.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="switchTab('tab-radar6m')">Abrir Área de Atualizações (6m)</button>
+              <button class="btn btn-navy btn-sm" onclick="switchTab('tab-rota'); loadRouteFromMode('PENDING_6M');">Gerar Rota p/ Atualização</button>
+            </div>
+          </div>
+
+          <!-- 8 KPI CARDS COLORIDOS E PADRONIZADOS -->
+          <div class="kpi-grid kpi-grid-8">
+            <div class="kpi-card kpi-accent-blue active-filter" id="kpi-ALL" onclick="applyKpiQuickFilter('ALL')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Total de Aparelhos</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiTotal">0%</span></div>
+              <div class="kpi-value" style="color:#1D4ED8;" id="valKpiTotal">0</div>
+              <div class="kpi-sub">Todos os aparelhos i-STAT</div>
+            </div>
+            <div class="kpi-card kpi-accent-sky" id="kpi-ATIVO" onclick="applyKpiQuickFilter('ATIVO')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>Em Hospitais / Clientes</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiCliente">0%</span></div>
+              <div class="kpi-value" style="color:#0369A1;" id="valKpiCliente">0</div>
+              <div class="kpi-sub" id="subKpiCliente">Em operação externa</div>
+            </div>
+            <div class="kpi-card kpi-accent-emerald" id="kpi-ESTOQUE" onclick="applyKpiQuickFilter('ESTOQUE')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><polyline points="3 8 12 13 21 8"/><line x1="12" y1="13" x2="12" y2="21"/></svg>No Estoque da LYDA</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiEstoque">0%</span></div>
+              <div class="kpi-value" style="color:#047857;" id="valKpiEstoque">0</div>
+              <div class="kpi-sub" id="subKpiEstoque">Disponíveis na sede</div>
+            </div>
+            <div class="kpi-card kpi-accent-sky" id="kpi-COMODATO" onclick="applyKpiQuickFilter('COMODATO')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Em Comodato</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiComodato">0%</span></div>
+              <div class="kpi-value" style="color:#0284C7;" id="valKpiComodato">0</div>
+              <div class="kpi-sub" id="subKpiComodato">Patrimônio LYDA em hospitais</div>
+            </div>
+            <div class="kpi-card kpi-accent-purple" id="kpi-VENDA" onclick="applyKpiQuickFilter('VENDA')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>Venda (Clientes)</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiVenda">0%</span></div>
+              <div class="kpi-value" style="color:#4F46E5;" id="valKpiVenda">0</div>
+              <div class="kpi-sub" id="subKpiVenda">Equipamentos vendidos</div>
+            </div>
+            <div class="kpi-card kpi-accent-teal" id="kpi-CICLO_OK" onclick="applyKpiQuickFilter('CICLO_OK')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Ciclo 6m Em Dia</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiCicloOk">0%</span></div>
+              <div class="kpi-value" id="valKpiCicloOk" style="color:#059669;">0</div>
+              <div class="kpi-sub">Atualizados nos últimos 6m</div>
+            </div>
+            <div class="kpi-card kpi-accent-amber" id="kpi-CICLO_PEND" onclick="applyKpiQuickFilter('CICLO_PEND')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>Atualização 6m Pendente</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiCicloPend">0%</span></div>
+              <div class="kpi-value" id="valKpiCicloPend" style="color:#D97706;">0</div>
+              <div class="kpi-sub" id="subKpiCicloPend">Clique p/ filtrar e criar Rota</div>
+            </div>
+            <div class="kpi-card kpi-accent-rose" id="kpi-DEFEITO" onclick="applyKpiQuickFilter('DEFEITO')">
+              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Manutenção / Defeito</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiDefeito">0%</span></div>
+              <div class="kpi-value" id="valKpiDefeito" style="color:#E11D48;">0</div>
+              <div class="kpi-sub" id="subKpiDefeito">Em reparo ou assistência SP</div>
+            </div>
+          </div>
+
+          <!-- BARRA DE FILTROS PADRONIZADA (LINHA ÚNICA ALINHADA) -->
+          <div class="panel-card">
+            <div class="filter-row filter-grid-estoque">
+              <div class="form-group">
+                <label>Buscar por Serial, Hospital/Cliente, Cidade, Setor ou Observação:</label>
+                <input type="text" id="inpFilterSearch" placeholder="Digite qualquer parte do serial, hospital, endereço ou setor..." oninput="renderItemsTable()" />
+              </div>
+
+              <div class="form-group">
+                <label>Tipo de Aparelho:</label>
+                <select id="selFilterTipo" onchange="renderItemsTable()">
+                  <option value="TODOS">Todos os Tipos</option>
+                  <option value="ANALISADOR">Analisador</option>
+                  <option value="IMPRESSORA">Impressora</option>
+                  <option value="SIMULADOR">Simulador</option>
+                  <option value="DOWNLOADER">Downloader</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Modalidade:</label>
+                <select id="selFilterModalidade" onchange="renderItemsTable()">
+                  <option value="TODAS">Todas</option>
+                  <option value="COMODATO">Comodato</option>
+                  <option value="VENDA">Venda</option>
+                  <option value="ALUGUEL">Aluguel</option>
+                  <option value="PROPRIEDADE LYDA">Propriedade Lyda</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Onde Está / Situação:</label>
+                <select id="selFilterSituacao" onchange="renderItemsTable()">
+                  <option value="TODOS">Todos os Locais</option>
+                  <option value="ESTOQUE">No Estoque da LYDA (Todos)</option>
+                  <option value="ESTOQUE_NOVOS">Estoque da LYDA — Novos</option>
+                  <option value="ESTOQUE_USADOS">Estoque da LYDA — Usados</option>
+                  <option value="ESTOQUE_BACKUP">Estoque da LYDA — Em Backup / Retorno</option>
+                  <option value="ATIVO">Em Hospitais / Clientes</option>
+                  <option value="DEFEITO">Com Defeito / Manutenção</option>
+                  <option value="ESTOQUE_ATUALIZADO">Estoque (Já Atualizado 6m)</option>
+                  <option value="ESTOQUE_FALTA">Estoque (Falta Atualizar 6m)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Ciclo 6 em 6 Meses:</label>
+                <select id="selFilterCiclo" onchange="renderItemsTable()">
+                  <option value="TODOS">Todos</option>
+                  <option value="PENDENTE_OU_VENCIDA">Precisam Atualização (6m)</option>
+                  <option value="VENCENDO">Perto de 6 Meses (<= 45 dias)</option>
+                  <option value="VENCIDA">Vencidas (> 6 Meses)</option>
+                  <option value="EM_DIA">Em Dia</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Ações Rápidas:</label>
+                <div style="display:flex; gap:6px;">
+                  <button class="btn btn-secondary" onclick="toggleSelectAllVisible(true)" title="Marca apenas os aparelhos visíveis na tabela abaixo para ação em lote"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Marcar Visíveis</button>
+                  <button class="btn btn-secondary" onclick="resetAllFilters()" title="Limpa todos os filtros e desmarca seleções"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Limpar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BARRA CONTEXTUAL DE SELEÇÃO EM LOTE (SÓ APARECE QUANDO HÁ ITENS MARCADOS) -->
+          <div class="batch-bar" id="divContextualBatchBar">
+            <div class="batch-info">
+              <span id="lblSelectedCount">0 aparelho(s) selecionado(s)</span>
+              <button class="btn btn-secondary btn-sm" style="background:#1E293B; color:#CBD5E1; border-color:#475569;" onclick="clearAllEstoqueSelection()">Desmarcar Todos</button>
+            </div>
+            <div class="batch-actions">
+              <button class="btn btn-primary btn-sm" onclick="openBatchModal('ENVIAR_CLIENTE')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Enviar Lote p/ Hospital</button>
+              <button class="btn btn-secondary btn-sm" onclick="openBatchModal('DEVOLVER_ESTOQUE')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>Retornar p/ Estoque LYDA</button>
+              <button class="btn btn-secondary btn-sm" onclick="openBatchModal('MARCAR_ATUALIZADO_6M')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Marcar Lote Atualizado (6m)</button>
+              <button class="btn btn-secondary btn-sm" onclick="openRouteWithSelectedItems()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Criar Rota Google Maps</button>
+              <button class="btn btn-secondary btn-sm" onclick="generateRomaneioForSelected()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Romaneio A4</button>
+              <button class="btn btn-secondary btn-sm" onclick="openZebraWithEstoqueSelection()">Etiquetas Zebra</button>
+              <button class="btn btn-danger btn-sm admin-only" onclick="deleteSelectedItemsByAdmin()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Excluir</button>
+            </div>
+          </div>
+
+          <!-- BARRA RÁPIDA DE VISUALIZAÇÃO E CORES DAS LINHAS -->
+          <div class="row-color-legend">
+            <span class="rcl-title" id="lblEstoqueShowingCount">Mostrando 97 aparelhos:</span>
+            <span class="rcl-pill" style="background:#F1F5F9; color:#0F172A; border-color:#CBD5E1;" onclick="resetAllFilters()" title="Mostrar todos os aparelhos (Estoque LYDA + Hospitais)">
+              Todos
+            </span>
+            <span class="rcl-pill rcl-estoque" onclick="applyKpiQuickFilter('ESTOQUE')" title="Clique para ver todo o Estoque da LYDA (Novos + Usados + Backup)">
+              <span class="rcl-dot" style="background:#10B981;"></span> Estoque da LYDA (Verde)
+            </span>
+            <span class="rcl-pill rcl-estoque" onclick="applyKpiQuickFilter('ESTOQUE_NOVOS')" title="Clique para ver apenas o Estoque LYDA Novos">
+              Estoque Novos
+            </span>
+            <span class="rcl-pill rcl-estoque" onclick="applyKpiQuickFilter('ESTOQUE_USADOS')" title="Clique para ver apenas o Estoque LYDA Usados">
+              Estoque Usados
+            </span>
+            <span class="rcl-pill rcl-comodato" onclick="applyKpiQuickFilter('COMODATO')" title="Clique para filtrar Comodato / Aluguel em Hospitais">
+              <span class="rcl-dot" style="background:#0284C7;"></span> Comodato (Azul)
+            </span>
+            <span class="rcl-pill rcl-venda" onclick="applyKpiQuickFilter('VENDA')" title="Clique para filtrar Venda em Hospitais">
+              <span class="rcl-dot" style="background:#6366F1;"></span> Venda (Índigo)
+            </span>
+            <span class="rcl-pill rcl-defeito" onclick="applyKpiQuickFilter('DEFEITO')" title="Clique para filtrar Manutenção / Defeito">
+              <span class="rcl-dot" style="background:#E11D48;"></span> Manutenção / SP (Vermelho)
+            </span>
+          </div>
+
+          <!-- TABELA PRINCIPAL PADRONIZADA (8 COLUNAS SEM CORTE HORIZONTAL) -->
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:36px; text-align:center;">
+                    <input type="checkbox" id="chkHeaderAll" onchange="toggleSelectAllVisible(this.checked)" />
+                  </th>
+                  <th>Aparelho & Serial</th>
+                  <th>Hospital / Cliente & Setor</th>
+                  <th>Endereço & Cidade/UF</th>
+                  <th>Modalidade & Situação</th>
+                  <th>Ciclo de Atualização (6 em 6 Meses)</th>
+                  <th>Observações</th>
+                  <th style="text-align:right;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyItems"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ABA 2: RADAR DE ATUALIZAÇÕES SEMESTRAIS (6 EM 6 MESES)          -->
+        <!-- =============================================================== -->
+        <section id="tab-radar6m" class="tab-pane">
+          <div class="panel-card" style="border-left: 4px solid #D97706;">
+            <div class="section-title">
+              <span>Central de Monitoramento de Atualizações Semestrais (Ciclo de 6 em 6 Meses)</span>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="selectAllRadarVisible(true)">Marcar Todos desta Lista</button>
+                <button class="btn btn-secondary btn-sm" onclick="openBatchModal('MARCAR_ATUALIZADO_6M')">Registrar Atualização em Lote (6m)</button>
+                <button class="btn btn-primary btn-sm" onclick="createRouteFromRadarItems()">Gerar Rota Google Maps p/ Atualizar estes Aparelhos</button>
+              </div>
+            </div>
+            <p style="margin:0 0 12px 0; color:#475569; font-size:12px;">
+              Aqui ficam reunidos todos os aparelhos que estão <strong>perto de completar 6 meses (faltando 45 dias ou menos)</strong>, os que já <strong>passaram de 6 meses</strong>, os que estão <strong>na bancada do estoque aguardando atualização</strong> e os que ainda não possuem data base registrada. Clique em qualquer campo de data para abrir o calendário ou clique em <strong>Hoje (+6m)</strong>.
+            </p>
+
+            <!-- 4 CARDS DE FILTRO DO RADAR 6M -->
+            <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 12px;">
+              <div class="kpi-card kpi-accent-amber active-filter" id="radarCard-ALL_NEED" onclick="setRadarSubFilter('ALL_NEED')">
+                <div class="kpi-label"><span>Todos que Precisam Atenção</span></div>
+                <div class="kpi-value" id="valRadarAllNeed" style="color:#D97706;">0</div>
+                <div class="kpi-sub">Total pendente de atualização</div>
+              </div>
+              <div class="kpi-card kpi-accent-amber" id="radarCard-VENCENDO" onclick="setRadarSubFilter('VENCENDO')">
+                <div class="kpi-label"><span>Perto de Bater 6 Meses (<= 45d)</span></div>
+                <div class="kpi-value" id="valRadarVencendo" style="color:#B45309;">0</div>
+                <div class="kpi-sub">Aviso preventivo p/ agendar visita</div>
+              </div>
+              <div class="kpi-card kpi-accent-rose" id="radarCard-VENCIDA" onclick="setRadarSubFilter('VENCIDA')">
+                <div class="kpi-label"><span>Ciclo Vencido (> 6 Meses)</span></div>
+                <div class="kpi-value" id="valRadarVencida" style="color:#E11D48;">0</div>
+                <div class="kpi-sub">Prazo de 6 meses ultrapassado</div>
+              </div>
+              <div class="kpi-card kpi-accent-blue" id="radarCard-BANCADA" onclick="setRadarSubFilter('BANCADA')">
+                <div class="kpi-label"><span>No Estoque (Falta Atualizar)</span></div>
+                <div class="kpi-value" id="valRadarBancada" style="color:#2563EB;">0</div>
+                <div class="kpi-sub">Na bancada da LYDA aguardando CLEW</div>
+              </div>
+            </div>
+
+            <div class="filter-row" style="display:grid; grid-template-columns: 1.8fr 1fr; gap:10px;">
+              <div class="form-group">
+                <label>Buscar por Hospital, Cidade ou Serial:</label>
+                <input type="text" id="inpSearchRadar" placeholder="Filtrar aparelhos por hospital, cidade ou serial..." oninput="renderRadar6mTable()" />
+              </div>
+              <div class="form-group">
+                <label>Filtro de Situação Semestral:</label>
+                <select id="selRadarStatusFilter" onchange="setRadarSubFilter(this.value)">
+                  <option value="ALL_NEED">Mostrar: Todos que precisam de atualização</option>
+                  <option value="VENCENDO">Mostrar: Somente Perto de Bater 6 Meses (<= 45 dias)</option>
+                  <option value="VENCIDA">Mostrar: Somente Vencidos (> 6 Meses)</option>
+                  <option value="BANCADA">Mostrar: Somente No Estoque (Falta Atualizar)</option>
+                  <option value="SEM_DATA">Mostrar: Somente Sem Data Inicial Cadastrada</option>
+                  <option value="EM_DIA">Mostrar: Aparelhos Em Dia (6m OK)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:36px; text-align:center;">
+                    <input type="checkbox" id="chkRadarAll" onchange="selectAllRadarVisible(this.checked)" />
+                  </th>
+                  <th>Aparelho & Serial</th>
+                  <th>Hospital / Cliente & Cidade</th>
+                  <th>Endereço p/ Rota</th>
+                  <th>Progresso do Ciclo (6 Meses)</th>
+                  <th>Última Atualização (Calendário)</th>
+                  <th style="text-align:right;">Ações Rápidas</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyRadar6m"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ABA 3: CLIENTES & HOSPITAIS (LISTA 100% -> CLICA -> ABRE FICHA) -->
+        <!-- =============================================================== -->
+        <section id="tab-clientes" class="tab-pane">
+
+          <!-- VISTA 1: DIRETÓRIO DE CLIENTES EM 100% DA LARGURA (SEM VAZAR CONTEÚDO) -->
+          <div id="divClientsDirectoryView">
+            <div class="panel-card">
+              <div class="section-title">
+                <div>
+                  <span style="font-size:14px; font-weight:800;">Carteira de Hospitais & Clientes</span>
+                  <span style="font-size:12px; font-weight:500; color:var(--slate-500); margin-left:8px;" id="lblClientsTotalSub">Clique em qualquer hospital para abrir sua ficha cadastral e todos os aparelhos vinculados</span>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="prepareNewClientForm()">+ Novo Hospital / Cliente</button>
+              </div>
+
+              <div style="display:grid; grid-template-columns: 1.6fr auto; gap:12px; align-items:end;">
+                <div class="form-group">
+                  <label>Buscar por Nome do Hospital, Cidade, Endereço, Setor ou Serial de Aparelho:</label>
+                  <input
+                    type="text"
+                    id="inpSearchClient"
+                    placeholder="Digite o nome do hospital, cidade, endereço ou serial vinculado..."
+                    oninput="renderClientsList()"
+                  />
+                </div>
+                <div class="client-filter-pills" style="height:36px;">
+                  <button class="client-filter-pill active" id="btnCliFilter-ALL" onclick="setClientListFilter('ALL')">
+                    Todos <span id="cntCliFilterAll">0</span>
+                  </button>
+                  <button class="client-filter-pill" id="btnCliFilter-COMODATO" onclick="setClientListFilter('COMODATO')">
+                    Comodato <span id="cntCliFilterComodato">0</span>
+                  </button>
+                  <button class="client-filter-pill" id="btnCliFilter-VENDA" onclick="setClientListFilter('VENDA')">
+                    Venda <span id="cntCliFilterVenda">0</span>
+                  </button>
+                  <button class="client-filter-pill" id="btnCliFilter-WITH_ITEMS" onclick="setClientListFilter('WITH_ITEMS')">
+                    Com Aparelhos <span id="cntCliFilterWith">0</span>
+                  </button>
+                  <button class="client-filter-pill" id="btnCliFilter-PENDING_6M" onclick="setClientListFilter('PENDING_6M')">
+                    Pendentes 6m <span id="cntCliFilterPend">0</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Hospital / Clínica / Cliente</th>
+                    <th>Cidade / UF & Endereço</th>
+                    <th>Setores Atendidos</th>
+                    <th style="text-align:center;">Aparelhos Vinculados</th>
+                    <th style="text-align:center;">Ciclo 6 Meses</th>
+                    <th style="text-align:right;">Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyClientsDirectory"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- VISTA 2: FICHA DO HOSPITAL SELECIONADO + APARELHOS VINCULADOS (100% LARGURA AO CLICAR) -->
+          <div id="divClientDetailView" style="display:none;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+              <button class="btn btn-secondary" onclick="backToClientsDirectory()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span>Voltar para Carteira de Clientes</span>
+              </button>
+              <div style="font-size:12px; color:var(--slate-500); font-weight:600;">
+                Visualizando Cadastro & Equipamentos do Cliente
+              </div>
+            </div>
+
+            <!-- 1. HERO CARD DO HOSPITAL SELECIONADO -->
+            <div class="client-hero-card" style="margin-bottom:14px;">
+              <div class="client-hero-top">
+                <div class="client-hero-identity">
+                  <div class="client-hero-avatar" id="divHeroClientInitials">H</div>
+                  <div style="min-width:0; flex:1;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                      <h2 class="client-hero-name" id="lblHeroClientName">Selecione um Hospital / Cliente</h2>
+                      <span class="badge badge-ana" id="badgeHeroClientCity">RS</span>
+                    </div>
+                    <div class="client-hero-meta" id="divHeroClientMeta">
+                      Endereço e informações de contato do hospital aparecerão aqui.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="client-hero-actions">
+                  <button class="btn btn-secondary btn-sm" id="btnToggleClientEdit" onclick="toggleClientEditDrawer()">
+                    Editar Cadastro & Endereço
+                  </button>
+                  <button class="btn btn-secondary btn-sm" onclick="openSelectedClientInGoogleMaps()">
+                    Ver no Google Maps
+                  </button>
+                  <button class="btn btn-secondary btn-sm" onclick="generateRomaneioForSelectedClient()">
+                    Romaneio A4
+                  </button>
+                  <button class="btn btn-primary btn-sm" onclick="createRouteForSelectedClient()">
+                    Criar Rota p/ este Hospital
+                  </button>
+                </div>
+              </div>
+
+              <!-- 4 MINI-KPIS DO HOSPITAL SELECIONADO -->
+              <div class="client-mini-kpis">
+                <div class="client-mini-kpi">
+                  <span class="cmk-label">Total de Aparelhos no Local</span>
+                  <strong class="cmk-val" id="valCliKpiTotal">0</strong>
+                  <span class="cmk-sub" id="subCliKpiTypes">Nenhum aparelho vinculado</span>
+                </div>
+                <div class="client-mini-kpi">
+                  <span class="cmk-label">Modalidade & Setores</span>
+                  <strong class="cmk-val" id="valCliKpiModalidade" style="font-size:14px;">-</strong>
+                  <span class="cmk-sub" id="subCliKpiSetores">Setores atendidos</span>
+                </div>
+                <div class="client-mini-kpi">
+                  <span class="cmk-label">Ciclo 6 Meses Em Dia</span>
+                  <strong class="cmk-val" id="valCliKpiOk" style="color:var(--emerald);">0</strong>
+                  <span class="cmk-sub">Atualizados nos últimos 6m</span>
+                </div>
+                <div class="client-mini-kpi">
+                  <span class="cmk-label">Precisam Atualização (6m)</span>
+                  <strong class="cmk-val" id="valCliKpiPend" style="color:var(--amber);">0</strong>
+                  <span class="cmk-sub" id="subCliKpiPend">Perto de 6m, vencidos ou s/ data</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. FORMULÁRIO DE CADASTRO & ENDEREÇO DO HOSPITAL -->
+            <div class="panel-card client-edit-drawer" id="divClientEditDrawer" style="display:none;">
+              <div class="section-title">
+                <span id="lblClientFormTitle">Dados Cadastrais & Endereço do Hospital / Cliente</span>
+                <div style="display:flex; gap:6px;">
+                  <button class="btn btn-danger btn-sm admin-only" onclick="deleteSelectedClient()">Excluir Cliente</button>
+                  <button class="btn btn-secondary btn-sm" onclick="toggleClientEditDrawer(false)">Recolher Cadastro</button>
+                </div>
+              </div>
+
+              <input type="hidden" id="hidClientOldName" value="" />
+              <div class="form-grid-3">
+                <div class="form-group" style="grid-column: span 2;">
+                  <label>Nome do Hospital / Clínica / Cliente:</label>
+                  <input type="text" id="inpCliNome" placeholder="Ex: HOSPITAL DE CLINICAS DE PORTO ALEGRE" />
+                </div>
+                <div class="form-group">
+                  <label>CNPJ (opcional):</label>
+                  <input type="text" id="inpCliCnpj" placeholder="00.000.000/0001-00" />
+                </div>
+              </div>
+
+              <div class="form-grid-4">
+                <div class="form-group" style="grid-column: span 2;">
+                  <label>Endereço Completo (Rua, Número, Bairro — usado na Rota Google Maps):</label>
+                  <input type="text" id="inpCliEndereco" placeholder="Ex: Rua Ramiro Barcelos, 2350 - Santa Cecília" />
+                </div>
+                <div class="form-group">
+                  <label>CEP:</label>
+                  <div style="display:flex; gap:6px;">
+                    <input type="text" id="inpCliCep" placeholder="90035-903" style="width:100%;" />
+                    <button class="btn btn-secondary btn-sm" onclick="lookupCepIntoFields('inpCliCep','inpCliEndereco','inpCliCidade','inpCliUf')">Buscar CEP</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Cidade / UF:</label>
+                  <div style="display:flex; gap:6px;">
+                    <input type="text" id="inpCliCidade" placeholder="PORTO ALEGRE" style="flex:1;" />
+                    <input type="text" id="inpCliUf" placeholder="RS" style="width:58px; text-align:center;" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-grid-4">
+                <div class="form-group">
+                  <label>Setores Atendidos:</label>
+                  <input type="text" id="inpCliSetores" placeholder="Ex: UTI, Emergência, Laboratório" />
+                </div>
+                <div class="form-group">
+                  <label>Responsável / Contato no Hospital:</label>
+                  <input type="text" id="inpCliContato" placeholder="Ex: Enf. Maria / Engenharia Clínica" />
+                </div>
+                <div class="form-group">
+                  <label>Telefone / WhatsApp:</label>
+                  <input type="text" id="inpCliTelefone" placeholder="(51) 99999-0000" />
+                </div>
+                <div class="form-group">
+                  <label>E-mail:</label>
+                  <input type="text" id="inpCliEmail" placeholder="contato@hospital.com.br" />
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label>Observações do Cliente (Horário de visita, portaria, regras de acesso para a enfermeira):</label>
+                <input type="text" id="inpCliObs" placeholder="Ex: Entrar pela portaria da Engenharia Clínica das 08h às 17h..." />
+              </div>
+
+              <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn btn-secondary" onclick="toggleClientEditDrawer(false)">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveClientRecord()">Salvar Cadastro do Hospital</button>
+              </div>
+            </div>
+
+            <!-- 3. APARELHOS i-STAT VINCULADOS A ESTE HOSPITAL (100% LARGURA SEM CORTES) -->
+            <div class="panel-card" style="margin-bottom:0;">
+              <div class="section-title">
+                <span id="lblClientLinkedTitle">Aparelhos i-STAT Vinculados a este Hospital (0)</span>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button class="btn btn-primary btn-sm" onclick="toggleQuickLinkStockBar()">+ Vincular Aparelho do Estoque</button>
+                  <button class="btn btn-secondary btn-sm" onclick="markAllClientItemsUpdated6m()">Marcar Todos Atualizados (6m)</button>
+                </div>
+              </div>
+
+              <!-- BARRA INLINE DE VÍNCULO RÁPIDO DE APARELHO DO ESTOQUE -->
+              <div id="divQuickLinkStockBar" style="display:none; background:var(--primary-soft); border:1px solid var(--primary-border); border-radius:8px; padding:12px; margin-bottom:12px;">
+                <div style="font-size:11.5px; font-weight:800; color:#1E3A8A; margin-bottom:8px;">
+                  Vincular / Enviar Aparelho do Estoque da LYDA para este Hospital:
+                </div>
+                <div class="form-grid-4" style="margin-bottom:0;">
+                  <div class="form-group" style="grid-column: span 2;">
+                    <label>Escolher Aparelho do Estoque (ou digite o Serial):</label>
+                    <input type="text" id="inpQuickLinkSerial" list="dlStockAvailableItems" placeholder="Selecione da lista ou bipe o serial..." />
+                    <datalist id="dlStockAvailableItems"></datalist>
+                  </div>
+                  <div class="form-group">
+                    <label>Setor no Hospital & Modalidade:</label>
+                    <div style="display:flex; gap:6px;">
+                      <input type="text" id="inpQuickLinkSetor" placeholder="Ex: UTI / LAB" style="flex:1;" />
+                      <select id="selQuickLinkModalidade" style="width:125px;">
+                        <option value="COMODATO">COMODATO</option>
+                        <option value="VENDA">VENDA</option>
+                        <option value="ALUGUEL">ALUGUEL</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>&nbsp;</label>
+                    <div style="display:flex; gap:6px;">
+                      <button class="btn btn-primary" style="flex:1;" onclick="confirmQuickLinkStockToClient()">Vincular Agora</button>
+                      <button class="btn btn-secondary" onclick="toggleQuickLinkStockBar(false)">Fechar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Aparelho & Serial</th>
+                      <th>Setor & Modalidade</th>
+                      <th>Ciclo de Atualização (6 Meses)</th>
+                      <th>Atualizar Data Rápido (6m)</th>
+                      <th>Observações</th>
+                      <th style="text-align:right;">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyClientLinkedItems"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ABA 4: ROTA DA ENFERMEIRA (PARADAS EM CIMA + MAPA ABAIXO)       -->
+        <!-- =============================================================== -->
+        <section id="tab-rota" class="tab-pane">
+          <div class="panel-card">
+            <div class="section-title">
+              <span>1. Partida (Sede da LYDA), Enfermeira Responsável, Data e Instruções da Rota</span>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="markAllRouteItemsUpdated6m()">Marcar Aparelhos Atualizados (6m)</button>
+                <button class="btn btn-secondary btn-sm" onclick="copyRouteWhatsappText()">Copiar Roteiro + Link (WhatsApp)</button>
+                <button class="btn btn-secondary btn-sm" onclick="openFullRouteInGoogleMaps()">Abrir no Google Maps</button>
+                <button class="btn btn-primary btn-sm" onclick="downloadOfficialRoutePdf()">Gerar PDF da Rota + Copiar Link Maps</button>
+              </div>
+            </div>
+
+            <div class="form-grid-4">
+              <div class="form-group" style="grid-column: span 2;">
+                <label>Ponto de Partida (Endereço da Sede da LYDA):</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="inpRouteOrigin" style="width:100%;" />
+                  <button class="btn btn-secondary btn-sm" onclick="saveLydaHqFromRoute()">Salvar Sede</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Enfermeira(o) Responsável:</label>
+                <select id="selRouteNurse"></select>
+              </div>
+              <div class="form-group">
+                <label>Data da Rota (Calendário):</label>
+                <input type="text" id="inpRouteDate" class="date-input-br" data-datepicker="br" placeholder="DD/MM/AAAA" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="form-grid-3" style="margin-bottom:0;">
+              <div class="form-group">
+                <label>Pacote / Motivo da Visita (ex: CLEW Semestral):</label>
+                <input type="text" id="inpRouteVersion" value="Atualização Semestral i-STAT (CLEW / JAMS)" />
+              </div>
+              <div class="form-group">
+                <label>Observações / Instruções p/ Enfermeira (vai no PDF e WhatsApp):</label>
+                <input type="text" id="inpRouteObs" placeholder="Ex: Levar cabo Downloader, pendrive CLEW e etiquetas de verificação..." />
+              </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; height:36px; margin:0; font-size:12px;">
+                  <input type="checkbox" id="chkRouteCircular" checked onchange="recalculateCurrentRoute(false)" />
+                  <span>Retornar à Sede da LYDA no final (Rota Circular)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. PARADAS DA ROTA EM 100% DA LARGURA (SEM CORTAR TABELA) -->
+          <div class="panel-card">
+            <div class="section-title">
+              <span>2. Paradas da Rota (Hospitais / Clínicas que a Enfermeira vai visitar)</span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="loadRouteFromMode('FROM_INDICES')">Carregar Marcados</button>
+                <button class="btn btn-secondary btn-sm" onclick="loadRouteFromMode('PENDING_6M')">Carregar Pendentes (6m)</button>
+                <button class="btn btn-secondary btn-sm" onclick="loadRouteFromMode('ALL_ACTIVE')">Todos Ativos</button>
+                <button class="btn btn-primary btn-sm" onclick="recalculateCurrentRoute(true)">Otimizar Ordem (Mais Próximos 1º)</button>
+                <button class="btn btn-danger btn-sm" onclick="clearRouteStops()">Limpar</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center; margin-bottom:10px;">
+              <select id="selRouteAddClient"></select>
+              <button class="btn btn-secondary" onclick="addClientStopToRoute()">+ Incluir Hospital na Rota</button>
+            </div>
+
+            <div class="table-wrap" style="max-height: 310px; margin-bottom:10px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width:50px;">Parada</th>
+                    <th>Hospital / Clínica</th>
+                    <th>Endereço Completo</th>
+                    <th>Trecho Maps</th>
+                    <th style="text-align:center;">Aparelhos</th>
+                    <th>Seriais neste Local</th>
+                    <th style="text-align:right;">Ordem / Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyRouteStops"></tbody>
+              </table>
+            </div>
+
+            <div style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:8px; padding:10px;">
+              <div style="font-size:11px; font-weight:800; color:var(--slate-900); margin-bottom:6px;" id="lblEditStopTitle">
+                Editar Endereço da Parada Selecionada (salva também no cadastro do Hospital):
+              </div>
+              <div class="form-grid-4" style="margin-bottom:0;">
+                <div class="form-group" style="grid-column: span 2;">
+                  <input type="text" id="inpStopAddr" placeholder="Rua, Número, Bairro" />
+                </div>
+                <div class="form-group">
+                  <div style="display:flex; gap:6px;">
+                    <input type="text" id="inpStopCep" placeholder="CEP" style="width:100%;" />
+                    <button class="btn btn-secondary btn-sm" onclick="lookupStopCep()">CEP</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <button class="btn btn-primary" style="width:100%;" onclick="saveSelectedStopAddress()">Atualizar Endereço da Parada</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:10px; background:var(--primary-soft); border:1px solid var(--primary-border); border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:11.5px; color:#1E3A8A; white-space:nowrap;">Link Google Maps:</strong>
+              <input type="text" id="inpRouteGoogleMapsUrl" readonly style="flex:1; background:#FFFFFF; font-size:11.5px;" />
+              <button class="btn btn-primary btn-sm" onclick="copyOnlyGoogleMapsUrl()">Copiar Link</button>
+            </div>
+          </div>
+
+          <!-- 3. MAPA GOOGLE MAPS INTERATIVO ABAIXO DAS PARADAS (AMPLO E SEM VAZAR) -->
+          <div class="panel-card" style="margin-bottom:0;">
+            <div class="section-title">
+              <span id="lblRouteMetricsBanner">3. Google Maps Interativo da Rota (Ruas, Satélite & Trajeto)</span>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-secondary btn-sm" onclick="setGoogleMapsTileLayer('m')">Mapa Ruas</button>
+                <button class="btn btn-secondary btn-sm" onclick="setGoogleMapsTileLayer('y')">Satélite</button>
+                <button class="btn btn-secondary btn-sm" onclick="fitRouteMapBounds()">Enquadrar Trajeto</button>
+              </div>
+            </div>
+
+            <div class="route-map-bottom-grid">
+              <div id="routeMapContainer"></div>
+
+              <div style="display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
+                <div style="display:flex; flex-direction:column; flex:1;">
+                  <div style="font-size:11.5px; font-weight:800; color:var(--slate-900); margin-bottom:6px;">
+                    Roteiro Completo + Link Google Maps (Pronto p/ WhatsApp):
+                  </div>
+                  <textarea id="txtRouteWhatsappPreview" rows="10" readonly style="width:100%; flex:1; font-family:monospace; font-size:11px; background:var(--slate-50); resize:vertical;"></textarea>
+                </div>
+                <div style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:8px; padding:10px; display:flex; align-items:center; gap:12px;">
+                  <img id="imgRouteQrCode" src="" alt="QR Code Google Maps" style="width:96px; height:96px; border:1px solid var(--slate-200); background:#FFFFFF; border-radius:6px; flex-shrink:0;" />
+                  <div>
+                    <div style="font-size:11px; font-weight:800; color:var(--primary); margin-bottom:3px;">QR CODE GOOGLE MAPS</div>
+                    <div style="font-size:11px; color:var(--slate-600); line-height:1.35;">Aponte a câmera do celular da enfermeira para abrir a rota completa direto no aplicativo Google Maps.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ABA 5: IMPRESSÃO DE ETIQUETAS ZEBRA ZD230 & CONFIGURAÇÃO FÁCIL  -->
+        <!-- =============================================================== -->
+        <section id="tab-etiquetas" class="tab-pane">
+
+          <!-- BARRA SUPERIOR DE COMANDO RÁPIDO: PAPEL + IMPRESSORA + BOTÃO IMPRIMIR -->
+          <div class="panel-card zebra-top-command-card">
+            <div class="zebra-top-header">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="zebra-printer-badge">ZEBRA ZD230</span>
+                  <h2 style="margin:0; font-size:15px; font-weight:800; color:var(--slate-900);">Central de Impressão de Etiquetas Térmicas — LYDA i-STAT</h2>
+                </div>
+                <div style="font-size:11.5px; color:var(--slate-500); margin-top:2px;">
+                  Escolha abaixo quais aparelhos imprimir (todos, só estoque ou por hospital), confira a prévia de <strong>todas as folhas</strong> ao lado e envie para a Zebra ZD230.
+                </div>
+              </div>
+
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnToggleZebraAdv" onclick="toggleZebraAdvancedDrawer()">
+                  Ajustes Finos (Medidas mm / Impressora / ZPL)
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="printVisualLabelsInBrowser()">
+                  Imprimir / Salvar PDF no Navegador
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" style="height:36px; padding:0 14px; font-weight:800;" onclick="downloadZebraPrnFile(null, 'prn')">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span id="lblZebraTopPrnBtn">Baixar Arquivo .PRN</span>
+                </button>
+                <button type="button" class="btn btn-zebra-green" style="width:auto; height:36px; padding:0 16px;" onclick="printZebraForSelected(false)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  <span id="lblZebraTopPrintBtn">Imprimir Selecionados na Zebra ZD230</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- LINHA DIRETA E INTUITIVA: ESCOLHA DO PAPEL + OPÇÕES DA ETIQUETA -->
+            <div class="zebra-quick-config-bar">
+              <div class="form-group" style="min-width:290px; flex:1.4;">
+                <label>1. Qual Papel Está na Impressora Zebra ZD230?</label>
+                <select id="selZebraPresetDropdown" onchange="onZebraPresetDropdownChange(this.value)">
+                  <optgroup label="HOJE — Bobina Grande na Zebra ZD230 (Com Contorno p/ Recortar na Tesoura)">
+                    <option value="BOBINA_100x150_2x5" selected>Bobina Grande 100×150 mm → 10 Mini-Etiquetas (2 col × 5 lin • 46×27 mm)</option>
+                    <option value="BOBINA_100x150_2x6">Bobina Grande 100×150 mm → 12 Mini-Etiquetas (2 col × 6 lin • 46×22 mm)</option>
+                    <option value="BOBINA_100x150_3x6">Bobina Grande 100×150 mm → 18 Mini-Etiquetas (3 col × 6 lin • 30×22 mm)</option>
+                    <option value="BOBINA_100x100_2x4">Bobina Média 100×100 mm → 8 Mini-Etiquetas (2 col × 4 lin • 46×22 mm)</option>
+                  </optgroup>
+                  <optgroup label="QUANDO MUDAR O PAPEL — Etiquetas Menores (Sem Recortar)">
+                    <option value="DUPLA_100x25_2x1">Carreira Dupla 100×25 mm → 2 Etiquetas 50×25 mm lado a lado</option>
+                    <option value="INDIV_50x25_1x1">Etiqueta Individual Pequena 50×25 mm (1 por vez)</option>
+                    <option value="INDIV_60x40_1x1">Etiqueta Individual Média 60×40 mm (1 por vez)</option>
+                    <option value="KIT_100x60_2x2">Kit i-STAT 100×60 mm → 4 Mini-Etiquetas (2 col × 2 lin)</option>
+                  </optgroup>
+                  <optgroup label="Personalizado">
+                    <option value="CUSTOM">Medidas Personalizadas em Milímetros (Editar em Ajustes Finos)...</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              <div class="zebra-inline-toggles">
+                <label class="zebra-pill-check">
+                  <input type="checkbox" id="chkZebraShowLogo" checked onchange="renderZebraVisualPreview()" />
+                  <span>Logo da LYDA</span>
+                </label>
+                <label class="zebra-pill-check">
+                  <input type="checkbox" id="chkZebraDrawBorder" checked onchange="renderZebraVisualPreview()" />
+                  <span>Contorno Preto p/ Recortar</span>
+                </label>
+                <label class="zebra-pill-check">
+                  <input type="checkbox" id="chkZebraCutMarks" checked onchange="renderZebraVisualPreview()" />
+                  <span>Guias de Tesoura</span>
+                </label>
+                <label class="zebra-pill-check">
+                  <input type="checkbox" id="chkZebraShowLocation" checked onchange="syncLocationCheckboxes('left')" />
+                  <span>Mostrar Local / Hospital</span>
+                </label>
+              </div>
+
+              <div class="form-group" style="width:155px; flex-shrink:0;">
+                <label title="Se a 1ª folha da bobina já teve algumas etiquetas recortadas, pule essas posições">Pular Já Usadas (1ª Folha):</label>
+                <input type="number" id="inpZebraSkip" value="0" min="0" max="24" step="1" oninput="renderZebraVisualPreview()" />
+              </div>
+            </div>
+
+            <!-- GAVETA RECOLHÍVEL: AJUSTES FINOS DE MEDIDAS (MM), IMPRESSORA ZEBRA & CÓDIGO ZPL -->
+            <div id="divZebraAdvancedDrawer" class="zebra-advanced-drawer" style="display:none;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--slate-200);">
+                <strong style="font-size:12px; color:var(--slate-900);">Ajustes Finos de Medidas do Papel (mm), Conteúdo, Impressora Zebra ZD230 e Código ZPL</strong>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="saveZebraDefaultConfig()">Salvar como Padrão da LYDA</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="toggleZebraAdvancedDrawer(false)">Fechar Ajustes</button>
+                </div>
+              </div>
+
+              <div class="form-grid-4" style="margin-bottom:10px;">
+                <div class="form-group">
+                  <label>Largura do Papel (mm):</label>
+                  <input type="number" id="inpZebraBigW" value="100" min="25" max="200" step="1" oninput="onZebraManualDimensionChange()" />
+                </div>
+                <div class="form-group">
+                  <label>Altura do Papel (mm):</label>
+                  <input type="number" id="inpZebraBigH" value="150" min="15" max="300" step="1" oninput="onZebraManualDimensionChange()" />
+                </div>
+                <div class="form-group">
+                  <label>Colunas (Lado a Lado):</label>
+                  <input type="number" id="inpZebraCols" value="2" min="1" max="5" step="1" oninput="onZebraManualDimensionChange()" />
+                </div>
+                <div class="form-group">
+                  <label>Linhas (Por Folha):</label>
+                  <input type="number" id="inpZebraRows" value="5" min="1" max="12" step="1" oninput="onZebraManualDimensionChange()" />
+                </div>
+              </div>
+
+              <div class="form-grid-4" style="margin-bottom:10px;">
+                <div class="form-group">
+                  <label>Espaço Horiz. (mm):</label>
+                  <input type="number" id="inpZebraGapH" value="2.0" min="0" max="15" step="0.5" oninput="renderZebraVisualPreview()" />
+                </div>
+                <div class="form-group">
+                  <label>Espaço Vert. (mm):</label>
+                  <input type="number" id="inpZebraGapV" value="2.0" min="0" max="15" step="0.5" oninput="renderZebraVisualPreview()" />
+                </div>
+                <div class="form-group">
+                  <label>Margem da Folha (mm):</label>
+                  <input type="number" id="inpZebraMargin" value="3.0" min="0" max="20" step="0.5" oninput="renderZebraVisualPreview()" />
+                </div>
+                <div class="form-group">
+                  <label>Cópias por Aparelho:</label>
+                  <input type="number" id="inpZebraCopies" value="1" min="1" max="10" step="1" oninput="renderZebraVisualPreview()" />
+                </div>
+              </div>
+
+              <div class="form-grid-4" style="margin-bottom:10px;">
+                <div class="form-group">
+                  <label>Texto ao Lado da Logo:</label>
+                  <input type="text" id="inpZebraHeaderText" value="i-STAT" oninput="renderZebraVisualPreview()" />
+                </div>
+                <div class="form-group">
+                  <label>Altura da Logo LYDA (dots):</label>
+                  <input type="number" id="inpZebraLogoDots" value="26" min="14" max="55" step="2" oninput="renderZebraVisualPreview()" />
+                </div>
+                <div class="form-group">
+                  <label>Tipo de Código:</label>
+                  <select id="selZebraBarcodeType" onchange="renderZebraVisualPreview()">
+                    <option value="CODE128" selected>Barras (CODE-128)</option>
+                    <option value="QRCODE">QR Code 2D</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Altura das Barras (mm):</label>
+                  <input type="number" id="inpZebraBarcodeH" value="10" min="5" max="25" step="1" oninput="renderZebraVisualPreview()" />
+                </div>
+              </div>
+
+              <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; cursor:pointer;">
+                  <input type="checkbox" id="chkZebraShowEq" checked onchange="renderZebraVisualPreview()" />
+                  <span>Mostrar Linha Tipo (EQ: ANALISADOR)</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; cursor:pointer;">
+                  <input type="checkbox" id="chkZebraShowSn" checked onchange="renderZebraVisualPreview()" />
+                  <span>Mostrar Linha Serial (SN: 426086)</span>
+                </label>
+              </div>
+
+              <div class="form-grid-4" style="margin-bottom:10px;">
+                <div class="form-group">
+                  <label>Conexão Zebra ZD230:</label>
+                  <select id="selZebraConnMode" onchange="onZebraConnModeChange()">
+                    <option value="USB_DRIVER" selected>Cabo USB / Driver</option>
+                    <option value="TCP_IP">Rede TCP/IP (9100)</option>
+                  </select>
+                </div>
+                <div class="form-group" id="grpZebraUsbPrinter">
+                  <label>Impressora Detectada:</label>
+                  <div style="display:flex; gap:4px;">
+                    <select id="selZebraPrinter" style="flex:1;"></select>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="refreshZebraPrintersList()" title="Atualizar lista de impressoras">↻</button>
+                  </div>
+                </div>
+                <div class="form-group" id="grpZebraTcpIp" style="display:none;">
+                  <label>IP & Porta RAW:</label>
+                  <div style="display:flex; gap:4px;">
+                    <input type="text" id="inpZebraIp" value="192.168.0.200" style="flex:1;" />
+                    <input type="number" id="inpZebraPort" value="9100" style="width:75px;" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Escuridão (5-30) / Veloc.:</label>
+                  <div style="display:flex; gap:6px;">
+                    <input type="number" id="inpZebraDarkness" value="18" min="5" max="30" step="1" title="Escuridão térmica" />
+                    <input type="number" id="inpZebraSpeed" value="4" min="2" max="6" step="1" title="Velocidade" />
+                    <select id="selZebraDpi" style="width:95px;">
+                      <option value="203" selected>203 DPI</option>
+                      <option value="300">300 DPI</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                  <label style="font-size:11px; font-weight:800; color:var(--slate-700);">Código ZPL II Gerado (Zebra Programming Language c/ Logo ^GFA):</label>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="previewZplForSelected()">Gerar / Atualizar ZPL</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('txtZplPreview').value); showToast('Código ZPL copiado!','success');">Copiar ZPL</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="downloadZebraPrnFile(null, 'prn')">Baixar Arquivo .PRN</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="downloadZebraPrnFile(null, 'zpl')">Baixar .ZPL</button>
+                  </div>
+                </div>
+                <textarea id="txtZplPreview" rows="4" style="width:100%; font-family:monospace; font-size:11px; background:#FFFFFF;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- GRADE PRINCIPAL: ESQUERDA (SELEÇÃO FÁCIL DE APARELHOS) + DIREITA (PRÉVIA DE TODAS AS FOLHAS) -->
+          <div class="zebra-studio-grid">
+
+            <!-- ========================================================= -->
+            <!-- COLUNA ESQUERDA: SELECIONAR QUAIS APARELHOS IMPRIMIR       -->
+            <!-- ========================================================= -->
+            <div class="zebra-studio-left">
+              <div class="panel-card" style="margin-bottom:0;">
+                <div class="section-title" style="margin-bottom:10px;">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span>Selecionar Aparelhos para Imprimir</span>
+                    <span class="badge badge-em-dia" id="badgeZebraQueueCount">0 selecionados</span>
+                  </div>
+                </div>
+
+                <!-- BOTÕES DE SELEÇÃO EM 1 CLIQUE (TODOS / ESTOQUE / HOSPITAIS / MANUTENÇÃO / COMODATO / VENDA / LIMPAR) -->
+                <div class="zebra-quick-select-grid">
+                  <button type="button" class="zebra-qsel-btn primary" onclick="selectZebraPresetGroup('ALL')">
+                    <strong id="lblBtnZebraAllCount">Todos os Aparelhos (97)</strong>
+                    <span>Selecionar todo o cadastro</span>
+                  </button>
+                  <button type="button" class="zebra-qsel-btn emerald" onclick="selectZebraPresetGroup('ESTOQUE')">
+                    <strong id="lblBtnZebraStockCount">Só Estoque LYDA (41)</strong>
+                    <span>Disponíveis na sede</span>
+                  </button>
+                  <button type="button" class="zebra-qsel-btn sky" onclick="selectZebraPresetGroup('HOSPITAIS')">
+                    <strong id="lblBtnZebraHospCount">Só em Hospitais (48)</strong>
+                    <span>Em operação externa</span>
+                  </button>
+                  <button type="button" class="zebra-qsel-btn rose" onclick="selectZebraPresetGroup('MANUTENCAO')">
+                    <strong id="lblBtnZebraMaintCount">Em Manutenção / SP (8)</strong>
+                    <span>Em reparo ou assistência</span>
+                  </button>
+                  <button type="button" class="zebra-qsel-btn sky" onclick="selectZebraPresetGroup('COMODATO')">
+                    <strong id="lblBtnZebraComodatoCount">Só Comodato (16)</strong>
+                    <span>Patrimônio LYDA em hospitais</span>
+                  </button>
+                  <button type="button" class="zebra-qsel-btn purple" onclick="selectZebraPresetGroup('VENDA')">
+                    <strong id="lblBtnZebraVendaCount">Só Venda (38)</strong>
+                    <span>Equipamentos vendidos</span>
+                  </button>
+                  <button type="button" class="zebra-qsel-btn neutral" style="grid-column: span 2;" onclick="clearZebraQueue()">
+                    <strong>Desmarcar Todos</strong>
+                    <span>Zerar seleção atual</span>
+                  </button>
+                </div>
+
+                <!-- FILTRO RÁPIDO NA LISTA DE APARELHOS -->
+                <div class="zebra-list-filters">
+                  <input type="text" id="inpZebraFilterSearch" placeholder="Buscar por serial, hospital ou setor..." oninput="renderZebraItemsChecklist()" />
+                  <div style="display:grid; grid-template-columns: 1fr 1.3fr auto; gap:6px;">
+                    <select id="selZebraFilterTipo" onchange="renderZebraItemsChecklist()">
+                      <option value="TODOS">Todos os Tipos</option>
+                      <option value="ANALISADOR">Só Analisadores</option>
+                      <option value="IMPRESSORA">Só Impressoras</option>
+                      <option value="SIMULADOR">Só Simuladores</option>
+                      <option value="DOWNLOADER">Só Downloaders</option>
+                    </select>
+                    <select id="selZebraFilterLocal" onchange="renderZebraItemsChecklist()">
+                      <option value="TODOS">Todos os Locais / Hospitais</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="selectAllVisibleInZebraChecklist()" title="Marcar todos os aparelhos visíveis neste filtro">
+                      Marcar Filtro
+                    </button>
+                  </div>
+                </div>
+
+                <!-- TABELA CHECKLIST DIRETA DE APARELHOS (MARQUE/DESMARQUE COM 1 CLIQUE) -->
+                <div class="table-wrap zebra-checklist-wrap">
+                  <table class="data-table zebra-checklist-table">
+                    <thead>
+                      <tr>
+                        <th style="width:36px; text-align:center;">
+                          <input type="checkbox" id="chkZebraMasterAll" onchange="toggleZebraChecklistMaster(this.checked)" title="Marcar/Desmarcar visíveis" />
+                        </th>
+                        <th>Serial</th>
+                        <th>Tipo</th>
+                        <th>Local / Hospital Atual</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbodyZebraChecklist"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- COLUNA DIREITA: PRÉ-VISUALIZAÇÃO COMPLETA DE TODAS FOLHAS -->
+            <!-- ========================================================= -->
+            <div class="zebra-studio-right">
+
+              <!-- CABEÇALHO DO PREVIEW + SELETOR DE FOLHAS (TODAS OU INDIVIDUAL) -->
+              <div class="zebra-roller-header">
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="zebra-printer-badge">PRÉVIA REAL ZEBRA ZD230</span>
+                    <span style="font-size:13px; font-weight:800; color:#FFFFFF;" id="lblZebraPreviewHeaderTitle">Pré-Visualização das Folhas na Bobina</span>
+                  </div>
+                  <div id="lblZebraRollerDims" style="font-size:11.5px; color:#CBD5E1; margin-top:2px;">
+                    Papel: 100×150 mm | Grade: 2×5 (10 mini-etiquetas de 46.0×27.2 mm por folha)
+                  </div>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <div class="zebra-page-nav" id="divZebraSheetTabs"></div>
+                </div>
+              </div>
+
+              <!-- BARRA DE RESUMO DO CÁLCULO E DICA DE RECORTE -->
+              <div class="zebra-preview-quickbar">
+                <div id="divZebraCalcBanner" style="font-size:11.5px; font-weight:800; color:#1E3A8A;">
+                  Cada Folha da Bobina (100×150 mm) imprime 10 mini-etiquetas de 46.0 × 27.2 mm com contorno para recortar.
+                </div>
+                <div id="lblZebraSelectionSummary" style="font-size:11px; font-weight:700; color:#334155;">
+                  Clique em qualquer posição da 1ª folha se quiser pular etiquetas já destacadas.
+                </div>
+              </div>
+
+              <!-- PALCO ROLÁVEL MOSTRANDO TODAS AS FOLHAS E TODAS AS ETIQUETAS (SEM CORTAR NADA!) -->
+              <div class="zebra-platen-stage" id="divZebraVisualPreview"></div>
+
+              <!-- RODAPÉ DE IMPRESSÃO RÁPIDA & DOWNLOAD .PRN -->
+              <div class="zebra-preview-footer">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                  <button type="button" class="btn btn-amber" style="width:100%; justify-content:center; font-weight:800;" onclick="printZebraForSelected(true)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    <span>Imprimir 1 Folha de Teste (1ª Folha)</span>
+                  </button>
+
+                  <button type="button" class="btn btn-primary" style="width:100%; justify-content:center; font-weight:800;" onclick="downloadZebraPrnFile(null, 'prn')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span id="lblZebraFooterPrnBtn">Baixar Arquivo .PRN das Etiquetas</span>
+                  </button>
+                </div>
+
+                <button type="button" class="btn btn-zebra-green" id="btnZebraPrintAllMain" onclick="printZebraForSelected(false)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  <span id="lblZebraPrintBtnText">IMPRIMIR TODAS AS ETIQUETAS SELECIONADAS NA ZEBRA ZD230</span>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ABA 6: GESTÃO DE USUÁRIOS, PERFIS & AUDITORIA DE LOGS (ADMIN)   -->
+        <!-- =============================================================== -->
+        <section id="tab-admin" class="tab-pane">
+          <div class="route-split">
+            <div>
+              <div class="panel-card">
+                <div class="section-title">
+                  <span id="lblAdminUserFormTitle">Criar Novo Usuário / Operador</span>
+                  <button class="btn btn-secondary btn-sm" onclick="prepareNewAdminUserForm()">Limpar / Novo Usuário</button>
+                </div>
+
+                <div class="form-grid-3">
+                  <div class="form-group">
+                    <label>Login de Acesso (sem espaços):</label>
+                    <input type="text" id="inpAdmUsername" placeholder="Ex: maria, joao, enf2..." />
+                  </div>
+                  <div class="form-group" style="grid-column: span 2;">
+                    <label>Nome Completo (aparece nos Romaneios, Rotas e Logs):</label>
+                    <input type="text" id="inpAdmNome" placeholder="Ex: ENF. MARIA SILVA" />
+                  </div>
+                </div>
+
+                <div class="form-grid-3">
+                  <div class="form-group">
+                    <label>Nível de Permissão (Perfil):</label>
+                    <select id="selAdmRole">
+                      <option value="USUARIO">USUÁRIO (Estoque, Clientes & Rota)</option>
+                      <option value="ADMIN">ADMIN (Acesso Total + Cria Usuários + Logs)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Cargo / Função:</label>
+                    <input type="text" id="inpAdmCargo" value="Enfermeira / Operador i-STAT" />
+                  </div>
+                  <div class="form-group">
+                    <label>Setor / Departamento:</label>
+                    <input type="text" id="inpAdmSetor" value="ESTOQUE LYDA" />
+                  </div>
+                </div>
+
+                <div class="form-grid-4">
+                  <div class="form-group">
+                    <label>Senha (ou Nova Senha):</label>
+                    <input type="password" id="inpAdmPassword" placeholder="Senha inicial..." />
+                  </div>
+                  <div class="form-group">
+                    <label>E-mail (opcional):</label>
+                    <input type="text" id="inpAdmEmail" placeholder="usuario@lyda.com.br" />
+                  </div>
+                  <div class="form-group">
+                    <label>Status da Conta:</label>
+                    <select id="selAdmActive">
+                      <option value="SIM">ATIVO (Pode acessar)</option>
+                      <option value="NAO">BLOQUEADO (Sem acesso)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Cor do Avatar:</label>
+                    <select id="selAdmColor">
+                      <option value="#2563EB">Azul LYDA</option>
+                      <option value="#0F172A">Slate Corporativo</option>
+                      <option value="#059669">Esmeralda Estoque</option>
+                      <option value="#0D9488">Turquesa Enfermagem</option>
+                      <option value="#7C3AED">Roxo Gestão</option>
+                      <option value="#D97706">Âmbar Operações</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                  <button class="btn btn-primary" onclick="saveAdminUserForm()">Salvar Conta de Usuário</button>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="section-title">
+                  <span>Usuários Cadastrados no Sistema</span>
+                </div>
+                <div class="table-wrap" style="max-height: 44vh;">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Usuário / Nome</th>
+                        <th>Perfil</th>
+                        <th>Cargo</th>
+                        <th>Setor</th>
+                        <th>Status</th>
+                        <th>Último Login</th>
+                        <th style="text-align:right;">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbodyAdminUsers"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <div class="section-title">
+                <span>Central de Administração de Logs & Auditoria Completa</span>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <a href="/api/admin/logs/export_csv" class="btn btn-secondary btn-sm">Exportar Logs (.CSV / Excel)</a>
+                  <button class="btn btn-danger btn-sm" onclick="clearOldAuditLogs()">Arquivar Antigos</button>
+                </div>
+              </div>
+
+              <div class="form-grid-3" style="margin-bottom:10px;">
+                <div class="form-group">
+                  <label>Buscar nos Logs (Serial, Usuário, IP, Hospital, Ação):</label>
+                  <input type="text" id="inpSearchAuditLogs" placeholder="Digite para filtrar qualquer evento..." oninput="renderAuditLogsTable()" />
+                </div>
+                <div class="form-group">
+                  <label>Filtrar por Usuário / Operador:</label>
+                  <select id="selFilterLogUser" onchange="renderAuditLogsTable()">
+                    <option value="TODOS">TODOS OS USUÁRIOS</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Categoria de Evento:</label>
+                  <select id="selFilterLogCategory" onchange="renderAuditLogsTable()">
+                    <option value="TODAS">TODAS AS CATEGORIAS</option>
+                    <option value="ACESSO">ACESSO (LOGIN / LOGOUT)</option>
+                    <option value="SEGURANCA">SEGURANÇA (SENHA INCORRETA / BLOQUEIO)</option>
+                    <option value="ESTOQUE">ESTOQUE & BIPAGENS</option>
+                    <option value="LOTE">OPERAÇÕES EM LOTE</option>
+                    <option value="CLIENTE">CLIENTES & HOSPITAIS</option>
+                    <option value="ROTA_MAPS">ROTA DA ENFERMEIRA & PDF</option>
+                    <option value="ZEBRA">IMPRESSÃO ZEBRA ZD230</option>
+                    <option value="USUARIOS">GESTÃO DE USUÁRIOS</option>
+                    <option value="BACKUP">BACKUPS & SHAREPOINT</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="font-size:11px; font-weight:700; color:var(--slate-600); margin-bottom:6px;" id="lblAuditLogsCount"></div>
+
+              <div class="table-wrap" style="max-height: 62vh;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Data / Hora</th>
+                      <th>Usuário & IP</th>
+                      <th>Categoria</th>
+                      <th>Ação Executada</th>
+                      <th>Alvo / Serial</th>
+                      <th>Detalhes Completos</th>
+                      <th style="text-align:right;">Gerenciar</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyAuditLogs"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ABA 7: SERVIDOR LOCAL, BACKUP DIÁRIO SHAREPOINT & CONFIGS       -->
+        <!-- =============================================================== -->
+        <section id="tab-servidor" class="tab-pane">
+          <div class="route-split">
+            <div>
+              <div class="panel-card">
+                <div class="section-title">
+                  <span>1. Link do Servidor Local para Todos os Computadores e Celulares da LYDA</span>
+                </div>
+                <p style="margin:0 0 10px 0; color:var(--slate-600);">
+                  Este computador é o <strong>Servidor Central da LYDA</strong>. O banco de dados fica salvo localmente neste PC e qualquer colega na mesma rede (Wi-Fi ou Cabo) pode acessar pelo navegador com seu login e senha através do link abaixo:
+                </p>
+                <div style="display:grid; grid-template-columns: 1fr 130px; gap:12px; align-items:center; background:var(--primary-soft); border:1px solid var(--primary-border); border-radius:8px; padding:12px;">
+                  <div>
+                    <div style="font-size:11px; font-weight:800; color:#1E3A8A; margin-bottom:4px;">LINK DE ACESSO NA REDE DA LYDA:</div>
+                    <div style="display:flex; gap:6px; margin-bottom:8px;">
+                      <input type="text" id="inpServerNetworkUrl" readonly style="flex:1; font-size:15px; font-weight:800; color:#1E40AF; background:#FFFFFF;" />
+                      <button class="btn btn-primary" onclick="copyServerNetworkUrl()">Copiar Link</button>
+                    </div>
+                    <div style="font-size:11px; color:var(--slate-600);" id="lblAllServerUrls"></div>
+                  </div>
+                  <div style="text-align:center; background:#FFFFFF; padding:6px; border-radius:6px; border:1px solid var(--slate-200);">
+                    <img id="imgServerUrlQr" src="" alt="QR Code Servidor" style="width:105px; height:105px;" />
+                    <div style="font-size:9px; font-weight:700; color:var(--slate-700);">Abrir no Celular (Wi-Fi)</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="section-title">
+                  <span>2. Backup Automático Todo Dia + Envio p/ Pasta do SharePoint / OneDrive da LYDA</span>
+                  <button class="btn btn-secondary btn-sm" onclick="triggerImmediateSharePointBackup()">Fazer Backup Agora p/ SharePoint</button>
+                </div>
+                <p style="margin:0 0 10px 0; color:var(--slate-600);">
+                  O servidor faz backup diário automático do banco de dados (incluindo usuários e logs) e exporta também a <strong>Planilha Excel completa atualizada (.xlsx)</strong> diretamente para a pasta do <strong>SharePoint / OneDrive</strong> sincronizada neste PC:
+                </p>
+
+                <div class="form-group" style="margin-bottom:10px;">
+                  <label>Caminho da Pasta do SharePoint / OneDrive sincronizada neste PC Servidor:</label>
+                  <input type="text" id="inpSharepointDir" placeholder="Ex: C:\Users\Lyda\OneDrive - LYDA\SharePoint Estoque i-STAT" />
+                </div>
+
+                <div id="divSharepointCandidates" style="margin-bottom:10px;"></div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label>Horário do Backup Diário Programado:</label>
+                    <input type="time" id="inpSharepointTime" value="18:00" />
+                  </div>
+                  <div class="form-group" style="justify-content:flex-end;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding-top:18px;">
+                      <input type="checkbox" id="chkSharepointAutoSync" checked />
+                      <span>Espelhar automaticamente no SharePoint a cada alteração salva</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div style="background:var(--emerald-soft); border:1px solid var(--emerald-border); border-radius:6px; padding:10px; margin-bottom:12px; font-size:12px;">
+                  <strong>Último Envio p/ SharePoint:</strong> <span id="lblLastSharepointBackupInfo">Ainda não enviado</span>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label>Endereço Oficial da Sede da LYDA (Partida das Rotas):</label>
+                    <input type="text" id="inpSettingsHqAddress" />
+                  </div>
+                  <div class="form-group">
+                    <label>Ciclo Padrão de Atualização Semestral (Meses):</label>
+                    <input type="number" id="inpSettingsCycleMonths" value="6" min="1" max="24" />
+                  </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid var(--slate-200); padding-top:12px;">
+                  <div style="display:flex; gap:8px;">
+                    <a href="/api/excel/export" class="btn btn-secondary">Baixar Planilha Excel (.xlsx)</a>
+                    <label class="btn btn-secondary admin-only" style="cursor:pointer;">
+                      Importar Planilha (.xlsx)
+                      <input type="file" id="inpImportExcelFile" accept=".xlsx" style="display:none;" onchange="uploadAndImportExcel(this)" />
+                    </label>
+                  </div>
+                  <button class="btn btn-primary admin-only" onclick="saveServerAndSharepointSettings()">Salvar Configuração de Backup & SharePoint</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <div class="section-title">
+                <span>3. Backups Diários Salvos (Servidor Local + Pasta SharePoint)</span>
+                <button class="btn btn-secondary btn-sm" onclick="loadBackupsList()">Atualizar Lista</button>
+              </div>
+              <div class="table-wrap" style="max-height: 70vh;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Data / Hora</th>
+                      <th>Local</th>
+                      <th>Motivo</th>
+                      <th style="text-align:center;">Aparelhos</th>
+                      <th style="text-align:right;">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyBackups"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL "PRIMEIRO ACESSO — TROCA OBRIGATÓRIA DE SENHA"                  -->
+  <!-- ===================================================================== -->
+  <div class="modal-backdrop force-password-backdrop" id="forceChangePasswordModalBackdrop">
+    <div class="modal-dialog" style="max-width: 500px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%);">
+        <div>
+          <h2>Primeiro Acesso — Troca Obrigatória de Senha</h2>
+          <div class="sub">Defina sua nova senha pessoal para desbloquear o sistema</div>
+        </div>
+      </div>
+      <div class="modal-body" style="padding: 20px 22px;">
+        <div class="force-pwd-alert">
+          <svg class="force-pwd-alert-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <rect x="9" y="11" width="6" height="5" rx="1"/>
+            <path d="M10 11V9a2 2 0 1 1 4 0v2"/>
+          </svg>
+          <div class="force-pwd-alert-text">
+            <strong>Segurança da Conta LYDA:</strong>
+            <p>Sua conta está com a senha temporária padrão de fábrica (<code>lyda123</code>). Por segurança, você deve cadastrar uma nova senha pessoal no primeiro acesso para continuar.</p>
+          </div>
+        </div>
+
+        <div class="force-pwd-user-chip">
+          <div class="user-avatar" id="forcePwdAvatar" style="width:34px; height:34px; font-size:12px;">LY</div>
+          <div style="display:flex; flex-direction:column; min-width:0;">
+            <strong id="forcePwdNome" style="font-size:13px; color:var(--slate-900);">Usuário</strong>
+            <span id="forcePwdUser" style="font-size:11px; color:var(--slate-500);">Login: admin</span>
+          </div>
+        </div>
+
+        <form onsubmit="submitForceChangePassword(event)" style="display:flex; flex-direction:column; gap:14px; margin-top:14px;">
+          <div class="form-group">
+            <label for="inpForceNewPwd">Nova Senha Pessoal:</label>
+            <div class="login-input-wrap">
+              <svg class="login-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="inpForceNewPwd" placeholder="Digite sua nova senha (mínimo 4 caracteres)" required autocomplete="new-password" oninput="validateForcePasswordMatch()" />
+              <button type="button" class="login-eye-btn" onclick="toggleForcePwdVisibility('inpForceNewPwd', 'eyeForceNewOn', 'eyeForceNewOff')" title="Mostrar / ocultar senha">
+                <svg id="eyeForceNewOn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eyeForceNewOff" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="inpForceConfirmPwd">Confirmar a Nova Senha:</label>
+            <div class="login-input-wrap">
+              <svg class="login-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <input type="password" id="inpForceConfirmPwd" placeholder="Repita a nova senha exatamente igual" required autocomplete="new-password" oninput="validateForcePasswordMatch()" />
+              <button type="button" class="login-eye-btn" onclick="toggleForcePwdVisibility('inpForceConfirmPwd', 'eyeForceConfirmOn', 'eyeForceConfirmOff')" title="Mostrar / ocultar senha">
+                <svg id="eyeForceConfirmOn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eyeForceConfirmOff" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <div id="lblForcePwdMatch" style="font-size:11px; margin-top:2px; font-weight:600; display:none;"></div>
+          </div>
+
+          <div id="lblForcePwdError" class="login-error-alert" style="display:none;"></div>
+
+          <div class="modal-footer" style="padding:14px 0 0 0; border-top:1px solid var(--slate-200); margin-top:4px; display:flex; justify-content:space-between; gap:10px;">
+            <button type="button" class="btn btn-secondary" onclick="logoutUser()" title="Sair da conta e voltar para a tela de login">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sair
+            </button>
+            <button type="submit" id="btnForceSubmit" class="btn btn-primary" style="font-weight:800;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Salvar Nova Senha & Entrar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL "MEU PERFIL & ALTERAR SENHA"                                    -->
+  <!-- ===================================================================== -->
+  <div class="modal-backdrop" id="profileModalBackdrop">
+    <div class="modal-dialog" style="max-width: 560px;">
+      <div class="modal-header">
+        <div>
+          <h2>Meu Perfil & Senha de Acesso</h2>
+          <div class="sub">Personalize seus dados de operador e altere sua senha</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="closeProfileModal()">Fechar</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Usuário (Login):</label>
+            <input type="text" id="inpProfUsername" readonly style="background:var(--slate-100); font-weight:800;" />
+          </div>
+          <div class="form-group">
+            <label>Nível de Acesso:</label>
+            <input type="text" id="inpProfRole" readonly style="background:var(--slate-100); font-weight:800; color:var(--primary);" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label>Seu Nome Completo (aparece nas movimentações e PDFs):</label>
+          <input type="text" id="inpProfNome" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Cargo / Função:</label>
+            <input type="text" id="inpProfCargo" />
+          </div>
+          <div class="form-group">
+            <label>Setor:</label>
+            <input type="text" id="inpProfSetor" />
+          </div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>E-mail:</label>
+            <input type="text" id="inpProfEmail" />
+          </div>
+          <div class="form-group">
+            <label>Telefone / WhatsApp:</label>
+            <input type="text" id="inpProfTelefone" />
+          </div>
+          <div class="form-group">
+            <label>Cor do Avatar:</label>
+            <select id="selProfColor">
+              <option value="#2563EB">Azul LYDA</option>
+              <option value="#0F172A">Slate</option>
+              <option value="#059669">Esmeralda</option>
+              <option value="#0D9488">Turquesa</option>
+              <option value="#7C3AED">Roxo</option>
+              <option value="#D97706">Âmbar</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:8px; padding:12px; margin-top:8px;">
+          <div style="font-size:11px; font-weight:800; color:var(--slate-900); margin-bottom:8px;">ALTERAR MINHA SENHA (OPCIONAL):</div>
+          <div class="form-grid-2" style="margin-bottom:0;">
+            <div class="form-group">
+              <label>Senha Atual:</label>
+              <input type="password" id="inpProfCurPwd" placeholder="Digite a senha atual..." />
+            </div>
+            <div class="form-group">
+              <label>Nova Senha:</label>
+              <input type="password" id="inpProfNewPwd" placeholder="Deixe vazio p/ não alterar" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeProfileModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveOwnProfile()">Salvar Meu Perfil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MEGA MODAL DE EDIÇÃO / MOVIMENTAÇÃO DO APARELHO i-STAT                -->
+  <!-- ===================================================================== -->
+  <div class="modal-backdrop" id="itemModalBackdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h2 id="lblModalTitle">Ficha do Aparelho i-STAT</h2>
+          <div class="sub" id="lblModalSubtitle">Controle de Estoque, Endereço p/ Rota e Ciclo de Atualização de 6 em 6 Meses</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="badge badge-sem-data" id="badgeModalCycle" style="font-size:12px; padding:5px 10px;">Ciclo 6m</span>
+          <button class="btn btn-secondary btn-sm" onclick="closeItemModal()">Fechar [ESC]</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="hidModalIdx" value="" />
+
+        <div class="quick-presets">
+          <button class="btn btn-primary" onclick="applyModalPreset('ENVIAR_CLIENTE')">1. Enviar p/ Hospital / Cliente</button>
+          <button class="btn btn-secondary" onclick="applyModalPreset('ESTOQUE_ATUALIZADO')">2. Voltou p/ Estoque (JÁ ATUALIZADO)</button>
+          <button class="btn btn-secondary" onclick="applyModalPreset('ESTOQUE_FALTA')">3. Voltou p/ Estoque (FALTA ATUALIZAR)</button>
+          <button class="btn btn-secondary" onclick="applyModalPreset('DEFEITO')">4. Com Defeito / Manutenção</button>
+        </div>
+
+        <div class="panel-card" style="margin-bottom:12px;">
+          <div class="section-title">
+            <span>1. Onde está o aparelho e qual a modalidade?</span>
+            <button class="btn btn-secondary btn-sm" onclick="setModalClientToStock()">Colocar no Estoque LYDA (Sem Cliente)</button>
+          </div>
+          <div class="form-grid-4">
+            <div class="form-group">
+              <label>Tipo de Equipamento:</label>
+              <select id="selModalTipo" onchange="renderModalSingleLabelPreview()">
+                <option value="ANALISADOR">ANALISADOR</option>
+                <option value="IMPRESSORA">IMPRESSORA</option>
+                <option value="SIMULADOR">SIMULADOR</option>
+                <option value="DOWNLOADER">DOWNLOADER</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Serial / Código de Barras:</label>
+              <input type="text" id="inpModalCodigo" placeholder="Ex: 420846" style="font-weight:800;" oninput="renderModalSingleLabelPreview()" />
+            </div>
+            <div class="form-group">
+              <label>Modalidade:</label>
+              <select id="selModalModalidade">
+                <option value="COMODATO">COMODATO</option>
+                <option value="VENDA">VENDA</option>
+                <option value="ALUGUEL">ALUGUEL</option>
+                <option value="PROPRIEDADE LYDA">PROPRIEDADE LYDA</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status Atual:</label>
+              <select id="selModalStatus"></select>
+            </div>
+          </div>
+
+          <div class="form-grid-4" style="margin-bottom:0;">
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Hospital / Clínica / Cliente (ou digite um novo nome):</label>
+              <input type="text" id="inpModalCliente" list="dlKnownClients" placeholder="Selecione ou digite o nome do Hospital/Cliente..." onchange="onModalClientChange(this.value); renderModalSingleLabelPreview();" oninput="renderModalSingleLabelPreview()" />
+              <datalist id="dlKnownClients"></datalist>
+            </div>
+            <div class="form-group">
+              <label>Setor / Unidade no Hospital:</label>
+              <input type="text" id="inpModalSetor" placeholder="Ex: UTI ADULTO, EMERGÊNCIA, LABORATÓRIO" />
+            </div>
+            <div class="form-group">
+              <label>Operador Responsável:</label>
+              <select id="selModalOperador"></select>
+            </div>
+          </div>
+
+          <!-- PRÉ-VISUALIZAÇÃO AO VIVO & DOWNLOAD .PRN DA ETIQUETA DESTE EQUIPAMENTO -->
+          <div class="modal-zebra-label-card">
+            <div class="modal-zebra-preview-col">
+              <div class="modal-zebra-preview-caption">PRÉVIA DA ETIQUETA ZEBRA ZD230</div>
+              <div id="divModalSingleLabelPreview" class="modal-zebra-slot-holder"></div>
+            </div>
+
+            <div class="modal-zebra-actions-col">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="zebra-printer-badge">ZEBRA ZD230</span>
+                  <strong style="font-size:12.5px; color:var(--slate-900);" id="lblModalLabelCardTitle">Etiqueta Térmica deste Equipamento</strong>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                  <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--slate-700); cursor:pointer;">
+                    <input type="checkbox" id="chkModalLabelShowLoc" checked onchange="renderModalSingleLabelPreview()" />
+                    <span>Mostrar Local / Hospital na etiqueta</span>
+                  </label>
+                  <div style="display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:var(--slate-700);">
+                    <span>Cópias:</span>
+                    <input type="number" id="inpModalLabelCopies" value="1" min="1" max="20" step="1" style="width:58px; height:28px; padding:2px 6px; font-weight:800;" />
+                  </div>
+                </div>
+              </div>
+
+              <div style="font-size:11px; color:var(--slate-500);">
+                A etiqueta acima atualiza em tempo real conforme o Tipo, Serial e Hospital informados nesta ficha. Você pode baixar o arquivo <strong>.PRN</strong> ou imprimir agora mesmo:
+              </div>
+
+              <div class="modal-zebra-btn-row">
+                <button type="button" class="btn btn-primary btn-sm" style="height:34px; padding:0 14px; font-weight:800;" onclick="downloadModalItemPrnFile('prn')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span id="lblModalBtnDownloadPrn">Baixar Etiqueta .PRN</span>
+                </button>
+
+                <button type="button" class="btn btn-zebra-green btn-sm" style="width:auto; height:34px; padding:0 14px; font-size:12px;" onclick="printModalItemDirectly()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  <span>Imprimir na Zebra ZD230</span>
+                </button>
+
+                <button type="button" class="btn btn-secondary btn-sm" style="height:34px;" onclick="printModalItemInBrowser()">
+                  Imprimir / Salvar PDF
+                </button>
+
+                <button type="button" class="btn btn-secondary btn-sm" style="height:34px;" onclick="openModalItemInZebraStudio()">
+                  Abrir na Central de Etiquetas
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cycle-box">
+          <div class="section-title" style="border-bottom-color:var(--slate-200);">
+            <span>2. Controle de Atualização (De 6 em 6 Meses) & Situação na Bancada do Estoque</span>
+          </div>
+          <div class="form-grid-4">
+            <div class="form-group">
+              <label>Data da Última Atualização (DD/MM/AAAA):</label>
+              <div style="display:flex; gap:6px;">
+                <input type="text" id="inpModalUltAtt" class="date-input-br" data-datepicker="br" autocomplete="off" placeholder="DD/MM/AAAA" oninput="updateModalNextDatePreview()" style="width:100%;" />
+                <button class="btn btn-secondary btn-sm" onclick="setModalUpdateDateToday()">Hoje</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Próxima Atualização (+6 Meses Automático):</label>
+              <input type="text" id="inpModalProxAtt" readonly style="font-weight:800; background:#FFFFFF;" />
+            </div>
+            <div class="form-group">
+              <label>Versão do Software (CLEW / JAMS):</label>
+              <input type="text" id="inpModalVersaoClew" placeholder="Ex: CLEW A45 / JAMS 148" />
+            </div>
+            <div class="form-group">
+              <label>Quando voltou p/ o Estoque, já foi atualizado?</label>
+              <select id="selModalAttEstoque">
+                <option value="EM USO NO CLIENTE / N/A">EM USO NO CLIENTE / N/A</option>
+                <option value="SIM - JÁ ATUALIZADO NO ESTOQUE">SIM - JÁ ATUALIZADO NO ESTOQUE</option>
+                <option value="NÃO - FALTA ATUALIZAR NA BANCADA">NÃO - FALTA ATUALIZAR NA BANCADA</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card" style="margin-bottom:12px;">
+          <div class="section-title">
+            <span>3. Endereço Completo (para Rota Google Maps), Condição Física, Defeito & Observações</span>
+          </div>
+          <div class="form-grid-4">
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Endereço Completo do Local (Rua, Número, Bairro):</label>
+              <input type="text" id="inpModalEndereco" placeholder="Ex: Rua Ramiro Barcelos, 2350 - Santa Cecília" />
+            </div>
+            <div class="form-group">
+              <label>CEP:</label>
+              <div style="display:flex; gap:4px;">
+                <input type="text" id="inpModalCep" placeholder="90035-903" style="width:100%;" />
+                <button class="btn btn-secondary btn-sm" onclick="lookupCepIntoFields('inpModalCep','inpModalEndereco','inpModalCidade','inpModalUf')">CEP</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Cidade / UF:</label>
+              <div style="display:flex; gap:4px;">
+                <input type="text" id="inpModalCidade" placeholder="PORTO ALEGRE" style="flex:1;" />
+                <input type="text" id="inpModalUf" placeholder="RS" style="width:52px; text-align:center;" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-4">
+            <div class="form-group">
+              <label>Condição Física do Aparelho:</label>
+              <select id="selModalCondicao"></select>
+            </div>
+            <div class="form-group">
+              <label style="color:#BE123C;">Defeito / Erro Apresentado (opcional):</label>
+              <input type="text" id="inpModalDefeito" placeholder="Ex: Erro de calibração, visor quebrado..." />
+            </div>
+            <div class="form-group">
+              <label>Contato no Local / Enfermeira Responsável:</label>
+              <input type="text" id="inpModalContato" placeholder="Ex: Enf. Carla (Ramal 220)" />
+            </div>
+            <div class="form-group">
+              <label>Kit Analisador Vinculado / Nota Fiscal:</label>
+              <input type="text" id="inpModalKit" placeholder="Serial do Analisador do Kit" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Observações Completas do Aparelho (Histórico de remanejamento, detalhes do empréstimo/venda):</label>
+            <textarea id="txtModalObservacoes" rows="2" placeholder="Digite qualquer observação importante sobre este aparelho..."></textarea>
+          </div>
+        </div>
+
+        <div class="panel-card" style="margin-bottom:0;">
+          <div class="section-title">
+            <span>4. Histórico de Movimentações deste Serial</span>
+            <span id="lblModalCompanions" style="font-size:11px; color:var(--primary);"></span>
+          </div>
+          <div class="table-wrap" style="max-height:130px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data/Hora</th>
+                  <th>Ação</th>
+                  <th>Cliente / Local</th>
+                  <th>Operador</th>
+                  <th>Detalhes</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyModalHistory"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeItemModal()">Cancelar</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="saveItemFromModal(true, false, false)">Salvar & Gerar Romaneio (A4)</button>
+          <button class="btn btn-secondary" onclick="saveItemFromModal(false, false, true)">Salvar & Baixar Etiqueta .PRN</button>
+          <button class="btn btn-secondary" onclick="saveItemFromModal(false, true, false)">Salvar & Imprimir Etiqueta Zebra</button>
+          <button class="btn btn-primary" onclick="saveItemFromModal(false, false, false)">Salvar Alterações</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL DE AÇÃO EM LOTE                                                 -->
+  <!-- ===================================================================== -->
+  <div class="modal-backdrop" id="batchModalBackdrop">
+    <div class="modal-dialog" style="max-width: 640px;">
+      <div class="modal-header">
+        <div>
+          <h2 id="lblBatchModalTitle">Operação em Lote</h2>
+          <div class="sub" id="lblBatchModalSub">Aplicar a todos os aparelhos selecionados</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="closeBatchModal()">Fechar</button>
+      </div>
+      <div class="modal-body" id="divBatchModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeBatchModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmBatchAction()">Confirmar Operação em Lote</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lydaDatePickerPopover" class="lyda-datepicker-popover"></div>
+  <div id="toastContainer"></div>
+  <script src="/static/app.js?v=20261106_prn4"></script>
+</body>
+</html>

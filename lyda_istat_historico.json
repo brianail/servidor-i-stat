@@ -1,0 +1,39 @@
+[
+  {
+    "_epoch": 1793905818.367566,
+    "DATA_HORA": "05/11/2026 16:10:18",
+    "CODIGO_BARRAS": "403559",
+    "TIPO": "ANALISADOR",
+    "ACAO": "ATUALIZAÇÃO DE FICHA / ESTOQUE",
+    "CLIENTE": "SOCIEDADE HOSPITALAR SAO JOSE",
+    "MODALIDADE": "VENDA",
+    "CONDICAO": "PERFEITO / FUNCIONANDO 100%",
+    "DEFEITO_OBS": "Confirmado: SIM",
+    "RESPONSAVEL": "BRIANAIL",
+    "OPERADOR": "BRIANAIL",
+    "COMPUTADOR": "MacBook-Air-de-brian.local",
+    "DETALHES": "Cliente/Local: SOCIEDADE HOSPITALAR SAO JOSE | Endereço: Rua Dr. Ramiro Barcelos, 295 - Centro | Modalidade: VENDA | Status: ATIVO NO CLIENTE | Últ. Atualização: Pendente (Próx: PENDENTE) | Estoque Atualizado: EM USO NO CLIENTE / N/A | Defeito/Obs: Confirmado: SIM | Resp: BRIANAIL"
+  },
+  {
+    "_epoch": 1793760693.919167,
+    "DATA_HORA": "03/11/2026 23:51:33",
+    "CODIGO_BARRAS": "401348",
+    "TIPO": "ANALISADOR",
+    "ACAO": "EDIÇÃO COMPLETA / MAPEAMENTO",
+    "CLIENTE": "ASSOC. VERANENSE DE ASSISTENCIA EM SAUDE",
+    "MODALIDADE": "VENDA",
+    "CONDICAO": "PERFEITO / FUNCIONANDO 100%",
+    "DEFEITO_OBS": "Confirmado: SIM",
+    "RESPONSAVEL": "BRIANAIL",
+    "OPERADOR": "BRIANAIL",
+    "COMPUTADOR": "MacBook-Air-de-brian.local",
+    "DETALHES": "Cliente/Local: ASSOC. VERANENSE DE ASSISTENCIA EM SAUDE | Endereço: Rua Júlio de Castilhos, 885 - Centro (Hosp. São Peregrino Lazziozi) | Modalidade: VENDA | Status: ATIVO NO CLIENTE | Últ. Atualização: Pendente (Próx: PENDENTE) | Estoque Atualizado: EM USO NO CLIENTE / N/A | Defeito/Obs: Confirmado: SIM | Resp: BRIANAIL"
+  },
+  {
+    "DATA_HORA": "03/11/2026 14:41:34",
+    "CODIGO_BARRAS": "SISTEMA",
+    "TIPO": "TODOS",
+    "ACAO": "IMPORTAÇÃO EXCEL",
+    "DETALHES": "97 equipamentos carregados de Mapeamento Equipamento i-STAT - LYDA.xlsx"
+  }
+]

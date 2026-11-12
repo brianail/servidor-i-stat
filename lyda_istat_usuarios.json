@@ -1,0 +1,62 @@
+[
+  {
+    "username": "admin",
+    "nome": "ADMINISTRADOR LYDA",
+    "email": "admin@lyda.com.br",
+    "cargo": "Administrador Geral / TI",
+    "setor": "ADMINISTRAÇÃO",
+    "telefone": "",
+    "role": "ADMIN",
+    "avatar_color": "#2563EB",
+    "active": true,
+    "password_hash": "48c0c10572b947637df57e435aeddeb5$d0a2563d69f3ebbe48556e5480725376537dfb9771e09551c7074bb013925c7b",
+    "created_at": "05/11/2026 20:15",
+    "last_login": "12/11/2026 10:11:42",
+    "must_change_password": false,
+    "last_password_change": "12/11/2026 10:11:42"
+  },
+  {
+    "username": "brianail",
+    "nome": "BRIAN AIL",
+    "email": "suporte.ti@lyda.com.br",
+    "cargo": "Gestão & Controle i-STAT",
+    "setor": "DIRETORIA / OPERAÇÕES",
+    "telefone": "",
+    "role": "ADMIN",
+    "avatar_color": "#7C3AED",
+    "active": true,
+    "password_hash": "9d3a3248c2869ff33decc2fa49f89431$63c4a13cf23ee3f9a41b72c3541fb75c8005ac0fa9371ad804072d235b409a50",
+    "created_at": "05/11/2026 20:15",
+    "last_login": "06/11/2026 16:15:59",
+    "must_change_password": false,
+    "last_password_change": "12/11/2026 10:11:44"
+  },
+  {
+    "username": "enfermeira",
+    "nome": "ENFERMEIRA LYDA",
+    "email": "enfermagem@lyda.com.br",
+    "cargo": "Enfermeira de Rota & Atualização CLEW",
+    "setor": "ASSESSORIA CIENTÍFICA / CAMPO",
+    "telefone": "",
+    "role": "USUARIO",
+    "avatar_color": "#0D9488",
+    "active": true,
+    "password_hash": "41c7a8602b462cf59efcdfbf4f0fa657$6b33af16673a9308b7cbd1b878417c459b82a5d84421e0a9bb7da2a5947b2154",
+    "created_at": "05/11/2026 20:15",
+    "last_login": ""
+  },
+  {
+    "username": "estoque",
+    "nome": "ESTOQUE LYDA",
+    "email": "estoque@lyda.com.br",
+    "cargo": "Operador de Estoque & Expedição",
+    "setor": "LOGÍSTICA / BANCADA",
+    "telefone": "",
+    "role": "USUARIO",
+    "avatar_color": "#16A34A",
+    "active": true,
+    "password_hash": "ddfdd9199f7ba9c5d4b861fa6d60f579$b2d5b3924c80aaec0122b59e36f376eac42788b83f7a02139a7e9a84c799e023",
+    "created_at": "05/11/2026 20:15",
+    "last_login": ""
+  }
+]

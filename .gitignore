@@ -1,0 +1,37 @@
+# Byte-compiled / cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Ambientes virtuais e executáveis gerados
+.venv/
+venv/
+env/
+build/
+dist/
+*.spec
+*.app/
+
+
+# Arquivos de sistema operacional
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# Caches e logs
+.map_cache/
+*.log
+/tmp/
+
+# Pastas de saída geradas dinamicamente
+backups_automaticos/
+romaneios_protocolos/
+rotas_enfermeira/
+exportacoes_excel/
+dados_producao_backup/
+
+# Chave de sessão local
+.lyda_web_secret
