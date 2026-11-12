@@ -46,7 +46,7 @@ from istat_database import (
 )
 from logo_zpl import get_default_logo_path
 from printer_manager import dispatch_zpl_print, list_system_printers
-from romaneio_generator import generate_and_open_romaneio
+from romaneio_generator import generate_and_open_romaneio, generate_termo_substituicao_html
 from rota_enfermeira import (
     DEFAULT_LYDA_SEDE_ADDRESS,
     build_google_maps_multi_stop_url,
@@ -68,8 +68,10 @@ from zpl_engine import ExtraFieldConfig, LabelLayoutConfig, ZPLGenerator
 WORKSPACE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(WORKSPACE_DIR, "web_templates")
 STATIC_DIR = os.path.join(WORKSPACE_DIR, "web_static")
+ATTACHMENTS_DIR = os.path.join(WORKSPACE_DIR, "anexos_equipamentos")
 os.makedirs(TEMPLATE_DIR, exist_ok=True)
 os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(ATTACHMENTS_DIR, exist_ok=True)
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR, static_url_path="/static")
 app.config["JSON_AS_ASCII"] = False
@@ -1293,6 +1295,209 @@ def api_romaneio_html():
         with open(fpath, "r", encoding="utf-8") as f:
             html_str = f.read()
         return jsonify({"ok": True, "html": html_str, "filename": os.path.basename(fpath)})
+
+
+@app.route("/api/romaneio/termo-troca", methods=["POST"])
+@login_required
+def api_termo_troca():
+    """Gera o Termo de Substituição / Troca de Aparelho com Timbre Oficial LYDA e códigos de barras."""
+    data = request.get_json(force=True) or {}
+    idx = data.get("idx")
+    serial_novo = str(data.get("serial_novo") or "").strip()
+    serial_antigo = str(data.get("serial_antigo") or "").strip()
+    tipo = str(data.get("tipo") or "Analisador i-STAT").strip()
+    cliente = str(data.get("cliente") or "").strip()
+    recebedor_nome = str(data.get("recebedor_nome") or "").strip()
+    recebedor_cpf = str(data.get("recebedor_cpf") or "").strip()
+    data_str = str(data.get("data") or "").strip()
+    save_to_attachments = bool(data.get("save_to_attachments", False))
+
+    if not serial_novo and idx is not None and 0 <= int(idx) < len(db_manager.items):
+        it = db_manager.items[int(idx)]
+        serial_novo = it.get("CODIGO", "")
+        if not cliente:
+            cliente = it.get("CLIENTE", "")
+        if not tipo:
+            tipo = f"i-STAT {it.get('TIPO', 'Analisador').title()}"
+
+    if not serial_novo:
+        return jsonify({"ok": False, "error": "Informe o Serial do aparelho entregue."}), 400
+
+    fpath = generate_termo_substituicao_html(
+        workspace_dir=WORKSPACE_DIR,
+        cliente=cliente,
+        serial_novo=serial_novo,
+        tipo_equipamento=tipo,
+        serial_antigo=serial_antigo,
+        recebedor_nome=recebedor_nome,
+        recebedor_cpf=recebedor_cpf,
+        data_str=data_str,
+    )
+
+    with open(fpath, "r", encoding="utf-8") as f:
+        html_str = f.read()
+
+    fname = os.path.basename(fpath)
+
+    # Se solicitado salvar automaticamente nos anexos do aparelho
+    if save_to_attachments and idx is not None and 0 <= int(idx) < len(db_manager.items):
+        with db_lock:
+            it = db_manager.items[int(idx)]
+            item_folder = os.path.join(ATTACHMENTS_DIR, clean_barcode_serial(it.get("CODIGO", "")))
+            os.makedirs(item_folder, exist_ok=True)
+            dest_file = os.path.join(item_folder, fname)
+            with open(dest_file, "w", encoding="utf-8") as df:
+                df.write(html_str)
+            att_list = it.setdefault("ANEXOS", [])
+            att_list.append({
+                "filename": fname,
+                "original_name": f"Termo_Substituicao_{serial_novo}.html",
+                "size_bytes": os.path.getsize(dest_file),
+                "size_str": f"{max(1, round(os.path.getsize(dest_file)/1024))} KB",
+                "uploaded_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "uploaded_by": (get_current_user() or {}).get("nome") or "SISTEMA",
+                "is_termo": True,
+            })
+            db_manager.save()
+
+    log_user_action(
+        category="ESTOQUE",
+        action="TERMO DE SUBSTITUIÇÃO / ENTREGA",
+        target=f"{tipo} [{serial_novo}]",
+        details=f"Cliente: {cliente} | Substituição de: {serial_antigo or 'N/A'}",
+        severity="SUCCESS",
+    )
+
+    return jsonify({"ok": True, "html": html_str, "filename": fname})
+
+
+@app.route("/api/item/<int:idx>/attachments/upload", methods=["POST"])
+@login_required
+def api_item_attachment_upload(idx: int):
+    """Anexa um documento (PDF, imagem, termo assinado) à ficha do aparelho i-STAT."""
+    with db_lock:
+        if idx < 0 or idx >= len(db_manager.items):
+            return jsonify({"ok": False, "error": "Equipamento não encontrado."}), 404
+        it = db_manager.items[idx]
+        bc = clean_barcode_serial(it.get("CODIGO", ""))
+        if not bc:
+            return jsonify({"ok": False, "error": "Aparelho sem código de barras válido."}), 400
+
+        if "file" not in request.files:
+            return jsonify({"ok": False, "error": "Nenhum arquivo enviado."}), 400
+        f = request.files["file"]
+        if not f.filename:
+            return jsonify({"ok": False, "error": "Nome de arquivo inválido."}), 400
+
+        orig_name = f.filename
+        ext = os.path.splitext(orig_name)[1].lower()
+        allowed_exts = {".pdf", ".png", ".jpg", ".jpeg", ".docx", ".doc", ".html", ".txt"}
+        if ext not in allowed_exts:
+            return jsonify({"ok": False, "error": "Formato de arquivo não suportado. Envie PDF, imagem (PNG/JPG) ou documento."}), 400
+
+        item_dir = os.path.join(ATTACHMENTS_DIR, bc)
+        os.makedirs(item_dir, exist_ok=True)
+
+        clean_base = re.sub(r"[^A-Za-z0-9_-]", "_", os.path.splitext(orig_name)[0])
+        now_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_filename = f"{clean_base}_{now_tag}{ext}"
+        target_path = os.path.join(item_dir, safe_filename)
+        f.save(target_path)
+
+        f_size = os.path.getsize(target_path)
+        size_str = f"{f_size / 1024:.1f} KB" if f_size < 1048576 else f"{f_size / 1048576:.1f} MB"
+        u = get_current_user() or {}
+
+        att_entry = {
+            "filename": safe_filename,
+            "original_name": orig_name,
+            "size_bytes": f_size,
+            "size_str": size_str,
+            "uploaded_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "uploaded_by": u.get("nome") or "OPERADOR",
+        }
+        att_list = it.setdefault("ANEXOS", [])
+        att_list.append(att_entry)
+        db_manager.save()
+
+        db_manager.add_history_log(
+            serial_barcode=bc,
+            tipo=it.get("TIPO", "ANALISADOR"),
+            acao="ANEXO DE DOCUMENTO",
+            detalhes=f"Documento anexado: {orig_name} ({size_str})",
+            cliente=it.get("CLIENTE", ""),
+            responsavel=u.get("nome") or "OPERADOR",
+        )
+
+        log_user_action(
+            category="ESTOQUE",
+            action="UPLOAD DE ANEXO / TERMO",
+            target=f"{it.get('TIPO')} [{bc}]",
+            details=f"Arquivo: {orig_name} ({size_str})",
+            severity="SUCCESS",
+        )
+
+        return jsonify({
+            "ok": True,
+            "message": f"Documento '{orig_name}' anexado com sucesso!",
+            "attachments": it.get("ANEXOS", []),
+        })
+
+
+@app.route("/api/item/<int:idx>/attachments/<path:filename>", methods=["GET"])
+@login_required
+def api_item_attachment_get(idx: int, filename: str):
+    """Exibe ou baixa o documento anexado do aparelho."""
+    with db_lock:
+        if idx < 0 or idx >= len(db_manager.items):
+            return jsonify({"ok": False, "error": "Equipamento não encontrado."}), 404
+        it = db_manager.items[idx]
+        bc = clean_barcode_serial(it.get("CODIGO", ""))
+        item_dir = os.path.join(ATTACHMENTS_DIR, bc)
+        return send_from_directory(item_dir, filename)
+
+
+@app.route("/api/item/<int:idx>/attachments/delete", methods=["POST"])
+@login_required
+def api_item_attachment_delete(idx: int):
+    """Exclui um documento anexado do aparelho."""
+    data = request.get_json(force=True) or {}
+    filename = data.get("filename", "").strip()
+    if not filename:
+        return jsonify({"ok": False, "error": "Nome do arquivo não informado."}), 400
+
+    with db_lock:
+        if idx < 0 or idx >= len(db_manager.items):
+            return jsonify({"ok": False, "error": "Equipamento não encontrado."}), 404
+        it = db_manager.items[idx]
+        bc = clean_barcode_serial(it.get("CODIGO", ""))
+        item_dir = os.path.join(ATTACHMENTS_DIR, bc)
+        fpath = os.path.join(item_dir, filename)
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+            except Exception:
+                pass
+
+        att_list = it.get("ANEXOS", [])
+        it["ANEXOS"] = [a for a in att_list if a.get("filename") != filename]
+        db_manager.save()
+
+        u = get_current_user() or {}
+        db_manager.add_history_log(
+            serial_barcode=bc,
+            tipo=it.get("TIPO", "ANALISADOR"),
+            acao="EXCLUSÃO DE ANEXO",
+            detalhes=f"Anexo removido: {filename}",
+            cliente=it.get("CLIENTE", ""),
+            responsavel=u.get("nome") or "OPERADOR",
+        )
+
+        return jsonify({
+            "ok": True,
+            "message": "Anexo removido com sucesso.",
+            "attachments": it.get("ANEXOS", []),
+        })
 
 
 # =============================================================================

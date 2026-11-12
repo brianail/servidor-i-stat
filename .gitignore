@@ -32,6 +32,7 @@ romaneios_protocolos/
 rotas_enfermeira/
 exportacoes_excel/
 dados_producao_backup/
+anexos_equipamentos/
 
 # Chave de sessão local
 .lyda_web_secret

@@ -605,7 +605,7 @@
                 <label>Ações Rápidas:</label>
                 <div style="display:flex; gap:6px;">
                   <button class="btn btn-secondary" onclick="toggleSelectAllVisible(true)" title="Marca apenas os aparelhos visíveis na tabela abaixo para ação em lote"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Marcar Visíveis</button>
-                  <button class="btn btn-secondary" onclick="resetAllFilters()" title="Limpa todos os filtros e desmarca seleções"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Limpar</button>
+                  <button class="btn btn-secondary btn-limpar-destaque" onclick="resetAllFilters()" title="Limpa todos os filtros e desmarca seleções"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Limpar</button>
                 </div>
               </div>
             </div>
@@ -622,6 +622,7 @@
               <button class="btn btn-secondary btn-sm" onclick="openBatchModal('DEVOLVER_ESTOQUE')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>Retornar p/ Estoque LYDA</button>
               <button class="btn btn-secondary btn-sm" onclick="openBatchModal('MARCAR_ATUALIZADO_6M')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Marcar Lote Atualizado (6m)</button>
               <button class="btn btn-secondary btn-sm" onclick="openRouteWithSelectedItems()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Criar Rota Google Maps</button>
+              <button class="btn btn-secondary btn-sm" onclick="openTermoTrocaFromSelected()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Termo de Troca (Timbre)</button>
               <button class="btn btn-secondary btn-sm" onclick="generateRomaneioForSelected()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Romaneio A4</button>
               <button class="btn btn-secondary btn-sm" onclick="openZebraWithEstoqueSelection()">Etiquetas Zebra</button>
               <button class="btn btn-danger btn-sm admin-only" onclick="deleteSelectedItemsByAdmin()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Excluir</button>
@@ -1074,10 +1075,70 @@
             </div>
           </div>
 
-          <!-- 2. PARADAS DA ROTA EM 100% DA LARGURA (SEM CORTAR TABELA) -->
+          <!-- 2. SELEÇÃO DE EQUIPAMENTOS PARA A ROTA -->
+          <div class="panel-card" id="cardRouteEquipPicker">
+            <div class="section-title">
+              <span>2. Seleção de Aparelhos para a Rota (Escolha os Equipamentos que a Enfermeira vai visitar)</span>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <span id="badgeRoutePickerCount" class="badge" style="background:#1E3A8A; color:#FFFFFF; font-size:12px; font-weight:800; padding:5px 10px;">0 aparelho(s) selecionado(s)</span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="applyRouteSelectedEquipments()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Montar Rota com Selecionados
+                </button>
+              </div>
+            </div>
+
+            <div class="form-grid-4" style="margin-bottom:8px;">
+              <div class="form-group" style="grid-column: span 2;">
+                <label>Buscar Equipamento (Serial, Hospital, Setor):</label>
+                <input type="text" id="inpRouteEquipSearch" placeholder="Digite número de série, cliente ou setor..." oninput="filterRouteEquipmentPicker()" />
+              </div>
+              <div class="form-group">
+                <label>Filtrar por Hospital / Cliente:</label>
+                <select id="selRouteEquipClientFilter" onchange="filterRouteEquipmentPicker()"></select>
+              </div>
+              <div class="form-group">
+                <label>Ciclo 6 Meses (CLEW):</label>
+                <select id="selRouteEquipCycleFilter" onchange="filterRouteEquipmentPicker()">
+                  <option value="ALL">Todos os Aparelhos</option>
+                  <option value="PENDING">Apenas Pendentes / Vencidos (6m)</option>
+                  <option value="OK">Em Dia</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:6px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="routePickerSelectAllFiltered(true)">Marcar Todos Filtrados</button>
+              <button type="button" class="btn btn-secondary btn-sm btn-limpar-destaque" onclick="routePickerSelectAllFiltered(false)">Desmarcar Todos</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="routePickerSelectOnlyPending()">Marcar Apenas Pendentes (6m)</button>
+              <span style="font-size:11.5px; color:var(--slate-500); margin-left:auto;" id="lblRoutePickerFilteredCount">Mostrando 0 aparelhos</span>
+            </div>
+
+            <div class="table-wrap" style="max-height: 250px; overflow-y:auto; border:1px solid var(--slate-200); border-radius:6px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width:36px; text-align:center;">
+                      <input type="checkbox" id="chkRoutePickerHeaderAll" onchange="routePickerToggleHeaderAll(this.checked)" title="Marcar/desmarcar todos os visíveis" />
+                    </th>
+                    <th>Serial / Código</th>
+                    <th>Tipo</th>
+                    <th>Hospital / Cliente</th>
+                    <th>Setor</th>
+                    <th>Última Atualização</th>
+                    <th>Situação CLEW (6m)</th>
+                    <th>Status Atual</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyRouteEquipPicker"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. PARADAS GERADAS DA ROTA (HOSPITAIS / CLÍNICAS) -->
           <div class="panel-card">
             <div class="section-title">
-              <span>2. Paradas da Rota (Hospitais / Clínicas que a Enfermeira vai visitar)</span>
+              <span>3. Paradas Geradas da Rota (Hospitais / Clínicas que a Enfermeira vai visitar)</span>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="loadRouteFromMode('FROM_INDICES')">Carregar Marcados</button>
                 <button class="btn btn-secondary btn-sm" onclick="loadRouteFromMode('PENDING_6M')">Carregar Pendentes (6m)</button>
@@ -1136,10 +1197,10 @@
             </div>
           </div>
 
-          <!-- 3. MAPA GOOGLE MAPS INTERATIVO ABAIXO DAS PARADAS (AMPLO E SEM VAZAR) -->
+          <!-- 4. MAPA GOOGLE MAPS INTERATIVO ABAIXO DAS PARADAS (AMPLO E SEM VAZAR) -->
           <div class="panel-card" style="margin-bottom:0;">
             <div class="section-title">
-              <span id="lblRouteMetricsBanner">3. Google Maps Interativo da Rota (Ruas, Satélite & Trajeto)</span>
+              <span id="lblRouteMetricsBanner">4. Google Maps Interativo da Rota (Ruas, Satélite & Trajeto)</span>
               <div style="display:flex; gap:6px;">
                 <button class="btn btn-secondary btn-sm" onclick="setGoogleMapsTileLayer('m')">Mapa Ruas</button>
                 <button class="btn btn-secondary btn-sm" onclick="setGoogleMapsTileLayer('y')">Satélite</button>
@@ -2185,11 +2246,32 @@
             </table>
           </div>
         </div>
+
+        <!-- 5. ANEXOS & DOCUMENTOS DIGITALIZADOS (TERMOS ASSINADOS, FOTOS, ROMANEIOS) -->
+        <div class="panel-card" style="margin-top:12px; margin-bottom:0;">
+          <div class="section-title">
+            <span>5. Anexos & Documentos Digitalizados (Termos Assinados, Fotos, Romaneios)</span>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <input type="file" id="inpModalAttachmentFile" accept=".pdf,.png,.jpg,.jpeg,.docx,.doc,.txt,.html" style="display:none;" onchange="uploadSelectedAttachment()" />
+              <button type="button" class="btn btn-secondary btn-sm" onclick="triggerAttachmentFileInput()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                + Anexar Documento / Foto
+              </button>
+              <button type="button" class="btn btn-navy btn-sm" onclick="openTermoTrocaFromModal()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Gerar Termo de Troca c/ Timbre
+              </button>
+            </div>
+          </div>
+
+          <div id="divModalAttachmentsList" style="margin-top:8px;"></div>
+        </div>
       </div>
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeItemModal()">Cancelar</button>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-navy" onclick="openTermoTrocaFromModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Termo de Troca (Timbre)</button>
           <button class="btn btn-secondary" onclick="saveItemFromModal(true, false, false)">Salvar & Gerar Romaneio (A4)</button>
           <button class="btn btn-secondary" onclick="saveItemFromModal(false, false, true)">Salvar & Baixar Etiqueta .PRN</button>
           <button class="btn btn-secondary" onclick="saveItemFromModal(false, true, false)">Salvar & Imprimir Etiqueta Zebra</button>
@@ -2215,6 +2297,89 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeBatchModal()">Cancelar</button>
         <button class="btn btn-primary" onclick="confirmBatchAction()">Confirmar Operação em Lote</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL DO TERMO DE ENTREGA / SUBSTITUIÇÃO DE EQUIPAMENTO (TIMBRE LYDA)  -->
+  <!-- ===================================================================== -->
+  <div class="modal-backdrop" id="modalTermoTrocaBackdrop">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <div>
+          <h2 style="display:flex; align-items:center; gap:8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Termo de Entrega / Substituição de Equipamento
+          </h2>
+          <div class="sub">Gera documento A4 no Timbre Oficial da LYDA com códigos de barras escaneáveis para bipe</div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeTermoTrocaModal()">Fechar [ESC]</button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="hidTermoIdx" value="" />
+
+        <div style="background:var(--primary-soft); border:1px solid var(--primary-border); border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12px; color:#1E3A8A; line-height:1.5;">
+          <strong>Timbre Profissional LYDA:</strong> Este documento gera os códigos de barras Code 128 tanto do aparelho entregue quanto do aparelho substituído/retirado, permitindo conferência e bipe óptico imediato no hospital.
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label style="color:#1D4ED8; font-weight:800;">Número de Série Entregue (Novo S/N) *:</label>
+            <input type="text" id="inpTermoSerialNovo" placeholder="Ex: 400171" style="font-weight:800; font-size:14px;" />
+          </div>
+          <div class="form-group">
+            <label style="color:#B45309; font-weight:800;">Número de Série Substituído (Antigo S/N):</label>
+            <input type="text" id="inpTermoSerialAntigo" placeholder="Ex: 400170 (opcional em entregas novas)" style="font-weight:800; font-size:14px;" />
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Tipo de Equipamento:</label>
+            <select id="selTermoTipo">
+              <option value="Analisador i-STAT">Analisador i-STAT</option>
+              <option value="Simulador Eletrônico i-STAT">Simulador Eletrônico i-STAT</option>
+              <option value="Impressora Portátil i-STAT">Impressora Portátil i-STAT</option>
+              <option value="Downloader / Base i-STAT">Downloader / Base i-STAT</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Hospital / Clínica / Cliente *:</label>
+            <input type="text" id="inpTermoCliente" list="dlKnownClients" placeholder="Ex: ASSOCIACAO HOSPITALAR MOINHOS DE VENTO" style="text-transform:uppercase;" />
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Nome do Recebedor no Hospital:</label>
+            <input type="text" id="inpTermoRecebedorNome" placeholder="Ex: HERLON HENRIQUE MAIER DA SILVA" style="text-transform:uppercase;" />
+          </div>
+          <div class="form-group">
+            <label>CPF do Recebedor:</label>
+            <input type="text" id="inpTermoRecebedorCpf" placeholder="000.000.000-00" />
+          </div>
+          <div class="form-group">
+            <label>Data do Termo:</label>
+            <input type="text" id="inpTermoData" class="date-input-br" data-datepicker="br" placeholder="DD/MM/AAAA" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12.5px; font-weight:700; color:#0F172A; margin-top:6px;">
+            <input type="checkbox" id="chkTermoSaveAttachment" checked />
+            <span>Salvar e anexar cópia deste Termo gerado na ficha do aparelho entregue</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeTermoTrocaModal()">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="submitGenerateTermoTroca()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Gerar & Imprimir Termo no Timbre Oficial
+        </button>
       </div>
     </div>
   </div>

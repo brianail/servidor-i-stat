@@ -12,6 +12,7 @@ let APP_STATE = {
   server_info: {},
   selectedIndices: new Set(),
   zebraSelectedIndices: new Set(),
+  routeSelectedIndices: new Set(),
   kpiQuickFilter: "ALL",
   radarSubFilter: "ALL_NEED",
   clientListFilter: "ALL",
@@ -140,6 +141,7 @@ async function loadBootstrapData(preserveSelection = true) {
     renderHistoryTable();
     renderServerAndSharepointTab();
     renderAdminUsersAndLogsTab();
+    renderRouteEquipmentPicker();
   } catch (err) {
     console.error("Erro no bootstrap:", err);
   }
@@ -1611,6 +1613,7 @@ async function openItemModal(idx, prefillSerial = "") {
     document.getElementById("lblModalCompanions").innerText = "";
     updateModalNextDatePreview();
     renderModalSingleLabelPreview();
+    renderModalAttachments([], null);
     backdrop.classList.add("open");
     return;
   }
@@ -1668,6 +1671,8 @@ async function openItemModal(idx, prefillSerial = "") {
       ? `Mesmo Kit: ` + comps.map(c => `${c.TIPO} (${c.CODIGO})`).join(", ")
       : "";
 
+    renderModalAttachments(it.ANEXOS || [], idx);
+
     backdrop.classList.add("open");
   } catch (e) {
     showToast("Erro ao carregar detalhes do aparelho.", "error");
@@ -1676,6 +1681,260 @@ async function openItemModal(idx, prefillSerial = "") {
 
 function closeItemModal() {
   document.getElementById("itemModalBackdrop").classList.remove("open");
+}
+
+function triggerAttachmentFileInput() {
+  const f = document.getElementById("inpModalAttachmentFile");
+  if (f) f.click();
+}
+
+function renderModalAttachments(attachments, itemIdx) {
+  const container = document.getElementById("divModalAttachmentsList");
+  if (!container) return;
+
+  if (itemIdx == null) {
+    container.innerHTML = `
+      <div style="padding:10px 14px; font-size:12px; color:#64748B; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:6px; text-align:center;">
+        Salve o cadastro do aparelho primeiro para poder anexar documentos e fotos.
+      </div>
+    `;
+    return;
+  }
+
+  const list = attachments || [];
+  if (!list.length) {
+    container.innerHTML = `
+      <div style="padding:14px; font-size:12px; color:#64748B; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:6px; text-align:center;">
+        Nenhum documento ou foto anexado a este aparelho ainda.<br/>
+        Clique em <strong>+ Anexar Documento / Foto</strong> para enviar termos assinados, fotos ou romaneios (PDF/PNG/JPG).
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="attachments-grid">
+      ${list.map(att => {
+        const isTermo = Boolean(att.is_termo);
+        const url = `/api/item/${itemIdx}/attachments/${encodeURIComponent(att.filename)}`;
+        return `
+          <div class="attachment-item">
+            <div class="attachment-left">
+              <div class="attachment-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div class="attachment-meta">
+                <a href="${url}" target="_blank" class="attachment-name" title="Clique para abrir ou baixar">${escapeHtml(att.original_name || att.filename)}</a>
+                <div class="attachment-sub">
+                  <span>${escapeHtml(att.size_str || "")}</span>
+                  <span>•</span>
+                  <span>${escapeHtml(att.uploaded_at || "")} (${escapeHtml(att.uploaded_by || "OPERADOR")})</span>
+                  ${isTermo ? '<span class="badge" style="background:#1E3A8A; color:#FFFFFF; font-size:10px; padding:2px 6px;">Termo de Troca</span>' : ""}
+                </div>
+              </div>
+            </div>
+            <div class="attachment-actions">
+              <a href="${url}" target="_blank" class="btn btn-secondary btn-sm" style="padding:4px 10px; font-size:11.5px; text-decoration:none;">Visualizar</a>
+              <button type="button" class="btn btn-danger btn-sm" style="padding:4px 8px; font-size:11.5px;" onclick="deleteItemAttachment(${itemIdx}, '${escapeHtml(att.filename)}')">Excluir</button>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+async function uploadSelectedAttachment() {
+  const fileInput = document.getElementById("inpModalAttachmentFile");
+  if (!fileInput || !fileInput.files || !fileInput.files.length) return;
+
+  const idxVal = (document.getElementById("hidModalIdx") && document.getElementById("hidModalIdx").value) || "";
+  if (!idxVal) {
+    showToast("Salve o cadastro do aparelho antes de anexar arquivos.", "error");
+    fileInput.value = "";
+    return;
+  }
+
+  const idx = parseInt(idxVal, 10);
+  const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    showToast(`Enviando "${file.name}"...`, "info");
+    const res = await fetch(`/api/item/${idx}/attachments/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      showToast(data.error || "Erro ao anexar arquivo.", "error");
+      fileInput.value = "";
+      return;
+    }
+
+    if (APP_STATE.items[idx]) {
+      APP_STATE.items[idx].ANEXOS = data.attachments || [];
+    }
+    renderModalAttachments(data.attachments || [], idx);
+    showToast(data.message || "Documento anexado com sucesso!", "success");
+    fileInput.value = "";
+  } catch (e) {
+    showToast("Falha na comunicação ao anexar documento.", "error");
+    fileInput.value = "";
+  }
+}
+
+async function deleteItemAttachment(itemIdx, filename) {
+  if (!confirm(`Deseja realmente remover o anexo "${filename}" deste equipamento?`)) return;
+
+  try {
+    const res = await fetch(`/api/item/${itemIdx}/attachments/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename: filename }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      showToast(data.error || "Erro ao excluir anexo.", "error");
+      return;
+    }
+
+    if (APP_STATE.items[itemIdx]) {
+      APP_STATE.items[itemIdx].ANEXOS = data.attachments || [];
+    }
+    renderModalAttachments(data.attachments || [], itemIdx);
+    showToast(data.message || "Anexo removido.", "success");
+  } catch (e) {
+    showToast("Falha ao excluir anexo.", "error");
+  }
+}
+
+// =========================================================================
+// TERMO DE SUBSTITUIÇÃO / ENTREGA COM TIMBRE OFICIAL LYDA
+// =========================================================================
+function openTermoTrocaModal(defaultIdx = null, defaultSerial = "") {
+  const backdrop = document.getElementById("modalTermoTrocaBackdrop");
+  if (!backdrop) return;
+
+  document.getElementById("hidTermoIdx").value = defaultIdx != null ? String(defaultIdx) : "";
+
+  let serialNovo = defaultSerial || "";
+  let serialAntigo = "";
+  let tipo = "Analisador i-STAT";
+  let cliente = "";
+  let dataStr = new Date().toLocaleDateString("pt-BR");
+
+  if (defaultIdx != null && APP_STATE.items && APP_STATE.items[defaultIdx]) {
+    const it = APP_STATE.items[defaultIdx];
+    serialNovo = it.CODIGO || "";
+    cliente = it.CLIENTE && it.CLIENTE !== "SEM CLIENTE (ESTOQUE LYDA)" ? it.CLIENTE : "";
+    if (it.TIPO === "SIMULADOR") tipo = "Simulador Eletrônico i-STAT";
+    else if (it.TIPO === "IMPRESSORA") tipo = "Impressora Portátil i-STAT";
+    else if (it.TIPO === "DOWNLOADER") tipo = "Downloader / Base i-STAT";
+  }
+
+  document.getElementById("inpTermoSerialNovo").value = serialNovo;
+  document.getElementById("inpTermoSerialAntigo").value = serialAntigo;
+  document.getElementById("selTermoTipo").value = tipo;
+  document.getElementById("inpTermoCliente").value = cliente;
+  document.getElementById("inpTermoRecebedorNome").value = "";
+  document.getElementById("inpTermoRecebedorCpf").value = "";
+  document.getElementById("inpTermoData").value = dataStr;
+  document.getElementById("chkTermoSaveAttachment").checked = defaultIdx != null;
+
+  backdrop.classList.add("open");
+}
+
+function closeTermoTrocaModal() {
+  const backdrop = document.getElementById("modalTermoTrocaBackdrop");
+  if (backdrop) backdrop.classList.remove("open");
+}
+
+function openTermoTrocaFromModal() {
+  const idxVal = (document.getElementById("hidModalIdx") && document.getElementById("hidModalIdx").value) || "";
+  const serialVal = ((document.getElementById("inpModalCodigo") && document.getElementById("inpModalCodigo").value) || "").trim();
+  const idx = idxVal !== "" ? parseInt(idxVal, 10) : null;
+  openTermoTrocaModal(idx, serialVal);
+}
+
+function openTermoTrocaFromSelected() {
+  const indices = getSelectedIndicesArray();
+  if (!indices.length) {
+    showToast("Selecione um aparelho na tabela para gerar o Termo de Troca.", "info");
+    openTermoTrocaModal(null, "");
+    return;
+  }
+  openTermoTrocaModal(indices[0]);
+}
+
+async function submitGenerateTermoTroca() {
+  const serialNovo = (document.getElementById("inpTermoSerialNovo").value || "").trim();
+  const serialAntigo = (document.getElementById("inpTermoSerialAntigo").value || "").trim();
+  const tipo = (document.getElementById("selTermoTipo").value || "Analisador i-STAT").trim();
+  const cliente = (document.getElementById("inpTermoCliente").value || "").trim();
+  const recebedorNome = (document.getElementById("inpTermoRecebedorNome").value || "").trim();
+  const recebedorCpf = (document.getElementById("inpTermoRecebedorCpf").value || "").trim();
+  const dataStr = (document.getElementById("inpTermoData").value || "").trim();
+  const saveAtt = document.getElementById("chkTermoSaveAttachment").checked;
+  const idxVal = document.getElementById("hidTermoIdx").value;
+  const idx = idxVal !== "" ? parseInt(idxVal, 10) : null;
+
+  if (!serialNovo) {
+    showToast("Informe o número de série do equipamento entregue.", "error");
+    document.getElementById("inpTermoSerialNovo").focus();
+    return;
+  }
+  if (!cliente) {
+    showToast("Informe o nome do Hospital / Cliente de destino.", "error");
+    document.getElementById("inpTermoCliente").focus();
+    return;
+  }
+
+  try {
+    showToast("Gerando Termo no Timbre Oficial da LYDA com códigos de barras...", "info");
+    const res = await fetch("/api/romaneio/termo-troca", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        idx: idx,
+        serial_novo: serialNovo,
+        serial_antigo: serialAntigo,
+        tipo: tipo,
+        cliente: cliente,
+        recebedor_nome: recebedorNome,
+        recebedor_cpf: recebedorCpf,
+        data: dataStr,
+        save_to_attachments: saveAtt,
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      showToast(data.error || "Erro ao gerar Termo de Substituição.", "error");
+      return;
+    }
+
+    closeTermoTrocaModal();
+    showToast("Termo de Entrega / Substituição gerado com sucesso!", "success");
+
+    const printWin = window.open("", "_blank");
+    if (printWin) {
+      printWin.document.open();
+      printWin.document.write(data.html);
+      printWin.document.close();
+    }
+
+    const modalIdxVal = (document.getElementById("hidModalIdx") && document.getElementById("hidModalIdx").value) || "";
+    if (idx != null && String(idx) === modalIdxVal) {
+      await loadBootstrapData(true);
+      const updatedItem = APP_STATE.items[idx];
+      if (updatedItem) {
+        renderModalAttachments(updatedItem.ANEXOS || [], idx);
+      }
+    }
+  } catch (e) {
+    showToast("Falha na comunicação ao gerar Termo.", "error");
+  }
 }
 
 function getModalCurrentItemObject() {
@@ -2994,8 +3253,165 @@ function setGoogleMapsTileLayer(layerCode) {
 
 function openRouteWithSelectedItems() {
   const indices = getSelectedIndicesArray();
+  APP_STATE.routeSelectedIndices = new Set(indices);
   switchTab("tab-rota");
+  renderRouteEquipmentPicker();
   loadRouteFromIndices(indices);
+}
+
+// =========================================================================
+// SELETOR INTERATIVO DE EQUIPAMENTOS DA ROTA (TAB-ROTA)
+// =========================================================================
+function renderRouteEquipmentPicker() {
+  const tbody = document.getElementById("tbodyRouteEquipPicker");
+  if (!tbody) return;
+
+  const selCli = document.getElementById("selRouteEquipClientFilter");
+  if (selCli && selCli.options.length <= 1) {
+    const clients = new Set();
+    (APP_STATE.items || []).forEach(it => {
+      const c = (it.CLIENTE || "").trim();
+      if (c && c !== "SEM CLIENTE (ESTOQUE LYDA)") clients.add(c);
+    });
+    const sorted = Array.from(clients).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    selCli.innerHTML = '<option value="ALL">Todos os Hospitais / Clientes</option>' +
+      sorted.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+  }
+
+  const search = ((document.getElementById("inpRouteEquipSearch") && document.getElementById("inpRouteEquipSearch").value) || "").trim().toLowerCase();
+  const filterCli = (selCli && selCli.value) || "ALL";
+  const filterCycle = ((document.getElementById("selRouteEquipCycleFilter") && document.getElementById("selRouteEquipCycleFilter").value) || "ALL");
+
+  const allItems = APP_STATE.items || [];
+  const filtered = allItems.filter(it => {
+    if (filterCli !== "ALL" && (it.CLIENTE || "") !== filterCli) return false;
+
+    if (filterCycle === "PENDING") {
+      const sit = it._situacao_ciclo || "";
+      if (sit !== "PENDENTE_OU_VENCIDA" && sit !== "VENCIDA" && sit !== "VENCENDO") return false;
+    } else if (filterCycle === "OK") {
+      const sit = it._situacao_ciclo || "";
+      if (sit !== "EM_DIA") return false;
+    }
+
+    if (search) {
+      const s = `${it.CODIGO || ""} ${it.CLIENTE || ""} ${it.SETOR || ""} ${it.TIPO || ""}`.toLowerCase();
+      if (!s.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const countBadge = document.getElementById("badgeRoutePickerCount");
+  if (countBadge) {
+    countBadge.innerText = `${APP_STATE.routeSelectedIndices.size} aparelho(s) selecionado(s)`;
+  }
+
+  const countLbl = document.getElementById("lblRoutePickerFilteredCount");
+  if (countLbl) {
+    countLbl.innerText = `Mostrando ${filtered.length} de ${allItems.length} aparelhos`;
+  }
+
+  const chkAll = document.getElementById("chkRoutePickerHeaderAll");
+  if (chkAll) {
+    chkAll.checked = filtered.length > 0 && filtered.every(it => APP_STATE.routeSelectedIndices.has(it._idx));
+  }
+
+  tbody.innerHTML = filtered.length
+    ? filtered.map(it => {
+        const idx = it._idx;
+        const isChecked = APP_STATE.routeSelectedIndices.has(idx);
+        const sit = it._situacao_ciclo || "SEM_DATA";
+        let sitBadge = '<span class="badge badge-sem-data" style="font-size:11px;">Sem Data</span>';
+        if (sit === "EM_DIA") {
+          sitBadge = '<span class="badge badge-em-dia" style="font-size:11px;">Em Dia</span>';
+        } else if (sit === "VENCENDO") {
+          sitBadge = '<span class="badge badge-vencendo" style="font-size:11px;">Vencendo (<= 45d)</span>';
+        } else if (sit === "VENCIDA" || sit === "PENDENTE_OU_VENCIDA") {
+          sitBadge = '<span class="badge badge-vencida" style="font-size:11px;">Pendente / Vencida</span>';
+        }
+
+        return `
+          <tr class="${isChecked ? "selected" : ""}" style="cursor:pointer;" onclick="toggleRoutePickerItem(${idx}, ${!isChecked})">
+            <td style="text-align:center;" onclick="event.stopPropagation()">
+              <input type="checkbox" id="chkRouteItem_${idx}" ${isChecked ? "checked" : ""} onchange="toggleRoutePickerItem(${idx}, this.checked)" />
+            </td>
+            <td style="font-weight:800; font-family:monospace; color:#1E40AF;">${escapeHtml(it.CODIGO || "-")}</td>
+            <td>${escapeHtml(it.TIPO || "ANALISADOR")}</td>
+            <td style="font-weight:700;">${escapeHtml(it.CLIENTE || "-")}</td>
+            <td>${escapeHtml(it.SETOR || "-")}</td>
+            <td>${escapeHtml(it.ULTIMA_ATUALIZACAO || "-")}</td>
+            <td>${sitBadge}</td>
+            <td style="font-size:11px; color:#475569;">${escapeHtml(it.STATUS || "ATIVO")}</td>
+          </tr>
+        `;
+      }).join("")
+    : `<tr><td colspan="8" style="text-align:center; padding:18px; color:#64748B;">Nenhum equipamento encontrado com os filtros selecionados.</td></tr>`;
+}
+
+function filterRouteEquipmentPicker() {
+  renderRouteEquipmentPicker();
+}
+
+function toggleRoutePickerItem(idx, isChecked) {
+  if (isChecked) {
+    APP_STATE.routeSelectedIndices.add(idx);
+  } else {
+    APP_STATE.routeSelectedIndices.delete(idx);
+  }
+  renderRouteEquipmentPicker();
+}
+
+function routePickerToggleHeaderAll(isChecked) {
+  const search = ((document.getElementById("inpRouteEquipSearch") && document.getElementById("inpRouteEquipSearch").value) || "").trim().toLowerCase();
+  const filterCli = (document.getElementById("selRouteEquipClientFilter") && document.getElementById("selRouteEquipClientFilter").value) || "ALL";
+  const filterCycle = (document.getElementById("selRouteEquipCycleFilter") && document.getElementById("selRouteEquipCycleFilter").value) || "ALL";
+
+  (APP_STATE.items || []).forEach(it => {
+    if (filterCli !== "ALL" && (it.CLIENTE || "") !== filterCli) return;
+    if (filterCycle === "PENDING") {
+      const sit = it._situacao_ciclo || "";
+      if (sit !== "PENDENTE_OU_VENCIDA" && sit !== "VENCIDA" && sit !== "VENCENDO") return;
+    } else if (filterCycle === "OK") {
+      const sit = it._situacao_ciclo || "";
+      if (sit !== "EM_DIA") return;
+    }
+    if (search) {
+      const s = `${it.CODIGO || ""} ${it.CLIENTE || ""} ${it.SETOR || ""} ${it.TIPO || ""}`.toLowerCase();
+      if (!s.includes(search)) return;
+    }
+
+    if (isChecked) APP_STATE.routeSelectedIndices.add(it._idx);
+    else APP_STATE.routeSelectedIndices.delete(it._idx);
+  });
+
+  renderRouteEquipmentPicker();
+}
+
+function routePickerSelectAllFiltered(select) {
+  routePickerToggleHeaderAll(select);
+}
+
+function routePickerSelectOnlyPending() {
+  APP_STATE.routeSelectedIndices.clear();
+  (APP_STATE.items || []).forEach(it => {
+    const sit = it._situacao_ciclo || "";
+    if (sit === "PENDENTE_OU_VENCIDA" || sit === "VENCIDA" || sit === "VENCENDO") {
+      APP_STATE.routeSelectedIndices.add(it._idx);
+    }
+  });
+  renderRouteEquipmentPicker();
+  showToast(`${APP_STATE.routeSelectedIndices.size} aparelhos pendentes selecionados para a rota.`, "info");
+}
+
+async function applyRouteSelectedEquipments() {
+  const indices = Array.from(APP_STATE.routeSelectedIndices);
+  if (!indices.length) {
+    showToast("Selecione ao menos 1 aparelho na lista acima para montar a rota.", "warning");
+    return;
+  }
+
+  showToast(`Montando rota com ${indices.length} aparelho(s) selecionado(s)...`, "info");
+  await loadRouteFromIndices(indices);
 }
 
 async function loadRouteFromMode(mode) {
@@ -5539,9 +5955,18 @@ function switchTab(tabId) {
     renderZebraStudio();
     renderHistoryTable();
   } else if (tabId === "tab-rota") {
+    if (APP_STATE.routeSelectedIndices.size === 0 && APP_STATE.selectedIndices.size > 0) {
+      APP_STATE.routeSelectedIndices = new Set(APP_STATE.selectedIndices);
+    }
+    renderRouteEquipmentPicker();
     initRouteLeafletMap();
     if (!APP_STATE.routeStops.length) {
-      loadRouteFromMode("FROM_INDICES");
+      const indices = Array.from(APP_STATE.routeSelectedIndices);
+      if (indices.length) {
+        loadRouteFromIndices(indices);
+      } else {
+        loadRouteFromMode("FROM_INDICES");
+      }
     } else {
       setTimeout(() => {
         routeLeafletMap.invalidateSize();

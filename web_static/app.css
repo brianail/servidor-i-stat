@@ -826,6 +826,19 @@ body {
   border-color: var(--slate-400);
 }
 
+.btn-limpar-destaque {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.btn-limpar-destaque:hover {
+  background: #CBD5E1 !important;
+  border-color: #94A3B8 !important;
+  color: #020617 !important;
+}
+
 .btn-navy {
   background: var(--slate-900);
   color: #FFFFFF;
@@ -4082,4 +4095,96 @@ table.data-table td {
   padding: 10px 12px;
   margin-top: 12px;
 }
+
+/* =========================================================================
+   SELETOR DE EQUIPAMENTOS DA ROTA & ANEXOS / TERMO DE TROCA
+   ========================================================================= */
+.route-equip-picker-table tr.selected {
+  background: #EFF6FF !important;
+}
+
+.route-picker-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.attachments-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: all 0.15s ease;
+}
+
+.attachment-item:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.attachment-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.attachment-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #E0E7FF;
+  color: #3730A3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.attachment-meta {
+  min-width: 0;
+}
+
+.attachment-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+
+.attachment-name:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.attachment-sub {
+  font-size: 11px;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachment-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 
