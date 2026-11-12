@@ -1,5 +1,20 @@
 [
   {
+    "_epoch": 1794503451.577919,
+    "DATA_HORA": "12/11/2026 14:10:51",
+    "CODIGO_BARRAS": "325313",
+    "TIPO": "ANALISADOR",
+    "ACAO": "MOVIMENTAÇÃO / EDIÇÃO",
+    "CLIENTE": "SEM CLIENTE (ESTOQUE LYDA)",
+    "MODALIDADE": "PROPRIEDADE LYDA",
+    "CONDICAO": "PERFEITO / FUNCIONANDO 100%",
+    "DEFEITO_OBS": "",
+    "RESPONSAVEL": "BRIAN AIL",
+    "OPERADOR": "BRIAN AIL",
+    "COMPUTADOR": "MacBook-Air-de-brian.local",
+    "DETALHES": "Cliente/Local: SEM CLIENTE (ESTOQUE LYDA) | Endereço: Rua Alameda 3 de Outubro, 795 - Sarandi, Porto Alegre - RS, 91130-470 | Modalidade: PROPRIEDADE LYDA | Status: ESTOQUE USADOS | Últ. Atualização: 12/11/2026 (Próx: 12/05/2027) | Resp: BRIAN AIL"
+  },
+  {
     "_epoch": 1793905818.367566,
     "DATA_HORA": "05/11/2026 16:10:18",
     "CODIGO_BARRAS": "403559",

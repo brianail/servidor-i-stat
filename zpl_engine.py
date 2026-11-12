@@ -240,7 +240,8 @@ class ZPLGenerator:
                 raw_val = row_data.get(ef.column_name, "")
                 if ef.column_name == "CLIENTE":
                     raw_up = str(raw_val or "").upper()
-                    if not raw_up or "SEM CLIENTE" in raw_up:
+                    st_up = str(row_data.get("STATUS", "")).upper()
+                    if not raw_up or "SEM CLIENTE" in raw_up or "ESTOQUE" in raw_up or "ESTOQUE" in st_up or raw_up.startswith("LYDA"):
                         raw_val = "ESTOQUE LYDA"
             val_str = sanitize_zpl_text(raw_val)
             if not val_str and not ef.prefix:

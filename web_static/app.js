@@ -1721,9 +1721,10 @@ function renderModalSingleLabelPreview() {
     `;
   }
 
-  const cliStr = (rec.CLIENTE && !rec.CLIENTE.toUpperCase().includes("SEM CLIENTE"))
-    ? rec.CLIENTE
-    : "ESTOQUE LYDA";
+  const upperCli = String(rec.CLIENTE || "").toUpperCase();
+  const upperSt = String(rec.STATUS || "").toUpperCase();
+  const isStock = !upperCli || upperCli.includes("SEM CLIENTE") || upperCli.includes("ESTOQUE") || upperSt.includes("ESTOQUE") || upperCli === "LYDA";
+  const cliStr = isStock ? "ESTOQUE LYDA" : rec.CLIENTE;
 
   const fieldLines = [
     `<div class="z-mini-line">EQ: ${escapeHtml(rec.TIPO || "ANALISADOR")}</div>`,
@@ -1961,14 +1962,37 @@ function applyModalPreset(preset) {
   renderModalSingleLabelPreview();
 }
 
+function onModalStatusChange(newStatus) {
+  const stUp = String(newStatus || "").toUpperCase();
+  if (stUp.includes("ESTOQUE")) {
+    setModalClientToStock();
+    const setInp = document.getElementById("inpModalSetor");
+    if (setInp) {
+      setInp.value = stUp.includes("NOVOS") ? "ESTOQUE LYDA (NOVOS)" : "ESTOQUE LYDA";
+    }
+    const attEstSel = document.getElementById("selModalAttEstoque");
+    if (attEstSel && attEstSel.value.includes("N/A")) {
+      attEstSel.value = "SIM - JÁ ATUALIZADO NO ESTOQUE";
+    }
+  }
+  renderModalSingleLabelPreview();
+}
+
 function setModalClientToStock() {
-  document.getElementById("inpModalCliente").value = "SEM CLIENTE (ESTOQUE LYDA)";
-  document.getElementById("inpModalSetor").value = "ESTOQUE LYDA";
-  document.getElementById("selModalModalidade").value = "PROPRIEDADE LYDA";
-  document.getElementById("inpModalEndereco").value = APP_STATE.config.lyda_hq_address || "";
-  document.getElementById("inpModalCep").value = "91130-470";
-  document.getElementById("inpModalCidade").value = "PORTO ALEGRE";
-  document.getElementById("inpModalUf").value = "RS";
+  const cliInp = document.getElementById("inpModalCliente");
+  if (cliInp) cliInp.value = "SEM CLIENTE (ESTOQUE LYDA)";
+  const setInp = document.getElementById("inpModalSetor");
+  if (setInp) setInp.value = "ESTOQUE LYDA";
+  const modSel = document.getElementById("selModalModalidade");
+  if (modSel) modSel.value = "PROPRIEDADE LYDA";
+  const endInp = document.getElementById("inpModalEndereco");
+  if (endInp) endInp.value = APP_STATE.config.lyda_hq_address || "Av. Pernambuco, 2623 - Navegantes, Porto Alegre - RS";
+  const cepInp = document.getElementById("inpModalCep");
+  if (cepInp) cepInp.value = "91130-470";
+  const cidInp = document.getElementById("inpModalCidade");
+  if (cidInp) cidInp.value = "PORTO ALEGRE";
+  const ufInp = document.getElementById("inpModalUf");
+  if (ufInp) ufInp.value = "RS";
   renderModalSingleLabelPreview();
 }
 
@@ -2038,20 +2062,26 @@ async function saveItemFromModal(openRomaneioAfter = false, printZebraAfter = fa
   const idxRaw = document.getElementById("hidModalIdx").value;
   const original_idx = idxRaw !== "" ? parseInt(idxRaw, 10) : null;
 
+  const stUp = (document.getElementById("selModalStatus").value || "").toUpperCase();
+  const cliInpVal = document.getElementById("inpModalCliente").value.trim();
+  const isStock = stUp.includes("ESTOQUE") || cliInpVal.toUpperCase().includes("SEM CLIENTE") || cliInpVal.toUpperCase().includes("ESTOQUE");
+
   const itemPayload = {
     TIPO: document.getElementById("selModalTipo").value,
     CODIGO: document.getElementById("inpModalCodigo").value.trim(),
-    MODALIDADE: document.getElementById("selModalModalidade").value,
+    MODALIDADE: isStock ? "PROPRIEDADE LYDA" : document.getElementById("selModalModalidade").value,
     STATUS: document.getElementById("selModalStatus").value,
-    CLIENTE: document.getElementById("inpModalCliente").value.trim(),
-    SETOR: document.getElementById("inpModalSetor").value.trim(),
+    CLIENTE: isStock ? "SEM CLIENTE (ESTOQUE LYDA)" : cliInpVal,
+    SETOR: isStock && (!document.getElementById("inpModalSetor").value.trim() || ["USADO", "NOVO", "ESTOQUE"].includes(document.getElementById("inpModalSetor").value.trim().toUpperCase()))
+      ? (stUp.includes("NOVOS") ? "ESTOQUE LYDA (NOVOS)" : "ESTOQUE LYDA")
+      : document.getElementById("inpModalSetor").value.trim(),
     ULTIMA_ATUALIZACAO: document.getElementById("inpModalUltAtt").value.trim(),
     VERSAO_CLEW: document.getElementById("inpModalVersaoClew").value.trim(),
     ATUALIZADO_NO_ESTOQUE: document.getElementById("selModalAttEstoque").value,
-    ENDERECO: document.getElementById("inpModalEndereco").value.trim(),
-    CEP: document.getElementById("inpModalCep").value.trim(),
-    CIDADE: document.getElementById("inpModalCidade").value.trim(),
-    UF: document.getElementById("inpModalUf").value.trim(),
+    ENDERECO: isStock ? (APP_STATE.config.lyda_hq_address || "Av. Pernambuco, 2623 - Navegantes, Porto Alegre - RS") : document.getElementById("inpModalEndereco").value.trim(),
+    CEP: isStock ? "91130-470" : document.getElementById("inpModalCep").value.trim(),
+    CIDADE: isStock ? "PORTO ALEGRE" : document.getElementById("inpModalCidade").value.trim(),
+    UF: isStock ? "RS" : document.getElementById("inpModalUf").value.trim(),
     CONDICAO: document.getElementById("selModalCondicao").value,
     DEFEITO: document.getElementById("inpModalDefeito").value.trim(),
     CONTATO_LOCAL: document.getElementById("inpModalContato").value.trim(),
@@ -2083,6 +2113,9 @@ async function saveItemFromModal(openRomaneioAfter = false, printZebraAfter = fa
     }
     closeItemModal();
     await loadBootstrapData(true);
+
+    if (typeof renderZebraItemsChecklist === "function") renderZebraItemsChecklist();
+    if (typeof renderZebraVisualPreview === "function") renderZebraVisualPreview();
 
     const savedIdx = data.item._idx;
     if (openRomaneioAfter) {
@@ -4681,9 +4714,10 @@ function renderZebraItemsChecklist() {
   tbody.innerHTML = filtered.map(it => {
     const isSel = APP_STATE.zebraSelectedIndices.has(it._idx);
     const rowColor = typeof getItemRowColorClass === "function" ? getItemRowColorClass(it, false) : "";
-    const locName = (it.CLIENTE && !it.CLIENTE.toUpperCase().includes("SEM CLIENTE"))
-      ? it.CLIENTE
-      : "ESTOQUE LYDA";
+    const upperCli = String(it.CLIENTE || "").toUpperCase();
+    const upperSt = String(it.STATUS || "").toUpperCase();
+    const isStock = !upperCli || upperCli.includes("SEM CLIENTE") || upperCli.includes("ESTOQUE") || upperSt.includes("ESTOQUE") || upperCli === "LYDA";
+    const locName = isStock ? "ESTOQUE LYDA" : it.CLIENTE;
     return `
       <tr class="${rowColor} ${isSel ? 'row-selected' : ''}" style="cursor:pointer;" onclick="toggleSingleZebraItem(${it._idx})">
         <td style="text-align:center;" onclick="event.stopPropagation()">
@@ -4974,7 +5008,10 @@ function renderZebraVisualPreview() {
         fieldLines.push(`<div class="z-mini-line">SN: ${escapeHtml(rec.CODIGO || "")}</div>`);
       }
       if (cfg.show_location) {
-        const cliStr = (rec.CLIENTE && !rec.CLIENTE.toUpperCase().includes("SEM CLIENTE")) ? rec.CLIENTE : "ESTOQUE LYDA";
+        const upperCli = String(rec.CLIENTE || "").toUpperCase();
+        const upperSt = String(rec.STATUS || "").toUpperCase();
+        const isStock = !upperCli || upperCli.includes("SEM CLIENTE") || upperCli.includes("ESTOQUE") || upperSt.includes("ESTOQUE") || upperCli === "LYDA";
+        const cliStr = isStock ? "ESTOQUE LYDA" : rec.CLIENTE;
         fieldLines.push(`<div class="z-mini-line client-line">${escapeHtml(cliStr)}</div>`);
       }
 
@@ -5117,8 +5154,12 @@ function printVisualLabelsInBrowser() {
       const logoHtml = (cfg.show_logo && APP_STATE.logo_data_uri)
         ? `<img src="${APP_STATE.logo_data_uri}" style="height:4.4mm; max-width:65%; object-fit:contain; filter:contrast(1.3) grayscale(1);" />`
         : `<span>LYDA</span>`;
+      const upperCli = String(it.CLIENTE || "").toUpperCase();
+      const upperSt = String(it.STATUS || "").toUpperCase();
+      const isStock = !upperCli || upperCli.includes("SEM CLIENTE") || upperCli.includes("ESTOQUE") || upperSt.includes("ESTOQUE") || upperCli === "LYDA";
+      const cliStr = isStock ? "ESTOQUE LYDA" : it.CLIENTE;
       const cliLine = cfg.show_location
-        ? `<div class="line cli">${escapeHtml((it.CLIENTE && !it.CLIENTE.includes("SEM CLIENTE")) ? it.CLIENTE : "ESTOQUE LYDA")}</div>`
+        ? `<div class="line cli">${escapeHtml(cliStr)}</div>`
         : "";
       const eqLine = cfg.show_equipamento ? `<div class="line">EQ: ${escapeHtml(it.TIPO || "ANALISADOR")}</div>` : "";
       const snLine = cfg.show_serial_line ? `<div class="line">SN: ${escapeHtml(it.CODIGO)}</div>` : "";

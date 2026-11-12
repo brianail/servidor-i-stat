@@ -1209,31 +1209,43 @@ class IStatDatabaseManager:
             if not bc:
                 return
             tipo_norm = normalize_equipment_type(tipo)
-            # Evita duplicar exatamente o mesmo serial+tipo+modalidade na mesma importação
-            dedup_key = (tipo_norm, bc, modalidade, cliente_local)
-            if dedup_key in seen_keys:
-                return
-            seen_keys.add(dedup_key)
 
             status_final = infer_status(modalidade, cliente_local, status_col, obs, modalidade)
-            extracted.append(
-                {
-                    "ID": f"{tipo_norm[:3]}-{bc}",
-                    "CODIGO": bc,  # Código limpo para o Código de Barras (ex: 446761, S137045, DRC110815)
-                    "SERIAL_ORIGINAL": format_raw_serial(raw_serial),
-                    "TIPO": tipo_norm,  # ANALISADOR, IMPRESSORA, SIMULADOR, DOWNLOADER
-                    "EQUIPAMENTO": f"i-STAT {tipo_norm.title()}",
-                    "CLIENTE": (cliente_local or "").strip() or "LYDA ESTOQUE",
-                    "UF": (uf or "").strip(),
-                    "CIDADE": (cidade or "").strip(),
-                    "SETOR": (setor or "").strip(),
-                    "MODALIDADE": modalidade,
-                    "STATUS": status_final,
-                    "KIT_ANALISADOR": kit_analisador_ref,
-                    "OBSERVACOES": (obs or "").strip(),
-                    "ATUALIZADO_EM": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                }
-            )
+            cli_clean = (cliente_local or "").strip()
+            if "ESTOQUE" in status_final.upper() or any(k in cli_clean.upper() for k in ("ESTOQUE", "SEM CLIENTE")):
+                cli_clean = "SEM CLIENTE (ESTOQUE LYDA)"
+                modalidade = "PROPRIEDADE LYDA"
+                if not setor or setor.upper() in ("USADO", "NOVO", "ESTOQUE"):
+                    setor = "ESTOQUE LYDA (NOVOS)" if "NOVOS" in status_final.upper() else "ESTOQUE LYDA"
+
+            item_dict = {
+                "ID": f"{tipo_norm[:3]}-{bc}",
+                "CODIGO": bc,
+                "SERIAL_ORIGINAL": format_raw_serial(raw_serial),
+                "TIPO": tipo_norm,
+                "EQUIPAMENTO": f"i-STAT {tipo_norm.title()}",
+                "CLIENTE": cli_clean or "SEM CLIENTE (ESTOQUE LYDA)",
+                "UF": (uf or "RS").strip(),
+                "CIDADE": (cidade or "PORTO ALEGRE").strip(),
+                "SETOR": (setor or "ESTOQUE LYDA").strip(),
+                "MODALIDADE": modalidade,
+                "STATUS": status_final,
+                "KIT_ANALISADOR": kit_analisador_ref,
+                "OBSERVACOES": (obs or "").strip(),
+                "ATUALIZADO_EM": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            }
+
+            # Chave única para nunca duplicar o mesmo aparelho
+            dedup_key = (tipo_norm, bc)
+            if dedup_key in seen_keys:
+                # Atualiza o registro existente com a informação mais recente
+                for ex_i, ex_it in enumerate(extracted):
+                    if (ex_it.get("TIPO"), ex_it.get("CODIGO")) == dedup_key:
+                        extracted[ex_i] = item_dict
+                        break
+                return
+            seen_keys.add(dedup_key)
+            extracted.append(item_dict)
 
         for sheet_name in wb.sheetnames:
             ws = wb[sheet_name]
@@ -1400,6 +1412,29 @@ class IStatDatabaseManager:
         nf_val = item_data.get("NOTA_FISCAL", prev_rec.get("NOTA_FISCAL", "")).strip()
         acessorios_val = item_data.get("ACESSORIOS", prev_rec.get("ACESSORIOS", "")).strip()
 
+        # Se o status é Estoque (ex: ESTOQUE USADOS, ESTOQUE LYDA NOVOS ou ESTOQUE),
+        # ou se o cliente foi preenchido como Sem Cliente / Estoque:
+        # o aparelho está no armário da LYDA, portanto SEMPRE deve ser SEM CLIENTE (ESTOQUE LYDA)
+        status_input = item_data.get("STATUS", prev_rec.get("STATUS", "ATIVO NO CLIENTE")).strip().upper()
+        is_stock_status = "ESTOQUE" in status_input
+        is_stock_client = any(k in cliente_val.upper() for k in ("SEM CLIENTE", "ESTOQUE", "LYDA"))
+
+        if is_stock_status:
+            cliente_val = "SEM CLIENTE (ESTOQUE LYDA)"
+            modalidade_val = "PROPRIEDADE LYDA"
+            setor_val = item_data.get("SETOR", prev_rec.get("SETOR", "")).strip().upper()
+            if not setor_val or setor_val in ("USADO", "NOVO", "ESTOQUE", "GERAL"):
+                setor_val = "ESTOQUE LYDA (NOVOS)" if "NOVOS" in status_input else "ESTOQUE LYDA"
+            endereco_val = self.lyda_hq_address
+            cidade_val = "PORTO ALEGRE"
+            uf_val = "RS"
+            cep_val = "91130-470"
+        else:
+            modalidade_val = item_data.get("MODALIDADE", prev_rec.get("MODALIDADE", "COMODATO")).strip().upper()
+            setor_val = item_data.get("SETOR", prev_rec.get("SETOR", "")).strip().upper()
+            cidade_val = item_data.get("CIDADE", prev_rec.get("CIDADE", "")).strip().upper()
+            uf_val = item_data.get("UF", prev_rec.get("UF", "")).strip().upper()
+
         if not endereco_val:
             cli_up = cliente_val.upper()
             if "ESTOQUE" in cli_up or "SEM CLIENTE" in cli_up or cli_up.startswith("LYDA"):
@@ -1421,11 +1456,11 @@ class IStatDatabaseManager:
             "ENDERECO": endereco_val,
             "CEP": cep_val,
             "CONTATO_LOCAL": contato_val,
-            "UF": item_data.get("UF", "").strip().upper(),
-            "CIDADE": item_data.get("CIDADE", "").strip().upper(),
-            "SETOR": item_data.get("SETOR", "").strip().upper(),
-            "MODALIDADE": item_data.get("MODALIDADE", "PROPRIEDADE LYDA").strip().upper(),
-            "STATUS": item_data.get("STATUS", "ATIVO NO CLIENTE").strip().upper(),
+            "UF": uf_val,
+            "CIDADE": cidade_val,
+            "SETOR": setor_val,
+            "MODALIDADE": modalidade_val,
+            "STATUS": status_input,
             "CONDICAO": condicao_val,
             "DEFEITO": defeito_val,
             "ULTIMA_ATUALIZACAO": ult_att_val,
@@ -1451,10 +1486,38 @@ class IStatDatabaseManager:
             + (f" | Defeito/Obs: {defeito_val or obs_val}" if (defeito_val or obs_val) else "")
             + (f" | Resp: {responsavel}" if responsavel else "")
         )
+
+        # Localiza se este equipamento já existe na base para atualizar SEM DUPLICAR
+        target_idx = None
         if original_idx is not None and 0 <= original_idx < len(self.items):
-            self.items[original_idx] = record
+            target_idx = original_idx
+        else:
+            for i, it in enumerate(self.items):
+                if it.get("CODIGO") == bc and normalize_equipment_type(it.get("TIPO", "")) == tipo:
+                    target_idx = i
+                    break
+            if target_idx is None:
+                for i, it in enumerate(self.items):
+                    if it.get("CODIGO") == bc:
+                        target_idx = i
+                        break
+
+        if target_idx is not None and 0 <= target_idx < len(self.items):
+            self.items[target_idx] = record
         else:
             self.items.append(record)
+
+        # Remove eventuais duplicatas anteriores deste mesmo serial se existirem em outros índices
+        unique_items = []
+        seen_keys = set()
+        for it in self.items:
+            k = (normalize_equipment_type(it.get("TIPO", "")), clean_barcode_serial(it.get("CODIGO", "")))
+            if k[1]:
+                if k in seen_keys:
+                    continue
+                seen_keys.add(k)
+            unique_items.append(it)
+        self.items = unique_items
 
         self.add_history_log(
             serial_barcode=bc,
