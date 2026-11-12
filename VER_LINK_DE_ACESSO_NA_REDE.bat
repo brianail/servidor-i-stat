@@ -1,28 +1,20 @@
 @echo off
 chcp 65001 >nul
+cd /d "%~dp0"
+set SCRIPT_DIR=%~dp0
 title LYDA — LINKS DE ACESSO NA REDE LOCAL
-echo ============================================================================
-echo   LYDA — LINKS DE ACESSO DO SERVIDOR NA REDE LOCAL
-echo ============================================================================
+
+set "PYTHON_BIN=python"
+if exist "%SCRIPT_DIR%lyda_python_path.txt" (
+    set /p PYTHON_BIN=<"%SCRIPT_DIR%lyda_python_path.txt"
+)
+"%PYTHON_BIN%" --version >nul 2>&1
+if %errorlevel% neq 0 (
+    py -3 --version >nul 2>&1 && set "PYTHON_BIN=py -3"
+)
+
+"%PYTHON_BIN%" mostrar_ip_rede.py
 echo.
-python -c "
-import socket
-ips = set()
-try:
-    for info in socket.getaddrinfo(socket.gethostname(), None):
-        ip = info[4][0]
-        if ':' not in ip and not ip.startswith('127.'):
-            ips.add(ip)
-except:
-    pass
-print('Link para usar NESTE computador (Servidor):')
-print('  http://localhost:8080\n')
-print('Link para enviar para a EQUIPE (outros PCs, notebooks e celulares na rede):')
-for ip in sorted(ips):
-    print(f'  --> http://{ip}:8080')
-"
-echo.
-echo ============================================================================
-echo Pressione qualquer tecla para abrir o sistema no navegador...
+echo Pressione qualquer tecla para abrir o sistema no navegador deste PC...
 pause >nul
 start http://localhost:8080

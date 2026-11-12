@@ -40,7 +40,16 @@ copy /y "%SNAPSHOT_DIR%\lyda_istat_*.json" "%SCRIPT_DIR%\" >nul 2>&1
 copy /y "%SNAPSHOT_DIR%\lyda_zebra_web_config.json" "%SCRIPT_DIR%\" >nul 2>&1
 
 echo [5/5] Verificando dependencias e reiniciando o servidor em segundo plano...
-python -m pip install -r requirements.txt >nul 2>&1
+set "PYTHON_BIN=python"
+if exist "%SCRIPT_DIR%lyda_python_path.txt" (
+    set /p PYTHON_BIN=<"%SCRIPT_DIR%lyda_python_path.txt"
+)
+"%PYTHON_BIN%" --version >nul 2>&1
+if %errorlevel% neq 0 (
+    py -3 --version >nul 2>&1 && set "PYTHON_BIN=py -3"
+)
+
+"%PYTHON_BIN%" -m pip install -r requirements.txt >nul 2>&1
 wscript.exe "%SCRIPT_DIR%servidor_background.vbs"
 
 echo.

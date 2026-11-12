@@ -35,3 +35,4 @@ dados_producao_backup/
 
 # Chave de sessão local
 .lyda_web_secret
+lyda_python_path.txt
