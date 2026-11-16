@@ -723,33 +723,6 @@ body {
   margin: 0;
 }
 
-.server-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--slate-50);
-  border: 1px solid var(--slate-200);
-  color: var(--slate-600);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 4px;
-  transition: all 0.12s ease;
-}
-
-.server-status-pill:hover {
-  border-color: var(--slate-300);
-  background: var(--slate-100);
-  color: var(--slate-900);
-}
-
-.status-dot-green {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #10B981;
-}
-
 .topbar-right {
   display: flex;
   align-items: center;
@@ -1772,8 +1745,46 @@ table.data-table td {
 .quick-presets {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 12px;
+  background: var(--slate-100);
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.quick-presets .preset-btn {
+  min-width: 0;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  background: #FFFFFF;
+  color: var(--slate-700);
+  border: 1px solid var(--slate-200);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quick-presets .preset-btn span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-presets .preset-btn:hover {
+  background: var(--slate-50);
+  border-color: var(--slate-300);
+  color: var(--slate-900);
+}
+
+.quick-presets .preset-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
+  box-shadow: var(--shadow-xs);
 }
 
 .form-grid-4 {

@@ -6,7 +6,7 @@
   <title>LYDA — Controle de Estoque i-STAT, Radar 6 Meses & Rota da Enfermeira</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="/static/app.css?v=20261116_v2" />
+  <link rel="stylesheet" href="/static/app.css?v=20261116_v3" />
 </head>
 <body>
 
@@ -258,12 +258,6 @@
             </button>
           </div>
           <h1 class="topbar-title" id="lblTopPageTitle">Dashboard & Relatórios Executivos</h1>
-          <div class="server-status-pill" onclick="switchTab('tab-servidor')" style="cursor:pointer;" title="Clique para ver o link de acesso na rede e status do backup SharePoint">
-            <span class="status-dot-green"></span>
-            <span id="lblServerUrl">Online</span>
-            <span style="color:#CBD5E1;">•</span>
-            <span id="lblSharepointStatus">Backup Ativo</span>
-          </div>
         </div>
 
         <div class="topbar-right">
@@ -296,7 +290,6 @@
           <!-- CABEÇALHO DO DASHBOARD + CENTRAL DE RELATÓRIOS EM 1 CLIQUE -->
           <div class="dash-hero-bar">
             <div class="dash-hero-left">
-              <div class="dash-hero-tag">VISÃO OPERACIONAL CONSOLIDADA</div>
               <h2 class="dash-hero-title" id="lblDashWelcomeTitle">Parque de Equipamentos Abbott i-STAT</h2>
               <p class="dash-hero-sub" id="lblDashWelcomeSub">Acompanhamento consolidado de analisadores, impressoras, comodatos, estoque sede, cidades atendidas e ciclo semestral (6m).</p>
             </div>
@@ -1540,7 +1533,7 @@
               <div class="zebra-roller-header">
                 <div>
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="zebra-printer-badge">PRÉVIA REAL ZEBRA ZD230</span>
+                    <span class="zebra-printer-badge">ZEBRA ZD230</span>
                     <span style="font-size:13px; font-weight:800; color:#FFFFFF;" id="lblZebraPreviewHeaderTitle">Pré-Visualização das Folhas na Bobina</span>
                   </div>
                   <div id="lblZebraRollerDims" style="font-size:11.5px; color:#CBD5E1; margin-top:2px;">
@@ -2033,11 +2026,23 @@
       <div class="modal-body">
         <input type="hidden" id="hidModalIdx" value="" />
 
-        <div class="quick-presets">
-          <button class="btn btn-primary" onclick="applyModalPreset('ENVIAR_CLIENTE')">1. Enviar p/ Hospital / Cliente</button>
-          <button class="btn btn-secondary" onclick="applyModalPreset('ESTOQUE_ATUALIZADO')">2. Voltou p/ Estoque (JÁ ATUALIZADO)</button>
-          <button class="btn btn-secondary" onclick="applyModalPreset('ESTOQUE_FALTA')">3. Voltou p/ Estoque (FALTA ATUALIZAR)</button>
-          <button class="btn btn-secondary" onclick="applyModalPreset('DEFEITO')">4. Com Defeito / Manutenção</button>
+        <div class="quick-presets" id="divModalQuickPresets">
+          <button type="button" class="btn btn-secondary preset-btn" data-preset="ENVIAR_CLIENTE" onclick="applyModalPreset('ENVIAR_CLIENTE')">
+            <span class="rcl-dot" style="background:#0284C7;"></span>
+            <span>Alocar em Hospital</span>
+          </button>
+          <button type="button" class="btn btn-secondary preset-btn" data-preset="ESTOQUE_ATUALIZADO" onclick="applyModalPreset('ESTOQUE_ATUALIZADO')">
+            <span class="rcl-dot" style="background:#10B981;"></span>
+            <span>Estoque (Atualizado)</span>
+          </button>
+          <button type="button" class="btn btn-secondary preset-btn" data-preset="ESTOQUE_FALTA" onclick="applyModalPreset('ESTOQUE_FALTA')">
+            <span class="rcl-dot" style="background:#F59E0B;"></span>
+            <span>Estoque (Falta Atualizar)</span>
+          </button>
+          <button type="button" class="btn btn-secondary preset-btn" data-preset="DEFEITO" onclick="applyModalPreset('DEFEITO')">
+            <span class="rcl-dot" style="background:#E11D48;"></span>
+            <span>Manutenção / Defeito</span>
+          </button>
         </div>
 
         <div class="modal-internal-tabs" id="divItemModalTabs">
@@ -2432,6 +2437,6 @@
 
   <div id="lydaDatePickerPopover" class="lyda-datepicker-popover"></div>
   <div id="toastContainer"></div>
-  <script src="/static/app.js?v=20261116_v2"></script>
+  <script src="/static/app.js?v=20261116_v3"></script>
 </body>
 </html>

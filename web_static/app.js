@@ -1689,6 +1689,7 @@ async function openItemModal(idx, prefillSerial = "") {
     renderModalSingleLabelPreview();
     renderModalAttachments([], null);
     switchItemModalTab("mtab-cadastro");
+    syncModalPresetHighlight();
     backdrop.classList.add("open");
     return;
   }
@@ -1748,6 +1749,7 @@ async function openItemModal(idx, prefillSerial = "") {
 
     renderModalAttachments(it.ANEXOS || [], idx);
     switchItemModalTab("mtab-cadastro");
+    syncModalPresetHighlight();
 
     backdrop.classList.add("open");
   } catch (e) {
@@ -2308,6 +2310,31 @@ function openModalItemInZebraStudio() {
   renderZebraStudio();
 }
 
+function syncModalPresetHighlight(forcedPreset = null) {
+  let active = forcedPreset;
+  if (!active) {
+    const stUp = ((document.getElementById("selModalStatus") && document.getElementById("selModalStatus").value) || "").toUpperCase();
+    const cliUp = ((document.getElementById("inpModalCliente") && document.getElementById("inpModalCliente").value) || "").toUpperCase();
+    const attUp = ((document.getElementById("selModalAttEstoque") && document.getElementById("selModalAttEstoque").value) || "").toUpperCase();
+
+    if (stUp.includes("DEFEITO") || stUp.includes("MANUTEN") || stUp.includes("REPARO")) {
+      active = "DEFEITO";
+    } else if (cliUp.includes("ESTOQUE") || cliUp.includes("SEM CLIENTE") || stUp.includes("ESTOQUE")) {
+      if (attUp.includes("FALTA") || attUp.includes("NÃO")) {
+        active = "ESTOQUE_FALTA";
+      } else {
+        active = "ESTOQUE_ATUALIZADO";
+      }
+    } else {
+      active = "ENVIAR_CLIENTE";
+    }
+  }
+
+  document.querySelectorAll("#divModalQuickPresets .preset-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-preset") === active);
+  });
+}
+
 function applyModalPreset(preset) {
   const today = new Date().toLocaleDateString("pt-BR");
   if (preset === "ENVIAR_CLIENTE") {
@@ -2341,6 +2368,7 @@ function applyModalPreset(preset) {
     document.getElementById("inpModalDefeito").focus();
     showToast("Modo Defeito/Manutenção selecionado. Descreva o defeito apresentado.", "info");
   }
+  syncModalPresetHighlight(preset);
   renderModalSingleLabelPreview();
 }
 
@@ -2357,6 +2385,7 @@ function onModalStatusChange(newStatus) {
       attEstSel.value = "SIM - JÁ ATUALIZADO NO ESTOQUE";
     }
   }
+  syncModalPresetHighlight();
   renderModalSingleLabelPreview();
 }
 
@@ -2375,6 +2404,7 @@ function setModalClientToStock() {
   if (cidInp) cidInp.value = "PORTO ALEGRE";
   const ufInp = document.getElementById("inpModalUf");
   if (ufInp) ufInp.value = "RS";
+  syncModalPresetHighlight();
   renderModalSingleLabelPreview();
 }
 
