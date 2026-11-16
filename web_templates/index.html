@@ -6,37 +6,37 @@
   <title>LYDA — Controle de Estoque i-STAT, Radar 6 Meses & Rota da Enfermeira</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="/static/app.css?v=20261106_prn4" />
+  <link rel="stylesheet" href="/static/app.css?v=20261116_clean1" />
 </head>
 <body>
 
   <!-- ===================================================================== -->
-  <!-- TELA DE LOGIN ENTERPRISE SPLIT-SCREEN (MODERNA & CORPORATIVA)         -->
+  <!-- TELA DE LOGIN CORPORATIVA                                             -->
   <!-- ===================================================================== -->
   <div class="login-screen" id="loginScreen">
     <div class="login-split-card">
 
-      <!-- PAINEL ESQUERDO: BRANDING LYDA & SHOWCASE DO SISTEMA -->
+      <!-- PAINEL ESQUERDO: BRANDING LYDA -->
       <div class="login-showcase">
         <div class="login-showcase-top">
           <div class="login-brand-row">
             <div class="brand-logo-transparent" id="loginLogoContainer">
               <span class="brand-fallback-wordmark">LYDA</span>
             </div>
-            <span class="brand-pill-tag">i-STAT Platform</span>
+            <span class="brand-pill-tag">SISTEMA INTERNO</span>
           </div>
 
           <h1 class="login-showcase-title">
-            Gestão Inteligente de Equipamentos & Logística Hospitalar
+            Controle Patrimonial e Logística i-STAT
           </h1>
           <p class="login-showcase-desc">
-            Controle centralizado de analisadores i-STAT, monitoramento preventivo do ciclo semestral de atualização e roteirização externa integrada ao Google Maps.
+            Sistema interno de rastreabilidade de números de série, controle de comodato, atualização semestral CLEW/JAMS e expedição técnica.
           </p>
 
           <div class="login-feature-list">
             <div class="login-feature-item">
               <div class="login-feature-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
               </div>
               <div>
                 <strong>Radar Semestral (6 em 6 Meses)</strong>
@@ -46,20 +46,20 @@
 
             <div class="login-feature-item">
               <div class="login-feature-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
               </div>
               <div>
-                <strong>Rota da Enfermeira & PDF Oficial</strong>
+                <strong>Rota da Enfermeira &amp; PDF Oficial</strong>
                 <span>Otimização de paradas por proximidade, mapa interativo e protocolo pronto para WhatsApp.</span>
               </div>
             </div>
 
             <div class="login-feature-item">
               <div class="login-feature-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <div>
-                <strong>Rastreabilidade & Backup SharePoint</strong>
+                <strong>Rastreabilidade &amp; Backup SharePoint</strong>
                 <span>Auditoria completa por operador, leitura de código de barras USB e backup diário automático.</span>
               </div>
             </div>
@@ -68,14 +68,14 @@
 
         <div class="login-showcase-footer">
           <span>LYDA Comércio Importação e Exportação Ltda.</span>
-          <span>Ambiente Corporativo Seguro</span>
+          <span>Ambiente Corporativo</span>
         </div>
       </div>
 
-      <!-- PAINEL DIREITO: FORMULÁRIO DE ACESSO MODERNO -->
+      <!-- PAINEL DIREITO: FORMULÁRIO DE ACESSO -->
       <div class="login-form-side">
         <div class="login-form-header">
-          <h2>Acesse sua conta</h2>
+          <h2>Acesso ao Sistema</h2>
           <p>Entre com suas credenciais para acessar o painel da LYDA.</p>
         </div>
 
@@ -112,7 +112,7 @@
           <div id="lblLoginError" class="login-error-alert" style="display:none;"></div>
 
           <button type="submit" id="btnLoginSubmit" class="login-submit-btn">
-            <span>Entrar na Plataforma</span>
+            <span>Entrar</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
         </form>
@@ -194,7 +194,7 @@
           <button class="nav-tab" data-tab="tab-etiquetas" data-title="Impressão de Etiquetas — Zebra ZD230" onclick="switchTab('tab-etiquetas')">
             <span class="nav-tab-left">
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-              <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Etiquetas Zebra ZD230</span>
+              <span>Etiquetas Zebra ZD230</span>
             </span>
           </button>
 
@@ -293,8 +293,8 @@
           <!-- CABEÇALHO DO DASHBOARD + CENTRAL DE RELATÓRIOS EM 1 CLIQUE -->
           <div class="dash-hero-bar">
             <div class="dash-hero-left">
-              <div class="dash-hero-tag">PAINEL EXECUTIVO EM TEMPO REAL</div>
-              <h2 class="dash-hero-title" id="lblDashWelcomeTitle">Visão Geral de Equipamentos Abbott i-STAT — LYDA</h2>
+              <div class="dash-hero-tag">VISÃO OPERACIONAL CONSOLIDADA</div>
+              <h2 class="dash-hero-title" id="lblDashWelcomeTitle">Parque de Equipamentos Abbott i-STAT</h2>
               <p class="dash-hero-sub" id="lblDashWelcomeSub">Acompanhamento consolidado de analisadores, impressoras, comodatos, estoque sede, cidades atendidas e ciclo semestral (6m).</p>
             </div>
             <div class="dash-reports-bar">
@@ -629,14 +629,14 @@
             </div>
           </div>
 
-          <!-- BARRA RÁPIDA DE VISUALIZAÇÃO E CORES DAS LINHAS -->
+          <!-- BARRA RÁPIDA DE VISUALIZAÇÃO -->
           <div class="row-color-legend">
             <span class="rcl-title" id="lblEstoqueShowingCount">Mostrando 97 aparelhos:</span>
-            <span class="rcl-pill" style="background:#F1F5F9; color:#0F172A; border-color:#CBD5E1;" onclick="resetAllFilters()" title="Mostrar todos os aparelhos (Estoque LYDA + Hospitais)">
+            <span class="rcl-pill" style="background:#F3F4F6; color:#111827; border-color:#D1D5DB;" onclick="resetAllFilters()" title="Mostrar todos os aparelhos (Estoque LYDA + Hospitais)">
               Todos
             </span>
             <span class="rcl-pill rcl-estoque" onclick="applyKpiQuickFilter('ESTOQUE')" title="Clique para ver todo o Estoque da LYDA (Novos + Usados + Backup)">
-              <span class="rcl-dot" style="background:#10B981;"></span> Estoque da LYDA (Verde)
+              <span class="rcl-dot" style="background:#10B981;"></span> Estoque LYDA
             </span>
             <span class="rcl-pill rcl-estoque" onclick="applyKpiQuickFilter('ESTOQUE_NOVOS')" title="Clique para ver apenas o Estoque LYDA Novos">
               Estoque Novos
@@ -645,13 +645,13 @@
               Estoque Usados
             </span>
             <span class="rcl-pill rcl-comodato" onclick="applyKpiQuickFilter('COMODATO')" title="Clique para filtrar Comodato / Aluguel em Hospitais">
-              <span class="rcl-dot" style="background:#0284C7;"></span> Comodato (Azul)
+              <span class="rcl-dot" style="background:#0284C7;"></span> Comodato / Aluguel
             </span>
             <span class="rcl-pill rcl-venda" onclick="applyKpiQuickFilter('VENDA')" title="Clique para filtrar Venda em Hospitais">
-              <span class="rcl-dot" style="background:#6366F1;"></span> Venda (Índigo)
+              <span class="rcl-dot" style="background:#6366F1;"></span> Venda
             </span>
             <span class="rcl-pill rcl-defeito" onclick="applyKpiQuickFilter('DEFEITO')" title="Clique para filtrar Manutenção / Defeito">
-              <span class="rcl-dot" style="background:#E11D48;"></span> Manutenção / SP (Vermelho)
+              <span class="rcl-dot" style="background:#E11D48;"></span> Manutenção / Defeito
             </span>
           </div>
 
@@ -2045,7 +2045,7 @@
 
         <div class="panel-card" style="margin-bottom:12px;">
           <div class="section-title">
-            <span>1. Onde está o aparelho e qual a modalidade?</span>
+            <span>1. Identificação, Alocação e Modalidade</span>
             <button class="btn btn-secondary btn-sm" onclick="setModalClientToStock()">Colocar no Estoque LYDA (Sem Cliente)</button>
           </div>
           <div class="form-grid-4">
@@ -2166,7 +2166,7 @@
               <input type="text" id="inpModalVersaoClew" placeholder="Ex: CLEW A45 / JAMS 148" />
             </div>
             <div class="form-group">
-              <label>Quando voltou p/ o Estoque, já foi atualizado?</label>
+              <label>Status de Atualização na Bancada:</label>
               <select id="selModalAttEstoque">
                 <option value="EM USO NO CLIENTE / N/A">EM USO NO CLIENTE / N/A</option>
                 <option value="SIM - JÁ ATUALIZADO NO ESTOQUE">SIM - JÁ ATUALIZADO NO ESTOQUE</option>
@@ -2386,6 +2386,6 @@
 
   <div id="lydaDatePickerPopover" class="lyda-datepicker-popover"></div>
   <div id="toastContainer"></div>
-  <script src="/static/app.js?v=20261106_prn4"></script>
+  <script src="/static/app.js?v=20261116_clean1"></script>
 </body>
 </html>

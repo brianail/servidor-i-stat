@@ -1135,21 +1135,21 @@ function renderItemsTable() {
       sitBadgeClass = "badge-vencida";
       const cliUp = String(it.CLIENTE || "").toUpperCase();
       if (cliUp.includes("ESTOQUE") || cliUp === "LYDA" || cliUp.includes("LYDA COMERCIO")) {
-        cliPrimaryHtml = `<span style="color:#BE123C; font-weight:800;">ESTOQUE DA LYDA (EM MANUTENÇÃO)</span>`;
+        cliPrimaryHtml = `<span style="color:#9F1239; font-weight:600;">ESTOQUE LYDA (EM MANUTENÇÃO)</span>`;
         cliSubHtml = `Origem: <strong>Sede LYDA — Assistência SP</strong>`;
       }
     } else if (it._row_state === "ESTOQUE") {
       const subGrp = classifyStockSubgroup(it);
       const attEstUp = String(it.ATUALIZADO_NO_ESTOQUE || "").toUpperCase();
       if (subGrp === "NOVOS") {
-        cliPrimaryHtml = `<span style="color:#065F46; font-weight:800;">ESTOQUE DA LYDA — NOVOS</span>`;
+        cliPrimaryHtml = `<span style="color:#111827; font-weight:600;">ESTOQUE LYDA — NOVOS</span>`;
         cliSubHtml = `Sede LYDA • <strong>Equipamento Novo</strong>`;
         addrPrimary = lydaHqAddr;
         addrSub = "PORTO ALEGRE / RS";
         sitText = attEstUp.includes("SIM") ? "ESTOQUE NOVO (ATUALIZADO)" : "ESTOQUE LYDA — NOVO";
         sitBadgeClass = "badge-em-dia";
       } else if (subGrp === "USADOS") {
-        cliPrimaryHtml = `<span style="color:#065F46; font-weight:800;">ESTOQUE DA LYDA — USADOS</span>`;
+        cliPrimaryHtml = `<span style="color:#111827; font-weight:600;">ESTOQUE LYDA — USADOS</span>`;
         cliSubHtml = `Sede LYDA • <strong>Disponível no Estoque</strong>`;
         addrPrimary = lydaHqAddr;
         addrSub = "PORTO ALEGRE / RS";
@@ -1158,12 +1158,12 @@ function renderItemsTable() {
       } else {
         const stUp = String(it.STATUS || "").toUpperCase();
         if (stUp.includes("DEVOLVIDO")) {
-          cliPrimaryHtml = `<span style="color:#065F46; font-weight:800;">DEVOLVIDO AO ESTOQUE LYDA</span>`;
+          cliPrimaryHtml = `<span style="color:#111827; font-weight:600;">DEVOLVIDO AO ESTOQUE LYDA</span>`;
           cliSubHtml = `Ex-Cliente: <strong>${escapeHtml(it.CLIENTE || "-")}</strong>`;
           sitText = "DEVOLVIDO / EMPRÉSTIMO";
           sitBadgeClass = "badge-vencendo";
         } else {
-          cliPrimaryHtml = `<span style="color:#065F46; font-weight:800;">ESTOQUE LYDA — EM BACKUP</span>`;
+          cliPrimaryHtml = `<span style="color:#111827; font-weight:600;">ESTOQUE LYDA — EM BACKUP</span>`;
           cliSubHtml = `Alocado em: <strong>${escapeHtml(it.CLIENTE || "-")}</strong>`;
           sitText = "EM BACKUP";
           sitBadgeClass = "badge-vencendo";
@@ -3976,14 +3976,14 @@ function renderExecutiveDashboard() {
       </div>`).join("");
 
     const typePillsHtml = mode === "COMPLETO" ? `
-      <div style="font-size:11px; font-weight:700; color:var(--slate-600);">Por tipo de aparelho (${items.length} no total):</div>
+      <div style="font-size:11px; font-weight:600; color:var(--slate-600);">Por tipo de aparelho (${items.length} no total):</div>
       <div class="dash-donut-type-pills">
         ${typeSegs.map(ts => `
           <div class="dash-type-pill" onclick="dashJumpFilter(${ts.jump});">
-            <span style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:var(--slate-700);">
+            <span style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:var(--slate-700);">
               <span class="dash-legend-dot" style="background:${ts.color};"></span>${ts.label}
             </span>
-            <span style="font-size:17px; font-weight:900; color:var(--slate-900);">${ts.count}</span>
+            <span style="font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--slate-900);">${ts.count}</span>
             <span style="font-size:10.5px; color:var(--slate-500);">${formatRealPct(ts.count, total)} do total</span>
           </div>`).join("")}
       </div>` : "";
@@ -4103,22 +4103,22 @@ function renderExecutiveDashboard() {
       <div class="dash-type-grid">
         <div class="dash-type-pill" onclick="switchTab('tab-estoque'); resetAllFilters(); document.getElementById('selFilterTipo').value='ANALISADOR'; renderItemsTable();">
           <span class="badge badge-ana" style="align-self:flex-start;">ANALISADOR</span>
-          <span style="font-size:18px; font-weight:900; color:var(--slate-900); margin-top:2px;">${cntAna}</span>
+          <span style="font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--slate-900); margin-top:2px;">${cntAna}</span>
           <span style="font-size:10.5px; color:var(--slate-500);">${formatRealPct(cntAna, total)} do total</span>
         </div>
         <div class="dash-type-pill" onclick="switchTab('tab-estoque'); resetAllFilters(); document.getElementById('selFilterTipo').value='IMPRESSORA'; renderItemsTable();">
           <span class="badge badge-imp" style="align-self:flex-start;">IMPRESSORA</span>
-          <span style="font-size:18px; font-weight:900; color:#6B21A8; margin-top:2px;">${cntImp}</span>
+          <span style="font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--slate-900); margin-top:2px;">${cntImp}</span>
           <span style="font-size:10.5px; color:var(--slate-500);">${formatRealPct(cntImp, total)} do total</span>
         </div>
         <div class="dash-type-pill" onclick="switchTab('tab-estoque'); resetAllFilters(); document.getElementById('selFilterTipo').value='SIMULADOR'; renderItemsTable();">
           <span class="badge badge-sim" style="align-self:flex-start;">SIMULADOR</span>
-          <span style="font-size:18px; font-weight:900; color:#0369A1; margin-top:2px;">${cntSim}</span>
+          <span style="font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--slate-900); margin-top:2px;">${cntSim}</span>
           <span style="font-size:10.5px; color:var(--slate-500);">${formatRealPct(cntSim, total)} do total</span>
         </div>
         <div class="dash-type-pill" onclick="switchTab('tab-estoque'); resetAllFilters(); document.getElementById('selFilterTipo').value='DOWNLOADER'; renderItemsTable();">
           <span class="badge badge-dwl" style="align-self:flex-start;">DOWNLOADER</span>
-          <span style="font-size:18px; font-weight:900; color:#3730A3; margin-top:2px;">${cntDwl}</span>
+          <span style="font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--slate-900); margin-top:2px;">${cntDwl}</span>
           <span style="font-size:10.5px; color:var(--slate-500);">${formatRealPct(cntDwl, total)} do total</span>
         </div>
       </div>
