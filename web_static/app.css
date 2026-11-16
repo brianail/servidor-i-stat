@@ -3270,4 +3270,141 @@ table.data-table td {
   flex-shrink: 0;
 }
 
+/* =========================================================================
+   FAIXA COMPACTA ESTOQUE, ABAS INTERNAS DO MODAL, ANEXO INLINE & BIPAR LOTE
+   ========================================================================= */
+.kpi-grid.kpi-grid-8.estoque-status-strip {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0;
+  background: #FFFFFF;
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.estoque-status-strip .kpi-card {
+  border: none;
+  border-right: 1px solid var(--slate-200);
+  border-top: 2px solid transparent;
+  border-radius: 0;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.estoque-status-strip .kpi-card:last-child {
+  border-right: none;
+}
+
+.estoque-status-strip .kpi-card.active-filter {
+  background: #F0F5FA;
+  border-top-color: var(--primary);
+}
+
+.estoque-status-strip .kpi-sub,
+.estoque-status-strip .kpi-ico {
+  display: none;
+}
+
+.estoque-status-strip .kpi-label {
+  font-size: 10px;
+}
+
+.estoque-status-strip .kpi-value {
+  font-size: 18px;
+  margin: 0;
+  line-height: 1.15;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid.kpi-grid-8.estoque-status-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .estoque-status-strip .kpi-card {
+    border-bottom: 1px solid var(--slate-200);
+  }
+}
+
+@media (max-width: 720px) {
+  .kpi-grid.kpi-grid-8.estoque-status-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ABAS INTERNAS DA FICHA DO APARELHO */
+.modal-internal-tabs {
+  border-bottom: 1px solid var(--slate-200);
+  margin-bottom: 12px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.modal-itab {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate-600);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.modal-itab:hover {
+  color: var(--slate-900);
+  background: var(--slate-50);
+}
+
+.modal-itab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 4px 4px 0 0;
+}
+
+.modal-itab-pane {
+  display: none;
+}
+
+.modal-itab-pane.active {
+  display: block;
+}
+
+/* BOTÃO DE ANEXO INLINE NA TABELA PRINCIPAL */
+.btn-inline-att {
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 4px;
+  border: 1px solid var(--primary-border);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 10.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.btn-inline-att:hover {
+  background: #DCE8F5;
+}
+
+/* BOTÃO MODO BIPAR LOTE ATIVO */
+.scan-batch-toggle.active {
+  background: #0F4C81 !important;
+  color: #FFFFFF !important;
+  border-color: #0F4C81 !important;
+}
+
 

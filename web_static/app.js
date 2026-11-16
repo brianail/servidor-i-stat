@@ -13,6 +13,7 @@ let APP_STATE = {
   selectedIndices: new Set(),
   zebraSelectedIndices: new Set(),
   routeSelectedIndices: new Set(),
+  batchScanMode: false,
   kpiQuickFilter: "ALL",
   radarSubFilter: "ALL_NEED",
   clientListFilter: "ALL",
@@ -1171,15 +1172,21 @@ function renderItemsTable() {
       }
     }
 
+    const attCount = Array.isArray(it.ANEXOS) ? it.ANEXOS.length : 0;
+    const attInlineHtml = attCount > 0
+      ? `<button type="button" class="btn-inline-att" onclick="event.stopPropagation(); openItemModalOnTab(${idx}, 'mtab-anexos')" title="${attCount} documento(s) anexado(s) — clique para abrir"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>${attCount}</button>`
+      : "";
+
     return `
       <tr class="${rowClass}" ondblclick="openItemModal(${idx})">
         <td style="text-align:center;" onclick="event.stopPropagation()">
           <input type="checkbox" ${checked ? "checked" : ""} onchange="toggleItemSelection(${idx}, this.checked)" />
         </td>
         <td>
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             ${getTipoBadgeHtml(it.TIPO)}
-            <span style="font-family:monospace; font-weight:800; font-size:13px; color:#0F172A;">${escapeHtml(it.CODIGO)}</span>
+            <span style="font-family:monospace; font-weight:700; font-size:13px; color:#111827;">${escapeHtml(it.CODIGO)}</span>
+            ${attInlineHtml}
           </div>
           ${it.KIT_ANALISADOR ? `<div class="cell-sub">Kit: ${escapeHtml(it.KIT_ANALISADOR)}</div>` : ""}
         </td>
@@ -1512,12 +1519,56 @@ function createRouteFromRadarItems() {
 // =========================================================================
 // LEITOR DE CÓDIGO DE BARRAS USB GLOBAL
 // =========================================================================
+function playScanBeep(ok = true) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = ok ? "sine" : "triangle";
+    osc.frequency.setValueAtTime(ok ? 980 : 320, ctx.currentTime);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (ok ? 0.11 : 0.22));
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + (ok ? 0.12 : 0.24));
+    osc.onended = () => {
+      try { ctx.close(); } catch (_) {}
+    };
+  } catch (_) {}
+}
+
+function toggleBatchScanMode() {
+  APP_STATE.batchScanMode = !APP_STATE.batchScanMode;
+  const btn = document.getElementById("btnToggleBatchScanMode");
+  if (btn) {
+    btn.classList.toggle("active", APP_STATE.batchScanMode);
+    btn.innerText = APP_STATE.batchScanMode ? "Bipar Lote: ON" : "Bipar Lote: OFF";
+  }
+  if (APP_STATE.batchScanMode) {
+    const activePane = document.querySelector(".tab-pane.active");
+    if (!activePane || activePane.id !== "tab-estoque") {
+      switchTab("tab-estoque");
+    }
+    showToast("Modo Bipar Lote ATIVO: bipe quantos aparelhos quiser na sequência para marcá-los na tabela.", "info");
+    const inp = document.getElementById("inpQuickScan");
+    if (inp) inp.focus();
+  } else {
+    showToast("Modo Bipar Lote desativado (bipe simples volta a abrir a ficha).", "info");
+  }
+}
+
 async function handleQuickScanInput() {
   const inp = document.getElementById("inpQuickScan");
   const code = (inp.value || "").trim();
   if (!code) return;
   inp.value = "";
   await processScannedBarcode(code);
+  if (APP_STATE.batchScanMode) {
+    inp.focus();
+  }
 }
 
 async function processScannedBarcode(code) {
@@ -1526,18 +1577,40 @@ async function processScannedBarcode(code) {
     const res = await fetch(`/api/scan?code=${encodeURIComponent(code)}`);
     const data = await res.json();
     if (!data.ok) {
+      playScanBeep(false);
       showToast(data.error || "Erro ao buscar código", "error");
       return;
     }
     const matches = data.matches || [];
     if (matches.length >= 1) {
-      showToast(`Aparelho localizado: ${matches[0].TIPO} [${matches[0].CODIGO}]`, "success");
-      openItemModal(matches[0]._idx);
+      const m = matches[0];
+      if (APP_STATE.batchScanMode) {
+        APP_STATE.selectedIndices.add(m._idx);
+        APP_STATE.routeSelectedIndices.add(m._idx);
+        playScanBeep(true);
+        renderItemsTable();
+        if (typeof renderRouteEquipmentPicker === "function") {
+          renderRouteEquipmentPicker();
+        }
+        showToast(
+          `SN ${m.CODIGO} marcado no lote (${APP_STATE.selectedIndices.size} selecionado(s))`,
+          "success"
+        );
+        return;
+      }
+      showToast(`Aparelho localizado: ${m.TIPO} [${m.CODIGO}]`, "success");
+      openItemModal(m._idx);
     } else {
+      if (APP_STATE.batchScanMode) {
+        playScanBeep(false);
+        showToast(`Serial ${data.cleaned_code} não encontrado no estoque.`, "error");
+        return;
+      }
       showToast(`Serial ${data.cleaned_code} não encontrado. Abrindo cadastro!`, "info");
       openItemModal(null, data.cleaned_code);
     }
   } catch (e) {
+    playScanBeep(false);
     showToast("Erro ao consultar serial bipado.", "error");
   }
 }
@@ -1557,6 +1630,7 @@ window.addEventListener("keydown", e => {
     closeItemModal();
     closeBatchModal();
     closeProfileModal();
+    closeTermoTrocaModal();
     return;
   }
   if (!APP_STATE.authenticated) return;
@@ -1614,6 +1688,7 @@ async function openItemModal(idx, prefillSerial = "") {
     updateModalNextDatePreview();
     renderModalSingleLabelPreview();
     renderModalAttachments([], null);
+    switchItemModalTab("mtab-cadastro");
     backdrop.classList.add("open");
     return;
   }
@@ -1672,11 +1747,29 @@ async function openItemModal(idx, prefillSerial = "") {
       : "";
 
     renderModalAttachments(it.ANEXOS || [], idx);
+    switchItemModalTab("mtab-cadastro");
 
     backdrop.classList.add("open");
   } catch (e) {
     showToast("Erro ao carregar detalhes do aparelho.", "error");
   }
+}
+
+function switchItemModalTab(tabId) {
+  document.querySelectorAll("#divItemModalTabs .modal-itab").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-mtab") === tabId);
+  });
+  document.querySelectorAll("#itemModalBackdrop .modal-itab-pane").forEach(pane => {
+    pane.classList.toggle("active", pane.id === tabId);
+  });
+  if (tabId === "mtab-zebra") {
+    renderModalSingleLabelPreview();
+  }
+}
+
+async function openItemModalOnTab(idx, tabId) {
+  await openItemModal(idx);
+  switchItemModalTab(tabId);
 }
 
 function closeItemModal() {
@@ -1689,6 +1782,12 @@ function triggerAttachmentFileInput() {
 }
 
 function renderModalAttachments(attachments, itemIdx) {
+  const countBadge = document.getElementById("badgeModalTabAnexosCount");
+  const list = attachments || [];
+  if (countBadge) {
+    countBadge.innerText = String(list.length);
+  }
+
   const container = document.getElementById("divModalAttachmentsList");
   if (!container) return;
 
@@ -1701,7 +1800,6 @@ function renderModalAttachments(attachments, itemIdx) {
     return;
   }
 
-  const list = attachments || [];
   if (!list.length) {
     container.innerHTML = `
       <div style="padding:14px; font-size:12px; color:#64748B; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:6px; text-align:center;">
@@ -1777,6 +1875,7 @@ async function uploadSelectedAttachment() {
       APP_STATE.items[idx].ANEXOS = data.attachments || [];
     }
     renderModalAttachments(data.attachments || [], idx);
+    renderItemsTable();
     showToast(data.message || "Documento anexado com sucesso!", "success");
     fileInput.value = "";
   } catch (e) {
@@ -1804,6 +1903,7 @@ async function deleteItemAttachment(itemIdx, filename) {
       APP_STATE.items[itemIdx].ANEXOS = data.attachments || [];
     }
     renderModalAttachments(data.attachments || [], itemIdx);
+    renderItemsTable();
     showToast(data.message || "Anexo removido.", "success");
   } catch (e) {
     showToast("Falha ao excluir anexo.", "error");
@@ -1823,12 +1923,14 @@ function openTermoTrocaModal(defaultIdx = null, defaultSerial = "") {
   let serialAntigo = "";
   let tipo = "Analisador i-STAT";
   let cliente = "";
+  let setor = "";
   let dataStr = new Date().toLocaleDateString("pt-BR");
 
   if (defaultIdx != null && APP_STATE.items && APP_STATE.items[defaultIdx]) {
     const it = APP_STATE.items[defaultIdx];
     serialNovo = it.CODIGO || "";
     cliente = it.CLIENTE && it.CLIENTE !== "SEM CLIENTE (ESTOQUE LYDA)" ? it.CLIENTE : "";
+    setor = it.SETOR && it.SETOR !== "ESTOQUE LYDA" ? it.SETOR : "";
     if (it.TIPO === "SIMULADOR") tipo = "Simulador Eletrônico i-STAT";
     else if (it.TIPO === "IMPRESSORA") tipo = "Impressora Portátil i-STAT";
     else if (it.TIPO === "DOWNLOADER") tipo = "Downloader / Base i-STAT";
@@ -1838,10 +1940,16 @@ function openTermoTrocaModal(defaultIdx = null, defaultSerial = "") {
   document.getElementById("inpTermoSerialAntigo").value = serialAntigo;
   document.getElementById("selTermoTipo").value = tipo;
   document.getElementById("inpTermoCliente").value = cliente;
+  const elSetor = document.getElementById("inpTermoSetor");
+  if (elSetor) elSetor.value = setor;
+  const elDest = document.getElementById("selTermoDestinoAntigo");
+  if (elDest) elDest.value = "ESTOQUE_USADOS";
   document.getElementById("inpTermoRecebedorNome").value = "";
   document.getElementById("inpTermoRecebedorCpf").value = "";
   document.getElementById("inpTermoData").value = dataStr;
-  document.getElementById("chkTermoSaveAttachment").checked = defaultIdx != null;
+  const elAutoSwap = document.getElementById("chkTermoAutoSwapDb");
+  if (elAutoSwap) elAutoSwap.checked = true;
+  document.getElementById("chkTermoSaveAttachment").checked = true;
 
   backdrop.classList.add("open");
 }
@@ -1873,9 +1981,12 @@ async function submitGenerateTermoTroca() {
   const serialAntigo = (document.getElementById("inpTermoSerialAntigo").value || "").trim();
   const tipo = (document.getElementById("selTermoTipo").value || "Analisador i-STAT").trim();
   const cliente = (document.getElementById("inpTermoCliente").value || "").trim();
+  const setor = ((document.getElementById("inpTermoSetor") && document.getElementById("inpTermoSetor").value) || "").trim();
+  const destinoAntigo = ((document.getElementById("selTermoDestinoAntigo") && document.getElementById("selTermoDestinoAntigo").value) || "ESTOQUE_USADOS").trim();
   const recebedorNome = (document.getElementById("inpTermoRecebedorNome").value || "").trim();
   const recebedorCpf = (document.getElementById("inpTermoRecebedorCpf").value || "").trim();
   const dataStr = (document.getElementById("inpTermoData").value || "").trim();
+  const autoSwap = document.getElementById("chkTermoAutoSwapDb") ? document.getElementById("chkTermoAutoSwapDb").checked : false;
   const saveAtt = document.getElementById("chkTermoSaveAttachment").checked;
   const idxVal = document.getElementById("hidTermoIdx").value;
   const idx = idxVal !== "" ? parseInt(idxVal, 10) : null;
@@ -1892,7 +2003,7 @@ async function submitGenerateTermoTroca() {
   }
 
   try {
-    showToast("Gerando Termo no Timbre Oficial da LYDA com códigos de barras...", "info");
+    showToast("Gerando Termo no Timbre Oficial da LYDA...", "info");
     const res = await fetch("/api/romaneio/termo-troca", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1902,10 +2013,13 @@ async function submitGenerateTermoTroca() {
         serial_antigo: serialAntigo,
         tipo: tipo,
         cliente: cliente,
+        setor: setor,
         recebedor_nome: recebedorNome,
         recebedor_cpf: recebedorCpf,
         data: dataStr,
         save_to_attachments: saveAtt,
+        auto_swap_db: autoSwap,
+        destino_antigo: destinoAntigo,
       }),
     });
     const data = await res.json();
@@ -1915,7 +2029,13 @@ async function submitGenerateTermoTroca() {
     }
 
     closeTermoTrocaModal();
-    showToast("Termo de Entrega / Substituição gerado com sucesso!", "success");
+    const swappedList = Array.isArray(data.swapped) ? data.swapped : [];
+    showToast(
+      swappedList.length
+        ? `Termo gerado e estoque atualizado: ${swappedList.join(" | ")}`
+        : "Termo de Entrega / Substituição gerado com sucesso!",
+      "success"
+    );
 
     const printWin = window.open("", "_blank");
     if (printWin) {
@@ -1924,12 +2044,15 @@ async function submitGenerateTermoTroca() {
       printWin.document.close();
     }
 
+    await loadBootstrapData(true);
+
+    const modalEl = document.getElementById("itemModalBackdrop");
     const modalIdxVal = (document.getElementById("hidModalIdx") && document.getElementById("hidModalIdx").value) || "";
-    if (idx != null && String(idx) === modalIdxVal) {
-      await loadBootstrapData(true);
-      const updatedItem = APP_STATE.items[idx];
+    if (modalEl && modalEl.classList.contains("open") && modalIdxVal !== "") {
+      const mIdx = parseInt(modalIdxVal, 10);
+      const updatedItem = APP_STATE.items[mIdx];
       if (updatedItem) {
-        renderModalAttachments(updatedItem.ANEXOS || [], idx);
+        renderModalAttachments(updatedItem.ANEXOS || [], mIdx);
       }
     }
   } catch (e) {

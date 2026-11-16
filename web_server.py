@@ -1307,21 +1307,49 @@ def api_termo_troca():
     serial_antigo = str(data.get("serial_antigo") or "").strip()
     tipo = str(data.get("tipo") or "Analisador i-STAT").strip()
     cliente = str(data.get("cliente") or "").strip()
+    setor = str(data.get("setor") or "").strip().upper()
     recebedor_nome = str(data.get("recebedor_nome") or "").strip()
     recebedor_cpf = str(data.get("recebedor_cpf") or "").strip()
     data_str = str(data.get("data") or "").strip()
     save_to_attachments = bool(data.get("save_to_attachments", False))
+    auto_swap_db = bool(data.get("auto_swap_db", False))
+    destino_antigo = str(data.get("destino_antigo") or "ESTOQUE_USADOS").strip().upper()
 
-    if not serial_novo and idx is not None and 0 <= int(idx) < len(db_manager.items):
-        it = db_manager.items[int(idx)]
-        serial_novo = it.get("CODIGO", "")
-        if not cliente:
-            cliente = it.get("CLIENTE", "")
-        if not tipo:
-            tipo = f"i-STAT {it.get('TIPO', 'Analisador').title()}"
+    with db_lock:
+        novo_idx = None
+        if idx is not None and str(idx).strip() != "":
+            try:
+                cand = int(idx)
+                if 0 <= cand < len(db_manager.items):
+                    novo_idx = cand
+            except Exception:
+                novo_idx = None
 
-    if not serial_novo:
-        return jsonify({"ok": False, "error": "Informe o Serial do aparelho entregue."}), 400
+        if novo_idx is None and serial_novo:
+            bc_novo = clean_barcode_serial(serial_novo)
+            for i, it_row in enumerate(db_manager.items):
+                if clean_barcode_serial(it_row.get("CODIGO", "")) == bc_novo:
+                    novo_idx = i
+                    break
+
+        if not serial_novo and novo_idx is not None:
+            it = db_manager.items[novo_idx]
+            serial_novo = it.get("CODIGO", "")
+            if not cliente:
+                cliente = it.get("CLIENTE", "")
+            if not tipo:
+                tipo = f"i-STAT {it.get('TIPO', 'Analisador').title()}"
+
+        if not serial_novo:
+            return jsonify({"ok": False, "error": "Informe o Serial do aparelho entregue."}), 400
+
+        antigo_idx = None
+        if serial_antigo:
+            bc_antigo = clean_barcode_serial(serial_antigo)
+            for i, it_row in enumerate(db_manager.items):
+                if clean_barcode_serial(it_row.get("CODIGO", "")) == bc_antigo:
+                    antigo_idx = i
+                    break
 
     fpath = generate_termo_substituicao_html(
         workspace_dir=WORKSPACE_DIR,
@@ -1339,36 +1367,123 @@ def api_termo_troca():
 
     fname = os.path.basename(fpath)
 
-    # Se solicitado salvar automaticamente nos anexos do aparelho
-    if save_to_attachments and idx is not None and 0 <= int(idx) < len(db_manager.items):
-        with db_lock:
-            it = db_manager.items[int(idx)]
-            item_folder = os.path.join(ATTACHMENTS_DIR, clean_barcode_serial(it.get("CODIGO", "")))
-            os.makedirs(item_folder, exist_ok=True)
-            dest_file = os.path.join(item_folder, fname)
-            with open(dest_file, "w", encoding="utf-8") as df:
-                df.write(html_str)
-            att_list = it.setdefault("ANEXOS", [])
-            att_list.append({
-                "filename": fname,
-                "original_name": f"Termo_Substituicao_{serial_novo}.html",
-                "size_bytes": os.path.getsize(dest_file),
-                "size_str": f"{max(1, round(os.path.getsize(dest_file)/1024))} KB",
-                "uploaded_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "uploaded_by": (get_current_user() or {}).get("nome") or "SISTEMA",
-                "is_termo": True,
-            })
+    def _attach_termo_to_item(target_item: Dict[str, Any]):
+        bc_val = clean_barcode_serial(target_item.get("CODIGO", ""))
+        if not bc_val:
+            return
+        item_folder = os.path.join(ATTACHMENTS_DIR, bc_val)
+        os.makedirs(item_folder, exist_ok=True)
+        dest_file = os.path.join(item_folder, fname)
+        with open(dest_file, "w", encoding="utf-8") as df:
+            df.write(html_str)
+        att_list = target_item.setdefault("ANEXOS", [])
+        att_list.append({
+            "filename": fname,
+            "original_name": f"Termo_Substituicao_{serial_novo}" + (f"_vs_{serial_antigo}" if serial_antigo else "") + ".html",
+            "size_bytes": os.path.getsize(dest_file),
+            "size_str": f"{max(1, round(os.path.getsize(dest_file) / 1024))} KB",
+            "uploaded_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "uploaded_by": (get_current_user() or {}).get("nome") or "SISTEMA",
+            "is_termo": True,
+        })
+
+    swap_summary = []
+    with db_lock:
+        u = get_current_user() or {}
+        operador = (u.get("nome") or db_manager.operador_atual or "OPERADOR").strip()
+
+        novo_item_ref = db_manager.items[novo_idx] if (novo_idx is not None and 0 <= novo_idx < len(db_manager.items)) else None
+        antigo_item_ref = db_manager.items[antigo_idx] if (antigo_idx is not None and 0 <= antigo_idx < len(db_manager.items)) else None
+
+        if auto_swap_db:
+            if novo_item_ref is not None:
+                it_new = dict(novo_item_ref)
+                it_new["CLIENTE"] = cliente
+                it_new["STATUS"] = "ATIVO NO CLIENTE"
+                if setor:
+                    it_new["SETOR"] = setor
+                if str(it_new.get("MODALIDADE", "")).strip().upper() == "PROPRIEDADE LYDA":
+                    it_new["MODALIDADE"] = "COMODATO"
+                it_new["ATUALIZADO_NO_ESTOQUE"] = "EM USO NO CLIENTE / N/A"
+                addr_info = db_manager.get_client_address_info(cliente)
+                if addr_info:
+                    if addr_info.get("ENDERECO"):
+                        it_new["ENDERECO"] = addr_info.get("ENDERECO")
+                    if addr_info.get("CEP"):
+                        it_new["CEP"] = addr_info.get("CEP")
+                    if addr_info.get("CIDADE"):
+                        it_new["CIDADE"] = addr_info.get("CIDADE")
+                    if addr_info.get("UF"):
+                        it_new["UF"] = addr_info.get("UF")
+
+                action_new = "ENTREGA POR SUBSTITUIÇÃO" if serial_antigo else "ENTREGA NO CLIENTE"
+                details_new = (
+                    f"Alocado em {cliente}"
+                    + (f" - Setor {setor}" if setor else "")
+                    + (f" (Substituiu SN {serial_antigo})" if serial_antigo else "")
+                )
+                novo_item_ref = db_manager.upsert_item(
+                    it_new,
+                    original_idx=novo_idx,
+                    custom_action=action_new,
+                    custom_details=details_new,
+                    responsavel=operador,
+                )
+                swap_summary.append(f"SN {serial_novo} -> {cliente}")
+
+            if antigo_item_ref is not None:
+                # Localiza índice atual caso tenha ocorrido movimentação na lista
+                cur_antigo_idx = None
+                bc_ant_find = clean_barcode_serial(antigo_item_ref.get("CODIGO", ""))
+                for i_check, row_check in enumerate(db_manager.items):
+                    if clean_barcode_serial(row_check.get("CODIGO", "")) == bc_ant_find:
+                        cur_antigo_idx = i_check
+                        break
+                if cur_antigo_idx is not None:
+                    it_old = dict(db_manager.items[cur_antigo_idx])
+                    it_old["CLIENTE"] = "SEM CLIENTE (ESTOQUE LYDA)"
+                    it_old["MODALIDADE"] = "PROPRIEDADE LYDA"
+                    if destino_antigo == "MANUTENCAO":
+                        it_old["STATUS"] = "COM DEFEITO / MANUTENÇÃO"
+                        it_old["SETOR"] = "MANUTENÇÃO / ASSISTÊNCIA"
+                        it_old["ATUALIZADO_NO_ESTOQUE"] = "NÃO - FALTA ATUALIZAR NA BANCADA"
+                    else:
+                        it_old["STATUS"] = "ESTOQUE USADOS"
+                        it_old["SETOR"] = "ESTOQUE LYDA"
+                        it_old["ATUALIZADO_NO_ESTOQUE"] = "NÃO - FALTA ATUALIZAR NA BANCADA"
+                    prev_obs = (it_old.get("OBSERVACOES") or "").strip()
+                    swap_note = f"Recolhido de {cliente} em {data_str or datetime.now().strftime('%d/%m/%Y')} (Substituído por SN {serial_novo})"
+                    it_old["OBSERVACOES"] = f"{prev_obs} | {swap_note}" if prev_obs else swap_note
+
+                    antigo_item_ref = db_manager.upsert_item(
+                        it_old,
+                        original_idx=cur_antigo_idx,
+                        custom_action="RECOLHIMENTO POR SUBSTITUIÇÃO",
+                        custom_details=f"Retirado de {cliente} (Substituído pelo SN {serial_novo}) -> {it_old['STATUS']}",
+                        responsavel=operador,
+                    )
+                    swap_summary.append(f"SN {serial_antigo} -> {it_old['STATUS']}")
+
+            db_manager._sync_clients_from_items()
+
+        if save_to_attachments:
+            if novo_item_ref is not None:
+                _attach_termo_to_item(novo_item_ref)
+            if antigo_item_ref is not None:
+                _attach_termo_to_item(antigo_item_ref)
+            db_manager.save()
+        elif auto_swap_db:
             db_manager.save()
 
     log_user_action(
         category="ESTOQUE",
         action="TERMO DE SUBSTITUIÇÃO / ENTREGA",
         target=f"{tipo} [{serial_novo}]",
-        details=f"Cliente: {cliente} | Substituição de: {serial_antigo or 'N/A'}",
+        details=f"Cliente: {cliente} | Substituição de: {serial_antigo or 'N/A'}" + (f" | Troca Casada: {', '.join(swap_summary)}" if swap_summary else ""),
         severity="SUCCESS",
     )
 
-    return jsonify({"ok": True, "html": html_str, "filename": fname})
+    return jsonify({"ok": True, "html": html_str, "filename": fname, "swapped": swap_summary})
 
 
 @app.route("/api/item/<int:idx>/attachments/upload", methods=["POST"])

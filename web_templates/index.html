@@ -6,7 +6,7 @@
   <title>LYDA — Controle de Estoque i-STAT, Radar 6 Meses & Rota da Enfermeira</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="/static/app.css?v=20261116_clean1" />
+  <link rel="stylesheet" href="/static/app.css?v=20261116_v2" />
 </head>
 <body>
 
@@ -269,9 +269,12 @@
         <div class="topbar-right">
           <div class="scan-box" title="Bipe com o leitor USB a qualquer momento ou digite o serial e aperte Enter">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg>
-            <input type="text" id="inpQuickScan" placeholder="Bipar Leitor USB ou Serial..." autocomplete="off" />
+            <input type="text" id="inpQuickScan" placeholder="Bipar Leitor USB ou Serial..." autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();handleQuickScanInput();}" />
             <button class="btn btn-secondary btn-sm" onclick="handleQuickScanInput()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>Buscar</button>
           </div>
+          <button type="button" class="btn btn-secondary btn-sm scan-batch-toggle" id="btnToggleBatchScanMode" onclick="toggleBatchScanMode()" title="Ativa/desativa bipagem contínua para marcar vários aparelhos na tabela">
+            Bipar Lote: OFF
+          </button>
 
           <button class="btn btn-amber btn-sm" id="btnTopRadarAlert" onclick="switchTab('tab-radar6m')" title="Ver aparelhos perto de bater 6 meses ou pendentes de atualização">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -501,8 +504,8 @@
             </div>
           </div>
 
-          <!-- 8 KPI CARDS COLORIDOS E PADRONIZADOS -->
-          <div class="kpi-grid kpi-grid-8">
+          <!-- FAIXA COMPACTA DE INDICADORES DO ESTOQUE -->
+          <div class="kpi-grid kpi-grid-8 estoque-status-strip">
             <div class="kpi-card kpi-accent-blue active-filter" id="kpi-ALL" onclick="applyKpiQuickFilter('ALL')">
               <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Total de Aparelhos</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiTotal">0%</span></div>
               <div class="kpi-value" style="color:#1D4ED8;" id="valKpiTotal">0</div>
@@ -681,7 +684,7 @@
         <!-- ABA 2: RADAR DE ATUALIZAÇÕES SEMESTRAIS (6 EM 6 MESES)          -->
         <!-- =============================================================== -->
         <section id="tab-radar6m" class="tab-pane">
-          <div class="panel-card" style="border-left: 4px solid #D97706;">
+          <div class="panel-card">
             <div class="section-title">
               <span>Central de Monitoramento de Atualizações Semestrais (Ciclo de 6 em 6 Meses)</span>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -690,30 +693,27 @@
                 <button class="btn btn-primary btn-sm" onclick="createRouteFromRadarItems()">Gerar Rota Google Maps p/ Atualizar estes Aparelhos</button>
               </div>
             </div>
-            <p style="margin:0 0 12px 0; color:#475569; font-size:12px;">
-              Aqui ficam reunidos todos os aparelhos que estão <strong>perto de completar 6 meses (faltando 45 dias ou menos)</strong>, os que já <strong>passaram de 6 meses</strong>, os que estão <strong>na bancada do estoque aguardando atualização</strong> e os que ainda não possuem data base registrada. Clique em qualquer campo de data para abrir o calendário ou clique em <strong>Hoje (+6m)</strong>.
-            </p>
 
             <!-- 4 CARDS DE FILTRO DO RADAR 6M -->
             <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 12px;">
               <div class="kpi-card kpi-accent-amber active-filter" id="radarCard-ALL_NEED" onclick="setRadarSubFilter('ALL_NEED')">
                 <div class="kpi-label"><span>Todos que Precisam Atenção</span></div>
-                <div class="kpi-value" id="valRadarAllNeed" style="color:#D97706;">0</div>
+                <div class="kpi-value" id="valRadarAllNeed">0</div>
                 <div class="kpi-sub">Total pendente de atualização</div>
               </div>
               <div class="kpi-card kpi-accent-amber" id="radarCard-VENCENDO" onclick="setRadarSubFilter('VENCENDO')">
                 <div class="kpi-label"><span>Perto de Bater 6 Meses (<= 45d)</span></div>
-                <div class="kpi-value" id="valRadarVencendo" style="color:#B45309;">0</div>
+                <div class="kpi-value" id="valRadarVencendo">0</div>
                 <div class="kpi-sub">Aviso preventivo p/ agendar visita</div>
               </div>
               <div class="kpi-card kpi-accent-rose" id="radarCard-VENCIDA" onclick="setRadarSubFilter('VENCIDA')">
                 <div class="kpi-label"><span>Ciclo Vencido (> 6 Meses)</span></div>
-                <div class="kpi-value" id="valRadarVencida" style="color:#E11D48;">0</div>
+                <div class="kpi-value" id="valRadarVencida">0</div>
                 <div class="kpi-sub">Prazo de 6 meses ultrapassado</div>
               </div>
               <div class="kpi-card kpi-accent-blue" id="radarCard-BANCADA" onclick="setRadarSubFilter('BANCADA')">
                 <div class="kpi-label"><span>No Estoque (Falta Atualizar)</span></div>
-                <div class="kpi-value" id="valRadarBancada" style="color:#2563EB;">0</div>
+                <div class="kpi-value" id="valRadarBancada">0</div>
                 <div class="kpi-sub">Na bancada da LYDA aguardando CLEW</div>
               </div>
             </div>
@@ -767,8 +767,8 @@
             <div class="panel-card">
               <div class="section-title">
                 <div>
-                  <span style="font-size:14px; font-weight:800;">Carteira de Hospitais & Clientes</span>
-                  <span style="font-size:12px; font-weight:500; color:var(--slate-500); margin-left:8px;" id="lblClientsTotalSub">Clique em qualquer hospital para abrir sua ficha cadastral e todos os aparelhos vinculados</span>
+                  <span style="font-size:14px; font-weight:700;">Carteira de Hospitais & Clientes</span>
+                  <span style="font-size:12px; font-weight:500; color:var(--slate-500); margin-left:8px;" id="lblClientsTotalSub">Selecione um hospital para visualizar aparelhos e endereço</span>
                 </div>
                 <button class="btn btn-primary btn-sm" onclick="prepareNewClientForm()">+ Novo Hospital / Cliente</button>
               </div>
@@ -1244,7 +1244,7 @@
                   <h2 style="margin:0; font-size:15px; font-weight:800; color:var(--slate-900);">Central de Impressão de Etiquetas Térmicas — LYDA i-STAT</h2>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate-500); margin-top:2px;">
-                  Escolha abaixo quais aparelhos imprimir (todos, só estoque ou por hospital), confira a prévia de <strong>todas as folhas</strong> ao lado e envie para a Zebra ZD230.
+                  Seleção de equipamentos, configuração de bobina e impressão ZPL / .PRN.
                 </div>
               </div>
 
@@ -1757,10 +1757,10 @@
             <div>
               <div class="panel-card">
                 <div class="section-title">
-                  <span>1. Link do Servidor Local para Todos os Computadores e Celulares da LYDA</span>
+                  <span>1. Acesso em Rede Local (LAN)</span>
                 </div>
                 <p style="margin:0 0 10px 0; color:var(--slate-600);">
-                  Este computador é o <strong>Servidor Central da LYDA</strong>. O banco de dados fica salvo localmente neste PC e qualquer colega na mesma rede (Wi-Fi ou Cabo) pode acessar pelo navegador com seu login e senha através do link abaixo:
+                  Endereço de acesso para outros computadores e dispositivos conectados na mesma rede da LYDA:
                 </p>
                 <div style="display:grid; grid-template-columns: 1fr 130px; gap:12px; align-items:center; background:var(--primary-soft); border:1px solid var(--primary-border); border-radius:8px; padding:12px;">
                   <div>
@@ -1780,12 +1780,9 @@
 
               <div class="panel-card">
                 <div class="section-title">
-                  <span>2. Backup Automático Todo Dia + Envio p/ Pasta do SharePoint / OneDrive da LYDA</span>
+                  <span>2. Rotina de Backup Diário &amp; Sincronização SharePoint / OneDrive</span>
                   <button class="btn btn-secondary btn-sm" onclick="triggerImmediateSharePointBackup()">Fazer Backup Agora p/ SharePoint</button>
                 </div>
-                <p style="margin:0 0 10px 0; color:var(--slate-600);">
-                  O servidor faz backup diário automático do banco de dados (incluindo usuários e logs) e exporta também a <strong>Planilha Excel completa atualizada (.xlsx)</strong> diretamente para a pasta do <strong>SharePoint / OneDrive</strong> sincronizada neste PC:
-                </p>
 
                 <div class="form-group" style="margin-bottom:10px;">
                   <label>Caminho da Pasta do SharePoint / OneDrive sincronizada neste PC Servidor:</label>
@@ -2043,6 +2040,20 @@
           <button class="btn btn-secondary" onclick="applyModalPreset('DEFEITO')">4. Com Defeito / Manutenção</button>
         </div>
 
+        <div class="modal-internal-tabs" id="divItemModalTabs">
+          <button type="button" class="modal-itab active" data-mtab="mtab-cadastro" onclick="switchItemModalTab('mtab-cadastro')">
+            1. Cadastro, Alocação &amp; Ciclo 6m
+          </button>
+          <button type="button" class="modal-itab" data-mtab="mtab-zebra" onclick="switchItemModalTab('mtab-zebra')">
+            2. Etiqueta Zebra ZD230 &amp; Termos
+          </button>
+          <button type="button" class="modal-itab" data-mtab="mtab-anexos" onclick="switchItemModalTab('mtab-anexos')">
+            3. Anexos &amp; Histórico
+            <span class="badge badge-ana" id="badgeModalTabAnexosCount" style="margin-left:4px;">0</span>
+          </button>
+        </div>
+
+        <div class="modal-itab-pane active" id="mtab-cadastro">
         <div class="panel-card" style="margin-bottom:12px;">
           <div class="section-title">
             <span>1. Identificação, Alocação e Modalidade</span>
@@ -2060,7 +2071,7 @@
             </div>
             <div class="form-group">
               <label>Serial / Código de Barras:</label>
-              <input type="text" id="inpModalCodigo" placeholder="Ex: 420846" style="font-weight:800;" oninput="renderModalSingleLabelPreview()" />
+              <input type="text" id="inpModalCodigo" placeholder="Ex: 420846" style="font-weight:700;" oninput="renderModalSingleLabelPreview()" />
             </div>
             <div class="form-group">
               <label>Modalidade:</label>
@@ -2090,57 +2101,6 @@
             <div class="form-group">
               <label>Operador Responsável:</label>
               <select id="selModalOperador"></select>
-            </div>
-          </div>
-
-          <!-- PRÉ-VISUALIZAÇÃO AO VIVO & DOWNLOAD .PRN DA ETIQUETA DESTE EQUIPAMENTO -->
-          <div class="modal-zebra-label-card">
-            <div class="modal-zebra-preview-col">
-              <div class="modal-zebra-preview-caption">PRÉVIA DA ETIQUETA ZEBRA ZD230</div>
-              <div id="divModalSingleLabelPreview" class="modal-zebra-slot-holder"></div>
-            </div>
-
-            <div class="modal-zebra-actions-col">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span class="zebra-printer-badge">ZEBRA ZD230</span>
-                  <strong style="font-size:12.5px; color:var(--slate-900);" id="lblModalLabelCardTitle">Etiqueta Térmica deste Equipamento</strong>
-                </div>
-                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                  <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--slate-700); cursor:pointer;">
-                    <input type="checkbox" id="chkModalLabelShowLoc" checked onchange="renderModalSingleLabelPreview()" />
-                    <span>Mostrar Local / Hospital na etiqueta</span>
-                  </label>
-                  <div style="display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:var(--slate-700);">
-                    <span>Cópias:</span>
-                    <input type="number" id="inpModalLabelCopies" value="1" min="1" max="20" step="1" style="width:58px; height:28px; padding:2px 6px; font-weight:800;" />
-                  </div>
-                </div>
-              </div>
-
-              <div style="font-size:11px; color:var(--slate-500);">
-                A etiqueta acima atualiza em tempo real conforme o Tipo, Serial e Hospital informados nesta ficha. Você pode baixar o arquivo <strong>.PRN</strong> ou imprimir agora mesmo:
-              </div>
-
-              <div class="modal-zebra-btn-row">
-                <button type="button" class="btn btn-primary btn-sm" style="height:34px; padding:0 14px; font-weight:800;" onclick="downloadModalItemPrnFile('prn')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  <span id="lblModalBtnDownloadPrn">Baixar Etiqueta .PRN</span>
-                </button>
-
-                <button type="button" class="btn btn-zebra-green btn-sm" style="width:auto; height:34px; padding:0 14px; font-size:12px;" onclick="printModalItemDirectly()">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                  <span>Imprimir na Zebra ZD230</span>
-                </button>
-
-                <button type="button" class="btn btn-secondary btn-sm" style="height:34px;" onclick="printModalItemInBrowser()">
-                  Imprimir / Salvar PDF
-                </button>
-
-                <button type="button" class="btn btn-secondary btn-sm" style="height:34px;" onclick="openModalItemInZebraStudio()">
-                  Abrir na Central de Etiquetas
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -2225,47 +2185,115 @@
             <textarea id="txtModalObservacoes" rows="2" placeholder="Digite qualquer observação importante sobre este aparelho..."></textarea>
           </div>
         </div>
+        </div><!-- fim mtab-cadastro -->
 
-        <div class="panel-card" style="margin-bottom:0;">
-          <div class="section-title">
-            <span>4. Histórico de Movimentações deste Serial</span>
-            <span id="lblModalCompanions" style="font-size:11px; color:var(--primary);"></span>
-          </div>
-          <div class="table-wrap" style="max-height:130px;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Data/Hora</th>
-                  <th>Ação</th>
-                  <th>Cliente / Local</th>
-                  <th>Operador</th>
-                  <th>Detalhes</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyModalHistory"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- 5. ANEXOS & DOCUMENTOS DIGITALIZADOS (TERMOS ASSINADOS, FOTOS, ROMANEIOS) -->
-        <div class="panel-card" style="margin-top:12px; margin-bottom:0;">
-          <div class="section-title">
-            <span>5. Anexos & Documentos Digitalizados (Termos Assinados, Fotos, Romaneios)</span>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <input type="file" id="inpModalAttachmentFile" accept=".pdf,.png,.jpg,.jpeg,.docx,.doc,.txt,.html" style="display:none;" onchange="uploadSelectedAttachment()" />
-              <button type="button" class="btn btn-secondary btn-sm" onclick="triggerAttachmentFileInput()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                + Anexar Documento / Foto
-              </button>
+        <!-- ABA INTERNA 2: ETIQUETA ZEBRA ZD230 & TERMOS DE ENTREGA -->
+        <div class="modal-itab-pane" id="mtab-zebra">
+          <div class="panel-card" style="margin-bottom:12px;">
+            <div class="section-title">
+              <span>Etiqueta Térmica Zebra ZD230 &amp; Protocolos no Timbre LYDA</span>
               <button type="button" class="btn btn-navy btn-sm" onclick="openTermoTrocaFromModal()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                Gerar Termo de Troca c/ Timbre
+                Emitir Termo de Troca / Substituição (Timbre)
               </button>
             </div>
+
+            <!-- PRÉ-VISUALIZAÇÃO AO VIVO & DOWNLOAD .PRN DA ETIQUETA DESTE EQUIPAMENTO -->
+            <div class="modal-zebra-label-card" style="margin-top:0;">
+              <div class="modal-zebra-preview-col">
+                <div class="modal-zebra-preview-caption">PRÉVIA DA ETIQUETA ZEBRA ZD230</div>
+                <div id="divModalSingleLabelPreview" class="modal-zebra-slot-holder"></div>
+              </div>
+
+              <div class="modal-zebra-actions-col">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="zebra-printer-badge">ZEBRA ZD230</span>
+                    <strong style="font-size:12.5px; color:var(--slate-900);" id="lblModalLabelCardTitle">Etiqueta Térmica deste Equipamento</strong>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--slate-700); cursor:pointer;">
+                      <input type="checkbox" id="chkModalLabelShowLoc" checked onchange="renderModalSingleLabelPreview()" />
+                      <span>Mostrar Local / Hospital na etiqueta</span>
+                    </label>
+                    <div style="display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:var(--slate-700);">
+                      <span>Cópias:</span>
+                      <input type="number" id="inpModalLabelCopies" value="1" min="1" max="20" step="1" style="width:58px; height:28px; padding:2px 6px; font-weight:700;" />
+                    </div>
+                  </div>
+                </div>
+
+                <div style="font-size:11px; color:var(--slate-500);">
+                  A etiqueta acima atualiza conforme o Tipo, Serial e Hospital informados no cadastro.
+                </div>
+
+                <div class="modal-zebra-btn-row">
+                  <button type="button" class="btn btn-primary btn-sm" style="height:34px; padding:0 14px;" onclick="downloadModalItemPrnFile('prn')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span id="lblModalBtnDownloadPrn">Baixar Etiqueta .PRN</span>
+                  </button>
+
+                  <button type="button" class="btn btn-zebra-green btn-sm" style="width:auto; height:34px; padding:0 14px; font-size:12px;" onclick="printModalItemDirectly()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    <span>Imprimir na Zebra ZD230</span>
+                  </button>
+
+                  <button type="button" class="btn btn-secondary btn-sm" style="height:34px;" onclick="printModalItemInBrowser()">
+                    Imprimir / Salvar PDF
+                  </button>
+
+                  <button type="button" class="btn btn-secondary btn-sm" style="height:34px;" onclick="openModalItemInZebraStudio()">
+                    Abrir na Central de Etiquetas
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- fim mtab-zebra -->
+
+        <!-- ABA INTERNA 3: ANEXOS DIGITALIZADOS & HISTÓRICO DO SERIAL -->
+        <div class="modal-itab-pane" id="mtab-anexos">
+          <!-- ANEXOS & DOCUMENTOS DIGITALIZADOS -->
+          <div class="panel-card" style="margin-bottom:12px;">
+            <div class="section-title">
+              <span>5. Anexos &amp; Documentos Digitalizados (Termos Assinados, Fotos, Romaneios)</span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <input type="file" id="inpModalAttachmentFile" accept=".pdf,.png,.jpg,.jpeg,.docx,.doc,.txt,.html" style="display:none;" onchange="uploadSelectedAttachment()" />
+                <button type="button" class="btn btn-secondary btn-sm" onclick="triggerAttachmentFileInput()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  + Anexar Documento / Foto
+                </button>
+                <button type="button" class="btn btn-navy btn-sm" onclick="openTermoTrocaFromModal()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  Gerar Termo de Troca c/ Timbre
+                </button>
+              </div>
+            </div>
+
+            <div id="divModalAttachmentsList" style="margin-top:8px;"></div>
           </div>
 
-          <div id="divModalAttachmentsList" style="margin-top:8px;"></div>
-        </div>
+          <div class="panel-card" style="margin-bottom:0;">
+            <div class="section-title">
+              <span>4. Histórico de Movimentações deste Serial</span>
+              <span id="lblModalCompanions" style="font-size:11px; color:var(--primary);"></span>
+            </div>
+            <div class="table-wrap" style="max-height:220px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Data/Hora</th>
+                    <th>Ação</th>
+                    <th>Cliente / Local</th>
+                    <th>Operador</th>
+                    <th>Detalhes</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyModalHistory"></tbody>
+              </table>
+            </div>
+          </div>
+        </div><!-- fim mtab-anexos -->
       </div>
 
       <div class="modal-footer">
@@ -2351,6 +2379,20 @@
           </div>
         </div>
 
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Setor / Unidade no Hospital:</label>
+            <input type="text" id="inpTermoSetor" placeholder="Ex: UTI ADULTO, EMERGÊNCIA, LABORATÓRIO" style="text-transform:uppercase;" />
+          </div>
+          <div class="form-group">
+            <label>Destino do Aparelho Antigo Retirado:</label>
+            <select id="selTermoDestinoAntigo">
+              <option value="ESTOQUE_USADOS">Estoque LYDA (Usados)</option>
+              <option value="MANUTENCAO">Manutenção / Defeito (Assistência)</option>
+            </select>
+          </div>
+        </div>
+
         <div class="form-grid-3">
           <div class="form-group">
             <label>Nome do Recebedor no Hospital:</label>
@@ -2367,9 +2409,13 @@
         </div>
 
         <div class="form-group">
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12.5px; font-weight:700; color:#0F172A; margin-top:6px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; font-weight:600; color:#111827; margin-top:4px;">
+            <input type="checkbox" id="chkTermoAutoSwapDb" checked />
+            <span>Realizar troca automática no estoque (alocar Novo S/N no hospital e recolher Antigo S/N)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; font-weight:600; color:#111827; margin-top:4px;">
             <input type="checkbox" id="chkTermoSaveAttachment" checked />
-            <span>Salvar e anexar cópia deste Termo gerado na ficha do aparelho entregue</span>
+            <span>Salvar e anexar cópia deste Termo na ficha dos aparelhos envolvidos</span>
           </label>
         </div>
       </div>
@@ -2386,6 +2432,6 @@
 
   <div id="lydaDatePickerPopover" class="lyda-datepicker-popover"></div>
   <div id="toastContainer"></div>
-  <script src="/static/app.js?v=20261116_clean1"></script>
+  <script src="/static/app.js?v=20261116_v2"></script>
 </body>
 </html>
