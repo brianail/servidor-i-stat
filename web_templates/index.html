@@ -380,7 +380,7 @@
               <path d="M17 5v14" />
               <path d="M21 5v14" />
             </svg>
-            <input type="text" id="inpQuickScan" placeholder="Bipar Leitor USB ou Serial..." autocomplete="off"
+            <input type="text" id="inpQuickScan" placeholder="Bipar ou digitar serial..." autocomplete="off"
               onkeydown="if(event.key==='Enter'){event.preventDefault();handleQuickScanInput();}" />
             <button class="btn btn-secondary btn-sm" onclick="handleQuickScanInput()"><svg width="13" height="13"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
@@ -404,11 +404,6 @@
             <span id="lblTopRadarBtnText">Avisos 6m: 0</span>
           </button>
 
-          <button class="btn btn-secondary btn-sm" onclick="triggerImmediateSharePointBackup()"><svg width="13"
-              height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
-            </svg>Backup SharePoint</button>
           <button class="btn btn-primary btn-sm" onclick="openItemModal(null)"><svg width="13" height="13"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
               <line x1="12" y1="5" x2="12" y2="19" />
@@ -484,18 +479,18 @@
             </div>
           </div>
 
-          <!-- 7 KPI CARDS EXECUTIVOS COM CORES E BARRA DE PROPORÇÃO -->
+          <!-- 7 KPI CARDS EXECUTIVOS -->
           <div class="kpi-grid kpi-grid-7" id="dashKpiGrid">
             <div class="kpi-card dash-kpi-card kpi-accent-blue"
               onclick="switchTab('tab-estoque'); applyKpiQuickFilter('ALL');">
               <div class="kpi-label">
-                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="7" height="7" rx="1" />
                     <rect x="14" y="3" width="7" height="7" rx="1" />
                     <rect x="14" y="14" width="7" height="7" rx="1" />
                     <rect x="3" y="14" width="7" height="7" rx="1" />
-                  </svg>Total de Aparelhos</span>
+                  </svg>Total Geral</span>
                 <span class="badge badge-ana">100%</span>
               </div>
               <div class="kpi-value" style="color:#1D4ED8;" id="valDashTotal">0</div>
@@ -508,12 +503,12 @@
             <div class="kpi-card dash-kpi-card kpi-accent-sky"
               onclick="switchTab('tab-estoque'); applyKpiQuickFilter('ATIVO');">
               <div class="kpi-label">
-                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 21h18" />
                     <path d="M5 21V7l8-4v18" />
                     <path d="M19 21V11l-6-4" />
-                  </svg>Em Hospitais / Clientes</span>
+                  </svg>Em Hospitais</span>
                 <span class="badge badge-sim" id="pctDashCliente">0%</span>
               </div>
               <div class="kpi-value" style="color:#0369A1;" id="valDashCliente">0</div>
@@ -526,12 +521,12 @@
             <div class="kpi-card dash-kpi-card kpi-accent-emerald"
               onclick="switchTab('tab-estoque'); applyKpiQuickFilter('ESTOQUE');">
               <div class="kpi-label">
-                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 8l-9-5-9 5v8l9 5 9-5z" />
                     <polyline points="3 8 12 13 21 8" />
                     <line x1="12" y1="13" x2="12" y2="21" />
-                  </svg>No Estoque da LYDA</span>
+                  </svg>Estoque LYDA</span>
                 <span class="badge badge-em-dia" id="pctDashEstoque">0%</span>
               </div>
               <div class="kpi-value" style="color:#047857;" id="valDashEstoque">0</div>
@@ -544,7 +539,7 @@
             <div class="kpi-card dash-kpi-card kpi-accent-sky"
               onclick="switchTab('tab-estoque'); applyKpiQuickFilter('COMODATO');">
               <div class="kpi-label">
-                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 1l4 4-4 4" />
                     <path d="M3 11V9a4 4 0 0 1 4-4h14" />
@@ -563,12 +558,12 @@
             <div class="kpi-card dash-kpi-card kpi-accent-purple"
               onclick="switchTab('tab-estoque'); applyKpiQuickFilter('VENDA');">
               <div class="kpi-label">
-                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="9" cy="21" r="1" />
                     <circle cx="20" cy="21" r="1" />
                     <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
-                  </svg>Venda (Clientes)</span>
+                  </svg>Venda Direta</span>
                 <span class="badge badge-dwl" id="pctDashVenda">0%</span>
               </div>
               <div class="kpi-value" style="color:#4F46E5;" id="valDashVenda">0</div>
@@ -580,11 +575,11 @@
 
             <div class="kpi-card dash-kpi-card kpi-accent-amber" onclick="switchTab('tab-radar6m');">
               <div class="kpi-label">
-                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="9" />
                     <polyline points="12 7 12 12 15 15" />
-                  </svg>Pendentes Ciclo 6m</span>
+                  </svg>Pendentes 6m</span>
                 <span class="badge badge-vencendo" id="pctDashPend6m">0%</span>
               </div>
               <div class="kpi-value" style="color:#D97706;" id="valDashPend6m">0</div>
@@ -597,11 +592,11 @@
             <div class="kpi-card dash-kpi-card kpi-accent-rose"
               onclick="switchTab('tab-estoque'); applyKpiQuickFilter('DEFEITO');">
               <div class="kpi-label">
-                <span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                <span class="kpi-title-wrap"><svg class="kpi-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-                  </svg>Manutenção / Reparo</span>
+                  </svg>Manutenção</span>
                 <span class="badge badge-vencida" id="pctDashDefeito">0%</span>
               </div>
               <div class="kpi-value" style="color:#E11D48;" id="valDashDefeito">0</div>
@@ -724,96 +719,49 @@
           <!-- FAIXA COMPACTA DE INDICADORES DO ESTOQUE -->
           <div class="kpi-grid kpi-grid-8 estoque-status-strip">
             <div class="kpi-card kpi-accent-blue active-filter" id="kpi-ALL" onclick="applyKpiQuickFilter('ALL')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                  </svg>Total de Aparelhos</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiTotal">0%</span>
+              <div class="kpi-label"><span class="kpi-title-wrap">Total Geral</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiTotal">0%</span>
               </div>
               <div class="kpi-value" style="color:#1D4ED8;" id="valKpiTotal">0</div>
               <div class="kpi-sub">Todos os aparelhos i-STAT</div>
             </div>
             <div class="kpi-card kpi-accent-sky" id="kpi-ATIVO" onclick="applyKpiQuickFilter('ATIVO')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M3 21h18" />
-                    <path d="M5 21V7l8-4v18" />
-                    <path d="M19 21V11l-6-4" />
-                  </svg>Em Hospitais / Clientes</span><span class="badge badge-ana kpi-pct-badge"
+              <div class="kpi-label"><span class="kpi-title-wrap">Em Hospitais</span><span class="badge badge-ana kpi-pct-badge"
                   id="pctKpiCliente">0%</span></div>
               <div class="kpi-value" style="color:#0369A1;" id="valKpiCliente">0</div>
               <div class="kpi-sub" id="subKpiCliente">Em operação externa</div>
             </div>
             <div class="kpi-card kpi-accent-emerald" id="kpi-ESTOQUE" onclick="applyKpiQuickFilter('ESTOQUE')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M21 8l-9-5-9 5v8l9 5 9-5z" />
-                    <polyline points="3 8 12 13 21 8" />
-                    <line x1="12" y1="13" x2="12" y2="21" />
-                  </svg>No Estoque da LYDA</span><span class="badge badge-ana kpi-pct-badge"
+              <div class="kpi-label"><span class="kpi-title-wrap">Estoque LYDA</span><span class="badge badge-ana kpi-pct-badge"
                   id="pctKpiEstoque">0%</span></div>
               <div class="kpi-value" style="color:#047857;" id="valKpiEstoque">0</div>
               <div class="kpi-sub" id="subKpiEstoque">Disponíveis na sede</div>
             </div>
             <div class="kpi-card kpi-accent-sky" id="kpi-COMODATO" onclick="applyKpiQuickFilter('COMODATO')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M17 1l4 4-4 4" />
-                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                    <path d="M7 23l-4-4 4-4" />
-                    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-                  </svg>Em Comodato</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiComodato">0%</span>
+              <div class="kpi-label"><span class="kpi-title-wrap">Em Comodato</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiComodato">0%</span>
               </div>
               <div class="kpi-value" style="color:#0284C7;" id="valKpiComodato">0</div>
               <div class="kpi-sub" id="subKpiComodato">Patrimônio LYDA em hospitais</div>
             </div>
             <div class="kpi-card kpi-accent-purple" id="kpi-VENDA" onclick="applyKpiQuickFilter('VENDA')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="9" cy="21" r="1" />
-                    <circle cx="20" cy="21" r="1" />
-                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
-                  </svg>Venda (Clientes)</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiVenda">0%</span>
+              <div class="kpi-label"><span class="kpi-title-wrap">Venda Direta</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiVenda">0%</span>
               </div>
               <div class="kpi-value" style="color:#4F46E5;" id="valKpiVenda">0</div>
               <div class="kpi-sub" id="subKpiVenda">Equipamentos vendidos</div>
             </div>
             <div class="kpi-card kpi-accent-teal" id="kpi-CICLO_OK" onclick="applyKpiQuickFilter('CICLO_OK')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>Ciclo 6m Em Dia</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiCicloOk">0%</span>
+              <div class="kpi-label"><span class="kpi-title-wrap">Ciclo 6m OK</span><span class="badge badge-ana kpi-pct-badge" id="pctKpiCicloOk">0%</span>
               </div>
               <div class="kpi-value" id="valKpiCicloOk" style="color:#059669;">0</div>
               <div class="kpi-sub">Atualizados nos últimos 6m</div>
             </div>
             <div class="kpi-card kpi-accent-amber" id="kpi-CICLO_PEND" onclick="applyKpiQuickFilter('CICLO_PEND')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <polyline points="12 7 12 12 15 15" />
-                  </svg>Atualização 6m Pendente</span><span class="badge badge-ana kpi-pct-badge"
+              <div class="kpi-label"><span class="kpi-title-wrap">Pendentes 6m</span><span class="badge badge-ana kpi-pct-badge"
                   id="pctKpiCicloPend">0%</span></div>
               <div class="kpi-value" id="valKpiCicloPend" style="color:#D97706;">0</div>
               <div class="kpi-sub" id="subKpiCicloPend">Clique p/ filtrar e criar Rota</div>
             </div>
             <div class="kpi-card kpi-accent-rose" id="kpi-DEFEITO" onclick="applyKpiQuickFilter('DEFEITO')">
-              <div class="kpi-label"><span class="kpi-title-wrap"><svg class="kpi-ico" width="14" height="14"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path
-                      d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-                  </svg>Manutenção / Defeito</span><span class="badge badge-ana kpi-pct-badge"
+              <div class="kpi-label"><span class="kpi-title-wrap">Manutenção</span><span class="badge badge-ana kpi-pct-badge"
                   id="pctKpiDefeito">0%</span></div>
               <div class="kpi-value" id="valKpiDefeito" style="color:#E11D48;">0</div>
               <div class="kpi-sub" id="subKpiDefeito">Em reparo ou assistência SP</div>
@@ -824,9 +772,9 @@
           <div class="panel-card">
             <div class="filter-row filter-grid-estoque">
               <div class="form-group">
-                <label>Buscar por Serial, Hospital/Cliente, Cidade, Setor ou Observação:</label>
+                <label>Buscar Serial, Hospital, Cidade ou Setor:</label>
                 <input type="text" id="inpFilterSearch"
-                  placeholder="Digite qualquer parte do serial, hospital, endereço ou setor..."
+                  placeholder="Digite serial, hospital, endereço ou setor..."
                   oninput="renderItemsTable()" />
               </div>
 
@@ -990,20 +938,19 @@
             </span>
           </div>
 
-          <!-- TABELA PRINCIPAL PADRONIZADA (8 COLUNAS SEM CORTE HORIZONTAL) -->
+          <!-- TABELA PRINCIPAL PADRONIZADA (7 COLUNAS SEM CORTE HORIZONTAL) -->
           <div class="table-wrap">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th style="width:36px; text-align:center;">
+                  <th style="width:34px; text-align:center;">
                     <input type="checkbox" id="chkHeaderAll" onchange="toggleSelectAllVisible(this.checked)" />
                   </th>
                   <th>Aparelho & Serial</th>
                   <th>Hospital / Cliente & Setor</th>
-                  <th>Endereço & Cidade/UF</th>
+                  <th>Cidade / UF & Endereço</th>
                   <th>Modalidade & Situação</th>
-                  <th>Ciclo de Atualização (6 em 6 Meses)</th>
-                  <th>Observações</th>
+                  <th>Ciclo Semestral (6m)</th>
                   <th style="text-align:right;">Ações</th>
                 </tr>
               </thead>
@@ -1018,7 +965,7 @@
         <section id="tab-radar6m" class="tab-pane">
           <div class="panel-card">
             <div class="section-title">
-              <span>Central de Monitoramento de Atualizações Semestrais (Ciclo de 6 em 6 Meses)</span>
+              <span>Central de Atualizações Semestrais (6m)</span>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="openExecutiveReportPrintWindow('RADAR_6M')">Emitir
                   Relatório PDF (Timbre LYDA)</button>
@@ -1085,11 +1032,11 @@
                     <input type="checkbox" id="chkRadarAll" onchange="selectAllRadarVisible(this.checked)" />
                   </th>
                   <th>Aparelho & Serial</th>
-                  <th>Hospital / Cliente & Cidade</th>
-                  <th>Endereço p/ Rota</th>
-                  <th>Progresso do Ciclo (6 Meses)</th>
-                  <th>Última Atualização (Calendário)</th>
-                  <th style="text-align:right;">Ações Rápidas</th>
+                  <th>Hospital / Cliente</th>
+                  <th>Endereço</th>
+                  <th>Ciclo Semestral (6m)</th>
+                  <th>Última Atualização</th>
+                  <th style="text-align:right;">Ações</th>
                 </tr>
               </thead>
               <tbody id="tbodyRadar6m"></tbody>
@@ -1391,7 +1338,7 @@
         <section id="tab-rota" class="tab-pane">
           <div class="panel-card">
             <div class="section-title">
-              <span>1. Partida (Sede da LYDA), Enfermeira Responsável, Data e Instruções da Rota</span>
+              <span>1. Partida, Enfermeira, Data e Opções da Rota</span>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="markAllRouteItemsUpdated6m()">Marcar Aparelhos
                   Atualizados (6m)</button>
@@ -1447,7 +1394,7 @@
           <!-- 2. SELEÇÃO DE EQUIPAMENTOS PARA A ROTA -->
           <div class="panel-card" id="cardRouteEquipPicker">
             <div class="section-title">
-              <span>2. Seleção de Aparelhos para a Rota (Escolha ou Bipe os Equipamentos)</span>
+              <span>2. Seleção de Aparelhos para a Rota</span>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 <span id="badgeRoutePickerCount" class="badge"
                   style="background:#1E3A8A; color:#FFFFFF; font-size:12px; font-weight:800; padding:5px 10px;">0
@@ -1526,7 +1473,7 @@
           <!-- 3. PARADAS GERADAS DA ROTA (HOSPITAIS / CLÍNICAS) -->
           <div class="panel-card">
             <div class="section-title">
-              <span>3. Paradas Geradas da Rota (Hospitais / Clínicas que a Enfermeira vai visitar)</span>
+              <span>3. Paradas Geradas da Rota</span>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="loadRouteFromMode('FROM_INDICES')">Carregar
                   Marcados</button>
@@ -1659,50 +1606,39 @@
           <!-- BARRA SUPERIOR DE COMANDO RÁPIDO: PAPEL + IMPRESSORA + BOTÃO IMPRIMIR -->
           <div class="panel-card zebra-top-command-card">
             <div class="zebra-top-header">
-              <div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span class="zebra-printer-badge">ZEBRA ZD230</span>
-                  <h2 style="margin:0; font-size:15px; font-weight:800; color:var(--slate-900);">Central de Impressão de
-                    Etiquetas Térmicas — LYDA i-STAT</h2>
-                </div>
-                <div style="font-size:11.5px; color:var(--slate-500); margin-top:2px;">
-                  Seleção de equipamentos, configuração de bobina e impressão ZPL / .PRN.
-                </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="zebra-printer-badge">ZEBRA ZD230</span>
+                <h2 style="margin:0; font-size:14.5px; font-weight:800; color:var(--slate-900);">Impressão de Etiquetas Térmicas</h2>
               </div>
 
-              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <div class="zebra-top-actions-row">
                 <button type="button" class="btn btn-secondary btn-sm" id="btnToggleZebraAdv"
-                  onclick="toggleZebraAdvancedDrawer()">
-                  Ajustes Finos (Medidas mm / Impressora / ZPL)
-                </button>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="printVisualLabelsInBrowser()">
-                  Imprimir / Salvar PDF no Navegador
-                </button>
-                <button type="button" class="btn btn-primary btn-sm"
-                  style="height:36px; padding:0 14px; font-weight:800;" onclick="downloadZebraPrnFile(null, 'prn')">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                  onclick="toggleZebraAdvancedDrawer()">Ajustes Finos</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="printVisualLabelsInBrowser()">Salvar PDF</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="downloadZebraPrnFile(null, 'prn')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                     <polyline points="7 10 12 15 17 10" />
                     <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
-                  <span id="lblZebraTopPrnBtn">Baixar Arquivo .PRN</span>
+                  <span id="lblZebraTopPrnBtn">Baixar .PRN</span>
                 </button>
-                <button type="button" class="btn btn-zebra-green" style="width:auto; height:36px; padding:0 16px;"
+                <button type="button" class="btn btn-zebra-green btn-sm" style="width:auto; padding:0 14px;"
                   onclick="printZebraForSelected(false)">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
                     <polyline points="6 9 6 2 18 2 18 9" />
                     <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                     <rect x="6" y="14" width="12" height="8" />
                   </svg>
-                  <span id="lblZebraTopPrintBtn">Imprimir Selecionados na Zebra ZD230</span>
+                  <span id="lblZebraTopPrintBtn">Imprimir na Zebra ZD230</span>
                 </button>
               </div>
             </div>
 
-            <!-- LINHA DIRETA E INTUITIVA: ESCOLHA DO PAPEL + OPÇÕES DA ETIQUETA -->
+            <!-- LINHA DIRETA: ESCOLHA DO PAPEL + OPÇÕES DA ETIQUETA -->
             <div class="zebra-quick-config-bar">
-              <div class="form-group" style="min-width:290px; flex:1.4;">
-                <label>1. Qual Papel Está na Impressora Zebra ZD230?</label>
+              <div class="form-group" style="min-width:250px; flex:1.3;">
+                <label>Modelo de Bobina / Papel (Zebra ZD230):</label>
                 <select id="selZebraPresetDropdown" onchange="onZebraPresetDropdownChange(this.value)">
                   <optgroup label="HOJE — Bobina Grande na Zebra ZD230 (Com Contorno p/ Recortar na Tesoura)">
                     <option value="BOBINA_100x150_2x5" selected>Bobina Grande 100×150 mm → 10 Mini-Etiquetas (2 col × 5
@@ -1730,25 +1666,24 @@
               <div class="zebra-inline-toggles">
                 <label class="zebra-pill-check">
                   <input type="checkbox" id="chkZebraShowLogo" checked onchange="renderZebraVisualPreview()" />
-                  <span>Logo da LYDA</span>
+                  <span>Logo LYDA</span>
                 </label>
                 <label class="zebra-pill-check">
                   <input type="checkbox" id="chkZebraDrawBorder" checked onchange="renderZebraVisualPreview()" />
-                  <span>Contorno Preto p/ Recortar</span>
+                  <span>Contorno</span>
                 </label>
                 <label class="zebra-pill-check">
                   <input type="checkbox" id="chkZebraCutMarks" checked onchange="renderZebraVisualPreview()" />
-                  <span>Guias de Tesoura</span>
+                  <span>Guias</span>
                 </label>
                 <label class="zebra-pill-check">
                   <input type="checkbox" id="chkZebraShowLocation" checked onchange="syncLocationCheckboxes('left')" />
-                  <span>Mostrar Local / Hospital</span>
+                  <span>Local / Hospital</span>
                 </label>
               </div>
 
-              <div class="form-group" style="width:155px; flex-shrink:0;">
-                <label title="Se a 1ª folha da bobina já teve algumas etiquetas recortadas, pule essas posições">Pular
-                  Já Usadas (1ª Folha):</label>
+              <div class="form-group" style="width:115px; flex-shrink:0;">
+                <label title="Se a 1ª folha da bobina já teve algumas etiquetas recortadas, pule essas posições">Pular Usadas:</label>
                 <input type="number" id="inpZebraSkip" value="0" min="0" max="24" step="1"
                   oninput="renderZebraVisualPreview()" />
               </div>
@@ -1925,37 +1860,27 @@
                   </div>
                 </div>
 
-                <!-- BOTÕES DE SELEÇÃO EM 1 CLIQUE (TODOS / ESTOQUE / HOSPITAIS / MANUTENÇÃO / COMODATO / VENDA / LIMPAR) -->
-                <div class="zebra-quick-select-grid">
-                  <button type="button" class="zebra-qsel-btn primary" onclick="selectZebraPresetGroup('ALL')">
-                    <strong id="lblBtnZebraAllCount">Todos os Aparelhos (97)</strong>
-                    <span>Selecionar todo o cadastro</span>
+                <!-- PÍLULAS COMPACTAS DE SELEÇÃO EM 1 CLIQUE -->
+                <div class="zebra-quick-pills">
+                  <button type="button" class="zebra-pill-btn primary" onclick="selectZebraPresetGroup('ALL')">
+                    <span id="lblBtnZebraAllCount">Todos (97)</span>
                   </button>
-                  <button type="button" class="zebra-qsel-btn emerald" onclick="selectZebraPresetGroup('ESTOQUE')">
-                    <strong id="lblBtnZebraStockCount">Só Estoque LYDA (41)</strong>
-                    <span>Disponíveis na sede</span>
+                  <button type="button" class="zebra-pill-btn" onclick="selectZebraPresetGroup('ESTOQUE')">
+                    <span id="lblBtnZebraStockCount">Estoque (41)</span>
                   </button>
-                  <button type="button" class="zebra-qsel-btn sky" onclick="selectZebraPresetGroup('HOSPITAIS')">
-                    <strong id="lblBtnZebraHospCount">Só em Hospitais (48)</strong>
-                    <span>Em operação externa</span>
+                  <button type="button" class="zebra-pill-btn" onclick="selectZebraPresetGroup('HOSPITAIS')">
+                    <span id="lblBtnZebraHospCount">Hospitais (48)</span>
                   </button>
-                  <button type="button" class="zebra-qsel-btn rose" onclick="selectZebraPresetGroup('MANUTENCAO')">
-                    <strong id="lblBtnZebraMaintCount">Em Manutenção / SP (8)</strong>
-                    <span>Em reparo ou assistência</span>
+                  <button type="button" class="zebra-pill-btn" onclick="selectZebraPresetGroup('COMODATO')">
+                    <span id="lblBtnZebraComodatoCount">Comodato (16)</span>
                   </button>
-                  <button type="button" class="zebra-qsel-btn sky" onclick="selectZebraPresetGroup('COMODATO')">
-                    <strong id="lblBtnZebraComodatoCount">Só Comodato (16)</strong>
-                    <span>Patrimônio LYDA em hospitais</span>
+                  <button type="button" class="zebra-pill-btn" onclick="selectZebraPresetGroup('VENDA')">
+                    <span id="lblBtnZebraVendaCount">Venda (38)</span>
                   </button>
-                  <button type="button" class="zebra-qsel-btn purple" onclick="selectZebraPresetGroup('VENDA')">
-                    <strong id="lblBtnZebraVendaCount">Só Venda (38)</strong>
-                    <span>Equipamentos vendidos</span>
+                  <button type="button" class="zebra-pill-btn" onclick="selectZebraPresetGroup('MANUTENCAO')">
+                    <span id="lblBtnZebraMaintCount">Manutenção (8)</span>
                   </button>
-                  <button type="button" class="zebra-qsel-btn neutral" style="grid-column: span 2;"
-                    onclick="clearZebraQueue()">
-                    <strong>Desmarcar Todos</strong>
-                    <span>Zerar seleção atual</span>
-                  </button>
+                  <button type="button" class="zebra-pill-btn neutral" onclick="clearZebraQueue()">Desmarcar</button>
                 </div>
 
                 <!-- FILTRO RÁPIDO NA LISTA DE APARELHOS -->
@@ -2681,13 +2606,13 @@
             </div>
           </div>
 
-          <div class="cycle-box">
+          <div class="cycle-box" id="secModalCycleBox">
             <div class="section-title" style="border-bottom-color:var(--slate-200);">
-              <span>2. Controle de Atualização (De 6 em 6 Meses) & Situação na Bancada do Estoque</span>
+              <span>2. Controle de Atualização (Ciclo 6 Meses) &amp; Bancada</span>
             </div>
             <div class="form-grid-4">
               <div class="form-group">
-                <label>Data da Última Atualização (DD/MM/AAAA):</label>
+                <label>Última Atualização (DD/MM/AAAA):</label>
                 <div style="display:flex; gap:6px;">
                   <input type="text" id="inpModalUltAtt" class="date-input-br" data-datepicker="br" autocomplete="off"
                     placeholder="DD/MM/AAAA" oninput="updateModalNextDatePreview()" style="width:100%;" />
@@ -2695,15 +2620,15 @@
                 </div>
               </div>
               <div class="form-group">
-                <label>Próxima Atualização (+6 Meses Automático):</label>
+                <label>Próxima Atualização (+6m):</label>
                 <input type="text" id="inpModalProxAtt" readonly style="font-weight:800; background:#FFFFFF;" />
               </div>
               <div class="form-group">
-                <label>Versão do Software (CLEW / JAMS):</label>
+                <label>Versão CLEW / JAMS:</label>
                 <input type="text" id="inpModalVersaoClew" placeholder="Ex: CLEW A45 / JAMS 148" />
               </div>
               <div class="form-group">
-                <label>Status de Atualização na Bancada:</label>
+                <label>Status na Bancada:</label>
                 <select id="selModalAttEstoque">
                   <option value="EM USO NO CLIENTE / N/A">EM USO NO CLIENTE / N/A</option>
                   <option value="SIM - JÁ ATUALIZADO NO ESTOQUE">SIM - JÁ ATUALIZADO NO ESTOQUE</option>
@@ -2715,11 +2640,11 @@
 
           <div class="panel-card" style="margin-bottom:12px;">
             <div class="section-title">
-              <span>3. Endereço Completo (para Rota Google Maps), Condição Física, Defeito & Observações</span>
+              <span>3. Endereço Completo, Condição Física, Defeito &amp; Observações</span>
             </div>
             <div class="form-grid-4">
               <div class="form-group" style="grid-column: span 2;">
-                <label>Endereço Completo do Local (Rua, Número, Bairro):</label>
+                <label>Endereço Completo (Rua, Número, Bairro):</label>
                 <input type="text" id="inpModalEndereco" placeholder="Ex: Rua Ramiro Barcelos, 2350 - Santa Cecília" />
               </div>
               <div class="form-group">
@@ -2741,19 +2666,19 @@
 
             <div class="form-grid-4">
               <div class="form-group">
-                <label>Condição Física do Aparelho:</label>
+                <label>Condição Física:</label>
                 <select id="selModalCondicao"></select>
               </div>
               <div class="form-group">
-                <label style="color:#BE123C;">Defeito / Erro Apresentado (opcional):</label>
+                <label style="color:#BE123C;">Defeito Apresentado (opcional):</label>
                 <input type="text" id="inpModalDefeito" placeholder="Ex: Erro de calibração, visor quebrado..." />
               </div>
               <div class="form-group">
-                <label>Contato no Local / Enfermeira Responsável:</label>
+                <label>Contato Local / Enfermeira:</label>
                 <input type="text" id="inpModalContato" placeholder="Ex: Enf. Carla (Ramal 220)" />
               </div>
               <div class="form-group">
-                <label>Kit Analisador Vinculado / Nota Fiscal:</label>
+                <label>Kit / Nota Fiscal:</label>
                 <input type="text" id="inpModalKit" placeholder="Serial do Analisador do Kit" />
               </div>
             </div>
@@ -2913,21 +2838,17 @@
         </div><!-- fim mtab-anexos -->
       </div>
 
-      <div class="modal-footer">
+      <div class="modal-footer modal-footer-single-row">
         <button class="btn btn-secondary" onclick="closeItemModal()">Cancelar</button>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn btn-navy" onclick="openTermoTrocaFromModal()"><svg width="13" height="13"
+        <div class="modal-footer-actions">
+          <button class="btn btn-navy btn-sm" onclick="openTermoTrocaFromModal()"><svg width="13" height="13"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"
               stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
-            </svg>Termo de Troca (Timbre)</button>
-          <button class="btn btn-secondary" onclick="saveItemFromModal(true, false, false)">Salvar & Gerar Romaneio
-            (A4)</button>
-          <button class="btn btn-secondary" onclick="saveItemFromModal(false, false, true)">Salvar & Baixar Etiqueta
-            .PRN</button>
-          <button class="btn btn-secondary" onclick="saveItemFromModal(false, true, false)">Salvar & Imprimir Etiqueta
-            Zebra</button>
+            </svg>Termo de Troca</button>
+          <button class="btn btn-secondary btn-sm" onclick="saveItemFromModal(true, false, false)">Salvar &amp; Romaneio A4</button>
+          <button class="btn btn-secondary btn-sm" onclick="saveItemFromModal(false, true, false)">Salvar &amp; Imprimir Zebra</button>
           <button class="btn btn-primary" onclick="saveItemFromModal(false, false, false)">Salvar Alterações</button>
         </div>
       </div>

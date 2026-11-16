@@ -1080,10 +1080,7 @@ function getCycleProgressCellHtml(it) {
   return `
     <div class="cycle-progress-wrap">
       <div>${getCycleBadgeHtml(cyc)}</div>
-      <div class="cycle-progress-track" title="Progresso do ciclo de 6 meses: ${pct}%">
-        <div class="cycle-progress-fill" style="width:${pct}%; background:${fillColor};"></div>
-      </div>
-      <div class="cell-sub">${subInfo}</div>
+      <div class="cell-sub" style="margin-top:3px;">${subInfo}</div>
     </div>
   `;
 }
@@ -1178,37 +1175,41 @@ function renderItemsTable() {
       ? `<button type="button" class="btn-inline-att" onclick="event.stopPropagation(); openItemModalOnTab(${idx}, 'mtab-anexos')" title="${attCount} documento(s) anexado(s) — clique para abrir"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>${attCount}</button>`
       : "";
 
+    const obsTruncHtml = obsText
+      ? `<div class="cell-sub" style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px;" title="${escapeHtml(obsText)}">${escapeHtml(obsText)}</div>`
+      : "";
+
     return `
       <tr class="${rowClass}" ondblclick="openItemModal(${idx})">
         <td style="text-align:center;" onclick="event.stopPropagation()">
           <input type="checkbox" ${checked ? "checked" : ""} onchange="toggleItemSelection(${idx}, this.checked)" />
         </td>
         <td>
-          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
             ${getTipoBadgeHtml(it.TIPO)}
-            <span style="font-family:monospace; font-weight:700; font-size:13px; color:#111827;">${escapeHtml(it.CODIGO)}</span>
+            <span style="font-family:monospace; font-weight:700; font-size:12.5px; color:#111827;">${escapeHtml(it.CODIGO)}</span>
             ${attInlineHtml}
           </div>
           ${it.KIT_ANALISADOR ? `<div class="cell-sub">Kit: ${escapeHtml(it.KIT_ANALISADOR)}</div>` : ""}
         </td>
-        <td style="max-width:250px;">
+        <td style="max-width:185px;">
           <div class="cell-primary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(it.CLIENTE)}">${cliPrimaryHtml}</div>
-          <div class="cell-sub">${cliSubHtml}</div>
+          <div class="cell-sub" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${cliSubHtml}</div>
         </td>
-        <td style="max-width:230px;">
+        <td style="max-width:165px;">
           <div style="color:#334155; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(addrPrimary)}">${escapeHtml(addrPrimary)}</div>
-          <div class="cell-sub">${escapeHtml(addrSub)}</div>
+          <div class="cell-sub" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(addrSub)}</div>
         </td>
-        <td>
+        <td style="max-width:165px;">
           <div class="cell-primary">${escapeHtml(it.MODALIDADE || "-")}</div>
-          <div style="margin-top:3px;"><span class="badge ${sitBadgeClass}">${escapeHtml(sitText)}</span></div>
+          <div style="margin-top:2px;"><span class="badge ${sitBadgeClass}">${escapeHtml(sitText)}</span></div>
+          ${obsTruncHtml}
         </td>
         <td>${getCycleProgressCellHtml(it)}</td>
-        <td style="max-width:190px;">
-          <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#475569; font-size:11.5px;" title="${escapeHtml(obsText)}">${escapeHtml(obsText || "-")}</div>
-        </td>
         <td style="text-align:right; white-space:nowrap;" onclick="event.stopPropagation()">
-          <button class="btn btn-secondary btn-sm" onclick="openItemModal(${idx})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Ficha</button>
+          <button class="btn btn-secondary btn-sm" style="padding:3px 7px; font-size:11px; height:25px;" onclick="openItemModal(${idx})">Editar</button>
+          <button class="btn btn-secondary btn-sm" style="padding:3px 7px; font-size:11px; height:25px;" onclick="openTermoTrocaModal(${idx})">Termo</button>
+          <button class="btn btn-secondary btn-sm" style="padding:3px 7px; font-size:11px; height:25px;" onclick="openItemModalOnTab(${idx}, 'mtab-anexos')" title="Anexos e Histórico">Anexo${attCount > 0 ? ` (${attCount})` : ""}</button>
         </td>
       </tr>
     `;
@@ -1216,7 +1217,7 @@ function renderItemsTable() {
 
   tbody.innerHTML = rows.length
     ? rows.join("")
-    : `<tr><td colspan="8" style="text-align:center; padding:28px; color:#64748B;">Nenhum aparelho encontrado para o filtro selecionado.</td></tr>`;
+    : `<tr><td colspan="7" style="text-align:center; padding:28px; color:#64748B;">Nenhum aparelho encontrado para o filtro selecionado.</td></tr>`;
 
   updateSelectedCountBanner();
 }
@@ -1399,17 +1400,17 @@ function renderRadar6mTable() {
               </div>
               <div class="cell-sub">${escapeHtml(it.MODALIDADE || "-")} • ${escapeHtml(it.STATUS || "-")}</div>
             </td>
-            <td>
-              <div class="cell-primary">${escapeHtml(it.CLIENTE || "-")}</div>
-              <div class="cell-sub">${escapeHtml(it.CIDADE || "-")} / ${escapeHtml(it.UF || "-")} • Setor: ${escapeHtml(it.SETOR || "-")}</div>
+            <td style="max-width:175px;">
+              <div class="cell-primary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(it.CLIENTE)}">${escapeHtml(it.CLIENTE || "-")}</div>
+              <div class="cell-sub" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(it.CIDADE || "-")} / ${escapeHtml(it.UF || "-")} • Setor: ${escapeHtml(it.SETOR || "-")}</div>
             </td>
-            <td style="max-width:230px;">
+            <td style="max-width:160px;">
               <div style="font-size:12px; color:#334155; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(it.ENDERECO)}">${escapeHtml(it.ENDERECO || "-")}</div>
-              <div class="cell-sub">CEP: ${escapeHtml(it.CEP || "-")}</div>
+              <div class="cell-sub" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">CEP: ${escapeHtml(it.CEP || "-")}</div>
             </td>
             <td>${getCycleProgressCellHtml(it)}</td>
             <td>
-              <div style="display:flex; align-items:center; gap:6px;">
+              <div style="display:flex; align-items:center; gap:4px;">
                 <input
                   type="text"
                   id="inpRadarDate_${idx}"
@@ -1418,14 +1419,14 @@ function renderRadar6mTable() {
                   autocomplete="off"
                   value="${escapeHtml(curDate)}"
                   placeholder="DD/MM/AAAA"
-                  style="width:126px; height:32px; font-weight:700;"
+                  style="width:100px; height:26px; font-weight:700; font-size:11px; padding:0 24px 0 6px;"
                 />
-                <button class="btn btn-secondary btn-sm" onclick="quickSaveItemUpdateDate(${idx}, document.getElementById('inpRadarDate_${idx}').value)">Salvar Data</button>
+                <button class="btn btn-secondary btn-sm" style="height:26px; padding:0 7px; font-size:11px;" onclick="quickSaveItemUpdateDate(${idx}, document.getElementById('inpRadarDate_${idx}').value)">Salvar</button>
               </div>
             </td>
             <td style="text-align:right; white-space:nowrap;">
-              <button class="btn btn-success btn-sm" onclick="quickSaveItemUpdateDate(${idx}, '${todayStr}')" title="Marcar atualizado hoje e projetar +6 meses">Hoje (+6m)</button>
-              <button class="btn btn-secondary btn-sm" onclick="openItemModal(${idx})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Ficha</button>
+              <button class="btn btn-success btn-sm" style="height:26px; padding:0 7px; font-size:11px;" onclick="quickSaveItemUpdateDate(${idx}, '${todayStr}')" title="Marcar atualizado hoje e projetar +6 meses">Hoje</button>
+              <button class="btn btn-secondary btn-sm" style="height:26px; padding:0 7px; font-size:11px;" onclick="openItemModal(${idx})">Ficha</button>
             </td>
           </tr>
         `;
@@ -3116,7 +3117,7 @@ function renderSelectedClientLinkedItems() {
             </td>
             <td>${getCycleProgressCellHtml(it)}</td>
             <td onclick="event.stopPropagation()">
-              <div style="display:flex; align-items:center; gap:5px;">
+              <div style="display:flex; align-items:center; gap:4px;">
                 <input
                   type="text"
                   id="inpCliItemDate_${idx}"
@@ -3125,18 +3126,18 @@ function renderSelectedClientLinkedItems() {
                   autocomplete="off"
                   value="${escapeHtml(curDate)}"
                   placeholder="DD/MM/AAAA"
-                  style="width:124px; height:32px; font-weight:700;"
+                  style="width:100px; height:26px; font-weight:700; font-size:11px; padding:0 24px 0 6px;"
                 />
-                <button class="btn btn-secondary btn-sm" onclick="quickSaveItemUpdateDate(${idx}, document.getElementById('inpCliItemDate_${idx}').value)">Salvar</button>
-                <button class="btn btn-success btn-sm" onclick="quickSaveItemUpdateDate(${idx}, '${todayStr}')" title="Marcar atualizado hoje (+6 meses)">Hoje (+6m)</button>
+                <button class="btn btn-secondary btn-sm" style="height:26px; padding:0 7px; font-size:11px;" onclick="quickSaveItemUpdateDate(${idx}, document.getElementById('inpCliItemDate_${idx}').value)">Salvar</button>
+                <button class="btn btn-success btn-sm" style="height:26px; padding:0 7px; font-size:11px;" onclick="quickSaveItemUpdateDate(${idx}, '${todayStr}')" title="Marcar atualizado hoje (+6 meses)">Hoje</button>
               </div>
             </td>
-            <td style="max-width:190px;">
+            <td style="max-width:145px;">
               <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11.5px; color:#475569;" title="${escapeHtml(obsText)}">${escapeHtml(obsText || "-")}</div>
             </td>
             <td style="text-align:right; white-space:nowrap;" onclick="event.stopPropagation()">
-              <button class="btn btn-secondary btn-sm" onclick="openItemModal(${idx})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Ficha</button>
-              <button class="btn btn-secondary btn-sm" onclick="quickReturnSingleItemToStock(${idx})" title="Retornar este aparelho para o Estoque da LYDA">Devolver p/ Estoque</button>
+              <button class="btn btn-secondary btn-sm" style="height:26px; padding:0 7px; font-size:11px;" onclick="openItemModal(${idx})">Ficha</button>
+              <button class="btn btn-secondary btn-sm" style="height:26px; padding:0 7px; font-size:11px;" onclick="quickReturnSingleItemToStock(${idx})" title="Retornar este aparelho para o Estoque da LYDA">Estoque</button>
             </td>
           </tr>
         `;
@@ -3376,6 +3377,7 @@ async function lookupCepIntoFields(cepId, addrId, cityId, ufId) {
 // ABA 3: ROTA DA ENFERMEIRA + GOOGLE MAPS INTERATIVO NO NAVEGADOR
 // =========================================================================
 function initRouteLeafletMap() {
+  if (typeof L === "undefined") return;
   if (routeLeafletMap) {
     setTimeout(() => routeLeafletMap.invalidateSize(), 80);
     return;
@@ -3859,6 +3861,7 @@ function addClientStopToRoute() {
 
 function renderRouteOnLeafletGoogleMap(originCoord, stops) {
   initRouteLeafletMap();
+  if (typeof L === "undefined" || !routeMarkersLayer || !routePolylineLayer) return;
   routeMarkersLayer.clearLayers();
   routePolylineLayer.clearLayers();
 
@@ -3920,7 +3923,7 @@ function renderRouteOnLeafletGoogleMap(originCoord, stops) {
 }
 
 function fitRouteMapBounds() {
-  if (!routeLeafletMap) return;
+  if (typeof L === "undefined" || !routeLeafletMap || !routeMarkersLayer) return;
   const pts = [];
   routeMarkersLayer.eachLayer(layer => {
     if (layer.getLatLng) pts.push(layer.getLatLng());
@@ -4521,30 +4524,32 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
   const fallbackLogoAttr = (!APP_STATE.timbre_logo_data_uri && APP_STATE.logo_data_uri)
     ? `onerror="this.onerror=null;this.src='${APP_STATE.logo_data_uri}'"`
     : "";
-  const logoImg = `<img src="${timbreSrc}" ${fallbackLogoAttr} style="height:48px; width:auto; object-fit:contain;" alt="LYDA" />`;
+  const logoImg = `<img src="${timbreSrc}" ${fallbackLogoAttr} style="height:50px; width:auto; object-fit:contain;" alt="LYDA" />`;
 
   const cycBadge = it => {
     const code = (it._cycle && it._cycle.status_code) || "SEM_DATA";
     const txt = escapeHtml((it._cycle && it._cycle.summary_table) || "PENDENTE");
-    const cls = code === "EM_DIA" ? "b-ok" : code === "VENCIDA" ? "b-bad" : code === "VENCENDO" ? "b-warn" : "b-gray";
-    return `<span class="badge ${cls}">${txt}</span>`;
+    const cls = code === "EM_DIA" ? "tag-ok" : code === "VENCIDA" ? "tag-bad" : code === "VENCENDO" ? "tag-warn" : "tag-neutral";
+    return `<span class="tag ${cls}">${txt}</span>`;
   };
-  const modBadge = it => {
-    const m = String(it.MODALIDADE || "-").toUpperCase();
-    const cls = (m === "COMODATO" || m === "ALUGUEL") ? "b-sky" : m === "VENDA" ? "b-ind" : "b-gray";
-    return `<span class="badge ${cls}">${escapeHtml(it.MODALIDADE || "-")}</span>`;
-  };
-  const tipoBadge = it => {
-    const t = String(it.TIPO || "ANALISADOR").toUpperCase();
-    const cls = t.includes("IMPRESSORA") ? "b-pur" : t.includes("SIMULADOR") ? "b-teal" : t.includes("DOWNLOAD") ? "b-amb" : "b-blue";
-    return `<span class="badge ${cls}">${escapeHtml(it.TIPO || "-")}</span>`;
-  };
+  const modBadge = it => `<span class="tag tag-neutral">${escapeHtml(it.MODALIDADE || "-")}</span>`;
+  const tipoBadge = it => `<span class="tag tag-neutral">${escapeHtml(it.TIPO || "-")}</span>`;
+
+  const totalAll = Math.max(1, items.length);
+  const defCountRep = k.defeito_manutencao ?? k.em_defeito ?? 0;
 
   let reportTitle = "Relatório Executivo Geral de Equipamentos i-STAT";
-  let reportSub = "Mapeamento completo de analisadores, impressoras, simuladores, downloaders, modalidades e ciclo semestral";
+  let reportSub = "Mapeamento consolidado de analisadores, impressoras, simuladores, downloaders, modalidades e ciclo semestral";
   let tableHtml = "";
-  let customRichHtml = "";
-  let customKpiStripHtml = "";
+  let clientMetaHtml = "";
+  let summaryCells = [
+    ["Total Cadastrados", k.total || 0, "100% do parque"],
+    ["Em Hospitais / Clientes", k.em_cliente || 0, `${formatRealPct(k.em_cliente || 0, totalAll)} em operação`],
+    ["No Estoque LYDA", k.em_estoque || 0, `${k.estoque_novos || 0} novos • ${k.estoque_usados || 0} usados • ${k.estoque_backup || 0} bkp`],
+    ["Em Comodato / Aluguel", k.comodato_aluguel || 0, "Patrimônio LYDA"],
+    ["Venda Direta (Clientes)", k.venda || 0, "Equipamentos vendidos"],
+    ["Pendentes 6m / Manutenção", `${k.ciclo_pendente_vencido || 0} / ${defCountRep}`, "Ciclo 6m / Assistência"],
+  ];
 
   if (reportType === "CLIENTE_ATUAL") {
     const cliName = APP_STATE.selectedClientName || "";
@@ -4555,7 +4560,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     const cliRec = clients.find(c => (c.CLIENTE || "").toUpperCase() === cliName.toUpperCase()) || {};
     const cliItems = items.filter(it => (it.CLIENTE || "").toUpperCase() === cliName.toUpperCase());
     reportTitle = `Relatório Oficial de Equipamentos — ${cliName}`;
-    reportSub = "Relação detalhada dos aparelhos i-STAT alocados na instituição, setores, modalidades e ciclo semestral";
+    reportSub = "Relação dos aparelhos i-STAT alocados na instituição, setores, modalidades e ciclo semestral";
 
     const cliComodato = cliItems.filter(it => ["COMODATO", "ALUGUEL"].includes(String(it.MODALIDADE || "").toUpperCase())).length;
     const cliVenda = cliItems.filter(it => String(it.MODALIDADE || "").toUpperCase() === "VENDA").length;
@@ -4563,23 +4568,23 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     const cliPend = cliItems.length - cliOk;
     const cliManut = cliItems.filter(it => it._row_state === "DEFEITO").length;
 
-    customKpiStripHtml = `
-      <div class="kpi-strip" style="grid-template-columns: repeat(5, 1fr);">
-        <div class="kpi-box" style="border-top-color:#2563EB;"><div class="lbl">Aparelhos na Unidade</div><div class="val" style="color:#2563EB;">${cliItems.length}</div><div class="pct">Vinculados ao hospital</div></div>
-        <div class="kpi-box" style="border-top-color:#0284C7;"><div class="lbl">Em Comodato</div><div class="val" style="color:#0284C7;">${cliComodato}</div><div class="pct">Patrimônio LYDA</div></div>
-        <div class="kpi-box" style="border-top-color:#6366F1;"><div class="lbl">Venda Direta</div><div class="val" style="color:#6366F1;">${cliVenda}</div><div class="pct">Patrimônio Cliente</div></div>
-        <div class="kpi-box" style="border-top-color:#059669;"><div class="lbl">Ciclo 6m Em Dia</div><div class="val" style="color:#059669;">${cliOk}</div><div class="pct">${cliPend} pendente(s)</div></div>
-        <div class="kpi-box" style="border-top-color:#E11D48;"><div class="lbl">Em Manutenção</div><div class="val" style="color:#E11D48;">${cliManut}</div><div class="pct">Assistência / reparo</div></div>
-      </div>`;
+    summaryCells = [
+      ["Aparelhos na Unidade", cliItems.length, "Total alocado"],
+      ["Em Comodato", cliComodato, "Patrimônio LYDA"],
+      ["Venda Direta", cliVenda, "Patrimônio Cliente"],
+      ["Ciclo 6m Em Dia", cliOk, "Atualizados"],
+      ["Pendentes 6m", cliPend, "Aguardando visita"],
+      ["Em Manutenção", cliManut, "Assistência / Reparo"],
+    ];
 
-    customRichHtml = `
-      <div class="summary-card" style="margin-bottom:14px;">
-        <h3>Dados Cadastrais da Instituição</h3>
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px 18px; font-size:11px; line-height:1.5;">
+    clientMetaHtml = `
+      <div class="inst-box">
+        <div class="inst-title">Dados Cadastrais da Instituição</div>
+        <div class="inst-grid">
           <div><strong>Hospital / Cliente:</strong> ${escapeHtml(cliRec.CLIENTE || cliName)}</div>
           <div><strong>CNPJ:</strong> ${escapeHtml(cliRec.CNPJ || "-")}</div>
           <div><strong>Cidade / UF:</strong> ${escapeHtml(cliRec.CIDADE || "PORTO ALEGRE")} / ${escapeHtml(cliRec.UF || "RS")}</div>
-          <div style="grid-column: span 2;"><strong>Endereço:</strong> ${escapeHtml(cliRec.ENDERECO || "-")} ${cliRec.CEP ? `— CEP: ${escapeHtml(cliRec.CEP)}` : ""}</div>
+          <div style="grid-column: span 2;"><strong>Endereço:</strong> ${escapeHtml(cliRec.ENDERECO || "-")}${cliRec.CEP ? ` — CEP: ${escapeHtml(cliRec.CEP)}` : ""}</div>
           <div><strong>Setores:</strong> ${escapeHtml(cliRec._setores_ativos || cliRec.SETORES || "-")}</div>
           <div><strong>Contato Local:</strong> ${escapeHtml(cliRec.CONTATO_LOCAL || "-")}</div>
           <div><strong>Telefone:</strong> ${escapeHtml(cliRec.TELEFONE || "-")}</div>
@@ -4608,7 +4613,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
             <tr class="${it._row_state === 'DEFEITO' ? 'tr-def' : ''}">
               <td>${i + 1}</td>
               <td>${tipoBadge(it)}</td>
-              <td style="font-family:monospace; font-weight:800;">${escapeHtml(it.CODIGO)}</td>
+              <td class="mono">${escapeHtml(it.CODIGO)}</td>
               <td>${escapeHtml(it.SETOR || "-")}</td>
               <td>${modBadge(it)}</td>
               <td>${escapeHtml(it.STATUS || "-")}</td>
@@ -4625,19 +4630,20 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     const allLogs = APP_STATE.audit_logs || [];
     const logsSlice = allLogs.slice(0, 400);
     reportTitle = "Relatório Oficial de Auditoria & Rastreabilidade do Sistema";
-    reportSub = "Histórico cronológico de acessos, movimentações de estoque, emissões de rotas, romaneios e termos";
+    reportSub = "Registro cronológico de acessos, movimentações de estoque, rotas, romaneios e termos";
 
     const logOk = logsSlice.filter(lg => lg.severity === "SUCCESS").length;
     const logWarn = logsSlice.filter(lg => lg.severity === "WARNING").length;
     const logErr = logsSlice.filter(lg => lg.severity === "DANGER" || lg.category === "SEGURANCA").length;
 
-    customKpiStripHtml = `
-      <div class="kpi-strip" style="grid-template-columns: repeat(4, 1fr);">
-        <div class="kpi-box" style="border-top-color:#2563EB;"><div class="lbl">Registros no Relatório</div><div class="val" style="color:#2563EB;">${logsSlice.length}</div><div class="pct">de ${allLogs.length} evento(s) totais</div></div>
-        <div class="kpi-box" style="border-top-color:#059669;"><div class="lbl">Operações Concluídas</div><div class="val" style="color:#059669;">${logOk}</div><div class="pct">Status SUCCESS</div></div>
-        <div class="kpi-box" style="border-top-color:#D97706;"><div class="lbl">Alertas / Avisos</div><div class="val" style="color:#D97706;">${logWarn}</div><div class="pct">Status WARNING</div></div>
-        <div class="kpi-box" style="border-top-color:#E11D48;"><div class="lbl">Segurança / Críticos</div><div class="val" style="color:#E11D48;">${logErr}</div><div class="pct">Bloqueios ou falhas</div></div>
-      </div>`;
+    summaryCells = [
+      ["Registros Listados", logsSlice.length, "Máx. 400 recentes"],
+      ["Total no Histórico", allLogs.length, "Eventos gravados"],
+      ["Operações Concluídas", logOk, "Status SUCCESS"],
+      ["Alertas / Avisos", logWarn, "Status WARNING"],
+      ["Segurança / Críticos", logErr, "Bloqueios ou falhas"],
+      ["Operador Emissor", userStr, "Auditoria LYDA"],
+    ];
 
     tableHtml = `
       <table>
@@ -4659,10 +4665,10 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
               <td>${i + 1}</td>
               <td style="white-space:nowrap; font-weight:700;">${escapeHtml(lg.timestamp || "-")}</td>
               <td><strong>${escapeHtml(lg.user_nome || "-")}</strong></td>
-              <td style="font-size:10px; color:#475569;">${escapeHtml(lg.user_role || "-")} • ${escapeHtml(lg.ip_address || "-")}</td>
-              <td><span class="badge b-blue">${escapeHtml(lg.category || "-")}</span></td>
+              <td style="font-size:9.5px; color:#475569;">${escapeHtml(lg.user_role || "-")} • ${escapeHtml(lg.ip_address || "-")}</td>
+              <td><span class="tag tag-neutral">${escapeHtml(lg.category || "-")}</span></td>
               <td style="font-weight:700;">${escapeHtml(lg.action || "-")}</td>
-              <td style="font-family:monospace; font-weight:700;">${escapeHtml(lg.target || "-")}</td>
+              <td class="mono">${escapeHtml(lg.target || "-")}</td>
               <td>${escapeHtml(lg.details || "-")}</td>
             </tr>
           `).join("")}
@@ -4688,10 +4694,10 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
         </thead>
         <tbody>
           ${items.map((it, i) => `
-            <tr class="${it._row_state === 'ESTOQUE' ? 'tr-est' : (it._row_state === 'DEFEITO' ? 'tr-def' : '')}">
+            <tr class="${it._row_state === 'DEFEITO' ? 'tr-def' : ''}">
               <td>${i + 1}</td>
               <td>${tipoBadge(it)}</td>
-              <td style="font-family:monospace; font-weight:800;">${escapeHtml(it.CODIGO)}</td>
+              <td class="mono">${escapeHtml(it.CODIGO)}</td>
               <td><strong>${escapeHtml(it.CLIENTE || "-")}</strong></td>
               <td>${escapeHtml(it.CIDADE || "-")} / ${escapeHtml(it.UF || "RS")}</td>
               <td>${escapeHtml(it.SETOR || "-")}</td>
@@ -4706,8 +4712,16 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     `;
   } else if (reportType === "RADAR_6M") {
     reportTitle = "Relatório de Controle de Atualizações Semestrais (Ciclo 6 em 6 Meses)";
-    reportSub = "Equipamentos próximos de completar 6 meses, com ciclo vencido, aguardando bancada ou sem data base registrada";
+    reportSub = "Equipamentos próximos de 6 meses, com ciclo vencido, aguardando bancada ou sem data base registrada";
     const pendItems = items.filter(it => isItemNeedingRadarAttention(it));
+    summaryCells = [
+      ["Total Cadastrados", k.total || 0, "Parque total"],
+      ["Ciclo Em Dia", k.ciclo_em_dia || 0, "Atualizados < 6m"],
+      ["Perto de 6 Meses", k.ciclo_vencendo || 0, "Até 45 dias"],
+      ["Ciclo Vencido", k.ciclo_vencida || 0, "Atraso > 6m"],
+      ["Sem Data Base", k.ciclo_sem_data || 0, "Pendentes cadastro"],
+      ["Aguardando Bancada", k.estoque_falta_atualizar || 0, "No estoque LYDA"],
+    ];
     tableHtml = `
       <table>
         <thead>
@@ -4720,7 +4734,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
             <th>Cidade / UF</th>
             <th>Setor</th>
             <th>Últ. Atualização</th>
-            <th>Próx. Atualização (+6m)</th>
+            <th>Próx. 6m</th>
             <th>Status do Ciclo</th>
           </tr>
         </thead>
@@ -4729,7 +4743,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
             <tr>
               <td>${i + 1}</td>
               <td>${tipoBadge(it)}</td>
-              <td style="font-family:monospace; font-weight:800;">${escapeHtml(it.CODIGO)}</td>
+              <td class="mono">${escapeHtml(it.CODIGO)}</td>
               <td><strong>${escapeHtml(it.CLIENTE || "-")}</strong></td>
               <td>${escapeHtml(it.ENDERECO || "-")}</td>
               <td>${escapeHtml(it.CIDADE || "-")} / ${escapeHtml(it.UF || "RS")}</td>
@@ -4744,7 +4758,17 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     `;
   } else if (reportType === "HOSPITAIS") {
     reportTitle = "Relatório Consolidado da Carteira de Hospitais & Clientes";
-    reportSub = "Relação de todas as instituições atendidas pela LYDA, endereços, setores, modalidades e seriais vinculados";
+    reportSub = "Instituições atendidas pela LYDA, endereços, setores, modalidades e seriais vinculados";
+    const hospWithItems = clients.filter(c => (c._total_aparelhos || 0) > 0).length;
+    const hospPend6m = clients.filter(c => (c._pendentes_6m || 0) > 0).length;
+    summaryCells = [
+      ["Instituições Cadastradas", clients.length, "Carteira total"],
+      ["Com Equipamentos", hospWithItems, "Operação ativa"],
+      ["Aparelhos em Hospitais", k.em_cliente || 0, "Parque externo"],
+      ["Com Comodato", clients.filter(c => (c._comodato_count || 0) > 0).length, "Contratos LYDA"],
+      ["Com Venda Direta", clients.filter(c => (c._venda_count || 0) > 0).length, "Clientes venda"],
+      ["Com Pendência 6m", hospPend6m, "Para roteiro técnico"],
+    ];
     tableHtml = `
       <table>
         <thead>
@@ -4772,7 +4796,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
                 <td>${escapeHtml(c._modalidades_ativas || "-")}</td>
                 <td>${escapeHtml(c._setores_ativos || c.SETORES || "-")}</td>
                 <td style="text-align:center; font-weight:800;">${c._total_aparelhos || 0}</td>
-                <td style="font-family:monospace; font-size:10.5px;">${escapeHtml(seriais || "-")}</td>
+                <td class="mono" style="font-size:10px; font-weight:600;">${escapeHtml(seriais || "-")}</td>
               </tr>
             `;
           }).join("")}
@@ -4783,6 +4807,14 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     reportTitle = "Relatório de Equipamentos em Manutenção, Reparo ou Devolvidos";
     reportSub = "Aparelhos i-STAT com registro de defeito, em assistência técnica ou devolvidos com observação";
     const defItems = items.filter(it => it._row_state === "DEFEITO");
+    summaryCells = [
+      ["Total em Manutenção", defItems.length, `${formatRealPct(defItems.length, totalAll)} do parque`],
+      ["Em Hospitais", k.defeito_em_cliente || 0, "Aguardando retirada / reparo"],
+      ["No Estoque LYDA", k.defeito_em_estoque || 0, "Assistência SP / triagem"],
+      ["Parque Total", k.total || 0, "Referência cadastral"],
+      ["Operação Normal", Math.max(0, (k.total || 0) - defItems.length), "Sem restrição técnica"],
+      ["Emitido por", userStr, "Controle Técnico LYDA"],
+    ];
     tableHtml = `
       <table>
         <thead>
@@ -4802,7 +4834,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
             <tr class="tr-def">
               <td>${i + 1}</td>
               <td>${tipoBadge(it)}</td>
-              <td style="font-family:monospace; font-weight:800;">${escapeHtml(it.CODIGO)}</td>
+              <td class="mono">${escapeHtml(it.CODIGO)}</td>
               <td><strong>${escapeHtml(it.CLIENTE || "-")}</strong></td>
               <td>${escapeHtml(it.CIDADE || "-")} / ${escapeHtml(it.UF || "RS")}</td>
               <td>${escapeHtml(it.STATUS || "-")}</td>
@@ -4815,166 +4847,26 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     `;
   }
 
-  // Resumo visual (distribuicao por situacao/modalidade e por tipo)
-  const totalAll = Math.max(1, items.length);
-  const g = { com: 0, vnd: 0, outros: 0, novos: 0, usados: 0, backup: 0, manut: 0 };
-  const tp = { ANALISADOR: 0, IMPRESSORA: 0, SIMULADOR: 0, DOWNLOADER: 0 };
-  items.forEach(it => {
-    const t = String(it.TIPO || "ANALISADOR").toUpperCase();
-    if (t.includes("IMPRESSORA")) tp.IMPRESSORA++;
-    else if (t.includes("SIMULADOR")) tp.SIMULADOR++;
-    else if (t.includes("DOWNLOAD")) tp.DOWNLOADER++;
-    else tp.ANALISADOR++;
-    const st = it._row_state || "ATIVO";
-    if (st === "DEFEITO") { g.manut++; return; }
-    if (st === "ESTOQUE") {
-      const sg = classifyStockSubgroup(it);
-      if (sg === "NOVOS") g.novos++; else if (sg === "USADOS") g.usados++; else g.backup++;
-      return;
-    }
-    const m = String(it.MODALIDADE || "").toUpperCase();
-    if (m === "COMODATO" || m === "ALUGUEL") g.com++;
-    else if (m === "VENDA") g.vnd++;
-    else g.outros++;
-  });
-  const barRow = (label, count, color) => `
-    <div class="bar-row">
-      <div class="bar-label">${escapeHtml(label)}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(count > 0 ? 2 : 0, (count / totalAll) * 100).toFixed(1)}%; background:${color};"></div></div>
-      <div class="bar-val"><strong>${count}</strong> <span>${formatRealPct(count, totalAll)}</span></div>
-    </div>`;
-  const summaryHtml = `
-    <div class="summary-grid">
-      <div class="summary-card">
-        <h3>Distribuição por Situação e Modalidade</h3>
-        ${barRow("Hospitais — Comodato", g.com, "#0284C7")}
-        ${barRow("Hospitais — Venda", g.vnd, "#6366F1")}
-        ${g.outros > 0 ? barRow("Hospitais — Outras", g.outros, "#64748B") : ""}
-        ${barRow("Estoque LYDA — Novos", g.novos, "#10B981")}
-        ${barRow("Estoque LYDA — Usados", g.usados, "#34D399")}
-        ${barRow("Estoque LYDA — Backup", g.backup, "#6EE7B7")}
-        ${barRow("Manutenção / Reparo", g.manut, "#E11D48")}
-      </div>
-      <div class="summary-card">
-        <h3>Distribuição por Tipo de Equipamento</h3>
-        ${barRow("Analisador", tp.ANALISADOR, "#2563EB")}
-        ${barRow("Impressora", tp.IMPRESSORA, "#7C3AED")}
-        ${barRow("Simulador", tp.SIMULADOR, "#0D9488")}
-        ${barRow("Downloader", tp.DOWNLOADER, "#F59E0B")}
-        <h3 style="margin-top:12px;">Ciclo de Atualização (6 meses)</h3>
-        ${barRow("Em dia", k.ciclo_em_dia || 0, "#10B981")}
-        ${barRow("Perto de 6 meses", k.ciclo_vencendo || 0, "#F59E0B")}
-        ${barRow("Vencidos", k.ciclo_vencida || 0, "#E11D48")}
-        ${barRow("Sem data base", k.ciclo_sem_data || 0, "#94A3B8")}
-      </div>
-    </div>`;
-  const defCountRep = k.defeito_manutencao ?? k.em_defeito ?? 0;
-  // Analises avancadas: cidades, hospitais, donut e destaques
-  const cityMapR = {};
-  const cliMapR = {};
-  items.forEach(it => {
-    const city = `${String(it.CIDADE || "PORTO ALEGRE").trim().toUpperCase()} / ${String(it.UF || "RS").trim().toUpperCase()}`;
-    cityMapR[city] = (cityMapR[city] || 0) + 1;
-    const cli = String(it.CLIENTE || "").trim();
-    if (cli && it._row_state !== "ESTOQUE" && !cli.toUpperCase().includes("SEM CLIENTE")) {
-      if (!cliMapR[cli]) cliMapR[cli] = { n: 0, pend: 0, manut: 0 };
-      cliMapR[cli].n++;
-      const cc = (it._cycle && it._cycle.status_code) || "SEM_DATA";
-      if (cc !== "EM_DIA") cliMapR[cli].pend++;
-      if (it._row_state === "DEFEITO") cliMapR[cli].manut++;
-    }
-  });
-  const topCitiesR = Object.entries(cityMapR).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const topClientsR = Object.entries(cliMapR).sort((a, b) => b[1].n - a[1].n).slice(0, 10);
-  const maxClientN = Math.max(1, topClientsR[0] ? topClientsR[0][1].n : 1);
+  const recordCount = (tableHtml.match(/<tr/g) || []).length - 1;
 
-  const donutSegs = [
-    ["Hospitais — Comodato", g.com, "#0284C7"], ["Hospitais — Venda", g.vnd, "#6366F1"], ["Hospitais — Outras", g.outros, "#64748B"],
-    ["Estoque — Novos", g.novos, "#10B981"], ["Estoque — Usados", g.usados, "#34D399"], ["Estoque — Backup", g.backup, "#6EE7B7"],
-    ["Manutenção / Reparo", g.manut, "#E11D48"],
-  ].filter(x => x[1] > 0);
-  const dR = 52, dC = 2 * Math.PI * dR;
-  let dAcc = 0;
-  const donutCircles = donutSegs.map(([lb, c, col]) => {
-    const dash = (c / totalAll) * dC;
-    const out = `<circle cx="70" cy="70" r="${dR}" fill="none" stroke="${col}" stroke-width="20" stroke-dasharray="${dash.toFixed(2)} ${(dC - dash).toFixed(2)}" stroke-dashoffset="${(-dAcc).toFixed(2)}" transform="rotate(-90 70 70)"/>`;
-    dAcc += dash;
-    return out;
-  }).join("");
-  const donutLegend = donutSegs.map(([lb, c, col]) => `
-    <div class="lg-row"><span class="lg-dot" style="background:${col};"></span><span class="lg-name">${escapeHtml(lb)}</span><span class="lg-val"><strong>${c}</strong> ${formatRealPct(c, totalAll)}</span></div>`).join("");
-
-  const analyticsHtml = `
-    <div class="summary-grid">
-      <div class="summary-card">
-        <h3>Composição do Parque por Situação</h3>
-        <div class="donut-box">
-          <svg width="140" height="140" viewBox="0 0 140 140">
-            <circle cx="70" cy="70" r="${dR}" fill="none" stroke="#F1F5F9" stroke-width="20"/>
-            ${donutCircles}
-            <text x="70" y="68" text-anchor="middle" font-size="24" font-weight="900" fill="#0F172A">${items.length}</text>
-            <text x="70" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#64748B">APARELHOS</text>
-          </svg>
-          <div class="lg-list">${donutLegend}</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <h3>Principais Cidades Atendidas</h3>
-        ${topCitiesR.map(([c, n]) => barRow(c, n, "#2563EB")).join("")}
-      </div>
-    </div>`;
-
-  const rankingHtml = `
-    <div class="summary-card" style="margin-bottom:16px; page-break-inside:avoid;">
-      <h3>Ranking dos Hospitais e Clientes por Volume de Equipamentos</h3>
-      <table class="mini-table">
-        <thead><tr><th style="width:28px;">#</th><th>Hospital / Cliente</th><th style="width:60px;">Aparelhos</th><th style="width:34%;">Volume</th><th style="width:70px;">Pend. 6m</th><th style="width:70px;">Manut.</th></tr></thead>
-        <tbody>
-          ${topClientsR.map(([nm, o], i) => `
-            <tr>
-              <td>${i + 1}</td>
-              <td><strong>${escapeHtml(nm)}</strong></td>
-              <td><strong>${o.n}</strong></td>
-              <td><div class="bar-track"><div class="bar-fill" style="width:${((o.n / maxClientN) * 100).toFixed(0)}%; background:#2563EB;"></div></div></td>
-              <td>${o.pend > 0 ? `<span class="badge b-warn">${o.pend}</span>` : `<span class="badge b-ok">0</span>`}</td>
-              <td>${o.manut > 0 ? `<span class="badge b-bad">${o.manut}</span>` : `<span class="badge b-gray">0</span>`}</td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
-    </div>`;
-
-  const nVenc = k.ciclo_vencida || 0, nVencendo = k.ciclo_vencendo || 0, nSem = k.ciclo_sem_data || 0, nBanc = k.estoque_falta_atualizar || 0;
-  const insights = [];
-  insights.push(["#0284C7", `<strong>${formatRealPct(k.em_cliente || 0, totalAll)}</strong> do parque (${k.em_cliente || 0} aparelhos) está em operação em <strong>${(clients || []).length}</strong> hospitais e clínicas.`]);
-  insights.push(["#10B981", `O estoque da LYDA reúne <strong>${k.em_estoque || 0}</strong> aparelhos (${k.estoque_novos || 0} novos, ${k.estoque_usados || 0} usados e ${k.estoque_backup || 0} em backup/retorno).`]);
-  if (nVenc > 0) insights.push(["#E11D48", `<strong>${nVenc}</strong> aparelho(s) estão com o ciclo de 6 meses <strong>vencido</strong> e exigem atualização imediata.`]);
-  if (nVencendo > 0) insights.push(["#F59E0B", `<strong>${nVencendo}</strong> aparelho(s) completam 6 meses em até 45 dias.`]);
-  if (nSem > 0) insights.push(["#64748B", `<strong>${nSem}</strong> aparelho(s) ainda não possuem data base de atualização registrada.`]);
-  if (nBanc > 0) insights.push(["#D97706", `<strong>${nBanc}</strong> aparelho(s) do estoque aguardam atualização na bancada.`]);
-  if (defCountRep > 0) insights.push(["#E11D48", `<strong>${defCountRep}</strong> aparelho(s) em manutenção ou reparo (${k.defeito_em_cliente || 0} em hospitais e ${k.defeito_em_estoque || 0} no estoque).`]);
-  if (topClientsR[0]) insights.push(["#2563EB", `Maior carteira: <strong>${escapeHtml(topClientsR[0][0])}</strong> com ${topClientsR[0][1].n} aparelho(s).`]);
-  if (topCitiesR[0]) insights.push(["#6366F1", `Cidade com mais equipamentos: <strong>${escapeHtml(topCitiesR[0][0])}</strong> (${topCitiesR[0][1]}).`]);
-  const insightsHtml = `
-    <div class="insights-card">
-      <h3>Destaques e Pontos de Atenção</h3>
-      <ul>${insights.map(([col, txt]) => `<li><span class="lg-dot" style="background:${col};"></span><span>${txt}</span></li>`).join("")}</ul>
-    </div>`;
-
-  const cycleBoxesHtml = `
-    <div class="cycle-boxes">
-      <div class="cbox" style="border-top-color:#10B981;"><div class="v" style="color:#059669;">${k.ciclo_em_dia || 0}</div><div class="l">Em dia</div></div>
-      <div class="cbox" style="border-top-color:#F59E0B;"><div class="v" style="color:#D97706;">${nVencendo}</div><div class="l">Perto de 6 meses</div></div>
-      <div class="cbox" style="border-top-color:#E11D48;"><div class="v" style="color:#E11D48;">${nVenc}</div><div class="l">Vencidos</div></div>
-      <div class="cbox" style="border-top-color:#94A3B8;"><div class="v" style="color:#475569;">${nSem}</div><div class="l">Sem data base</div></div>
-      <div class="cbox" style="border-top-color:#D97706;"><div class="v" style="color:#B45309;">${nBanc}</div><div class="l">Aguardando bancada</div></div>
-    </div>`;
-
-  let richSections = "";
-  if (reportType === "CLIENTE_ATUAL" || reportType === "AUDITORIA") richSections = customRichHtml;
-  else if (reportType === "GERAL") richSections = insightsHtml + summaryHtml + analyticsHtml + rankingHtml;
-  else if (reportType === "RADAR_6M") richSections = insightsHtml + cycleBoxesHtml;
-  else if (reportType === "HOSPITAIS") richSections = insightsHtml + rankingHtml;
-  else richSections = insightsHtml + summaryHtml;
+  const execSummaryHtml = `
+    <table class="exec-summary-table">
+      <thead>
+        <tr>
+          ${summaryCells.map(([lbl]) => `<th>${escapeHtml(lbl)}</th>`).join("")}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          ${summaryCells.map(([, val, sub]) => `
+            <td>
+              <div class="es-val">${escapeHtml(String(val))}</div>
+              <div class="es-sub">${escapeHtml(String(sub || ""))}</div>
+            </td>
+          `).join("")}
+        </tr>
+      </tbody>
+    </table>`;
 
   const signatureHtml = `
     <div class="gov-signatures-grid">
@@ -5008,7 +4900,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
 
       <div class="gov-sig-card">
         <div>
-          <div class="gov-sig-title">Conferência / Recebimento (Hospital / Auditoria)</div>
+          <div class="gov-sig-title">Conferência / Homologação (Hospital / Auditoria)</div>
           <div class="gov-sig-meta">
             <div class="gov-meta-line"><strong>Nome / CPF:</strong><span class="fill"></span></div>
             <div class="gov-meta-line"><strong>Data:</strong><span class="fill">____/____/202___</span></div>
@@ -5021,24 +4913,6 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
       </div>
     </div>`;
 
-  const kpiBox = (lbl, val, color) => `
-    <div class="kpi-box" style="border-top-color:${color};">
-      <div class="lbl">${lbl}</div>
-      <div class="val" style="color:${color};">${val}</div>
-      <div class="pct">${formatRealPct(val, totalAll)} do total</div>
-    </div>`;
-  const kpiStripHtml = customKpiStripHtml || `
-      <div class="kpi-strip">
-        ${kpiBox("Total Cadastrados", k.total || 0, "#2563EB")}
-        ${kpiBox("Em Hospitais", k.em_cliente || 0, "#0284C7")}
-        ${kpiBox("No Estoque LYDA", k.em_estoque || 0, "#10B981")}
-        ${kpiBox("Em Comodato", k.comodato_aluguel || 0, "#0369A1")}
-        ${kpiBox("Venda (Clientes)", k.venda || 0, "#6366F1")}
-        ${kpiBox("Pendentes 6m", k.ciclo_pendente_vencido || 0, "#D97706")}
-        ${kpiBox("Manutenção / Reparo", defCountRep, "#E11D48")}
-      </div>`;
-  const recordCount = (tableHtml.match(/<tr/g) || []).length - 1;
-
   const html = `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -5047,86 +4921,246 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
       <base href="${window.location.origin}/" />
       <title>${escapeHtml(reportTitle)} — LYDA</title>
       <style>
-        @page { size: A4 landscape; margin: 10mm 12mm 18mm 12mm; }
+        @page { size: A4 landscape; margin: 12mm 14mm 18mm 14mm; }
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #0F172A; margin: 0; padding: 22px 26px 40px 26px; font-size: 11.5px; background: #FFFFFF; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .no-print-bar { background: #0F172A; color: #FFF; padding: 11px 18px; border-radius: 10px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
-        .no-print-bar button { background: #2563EB; color: #FFF; border: none; padding: 8px 16px; border-radius: 7px; font-weight: 700; cursor: pointer; font-size: 12px; }
-        .timbre-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1.5px solid #CBD5E1; padding-bottom: 12px; margin-bottom: 14px; }
-        .timbre-header .left { display: flex; align-items: center; gap: 18px; }
-        .timbre-title { border-left: 1.5px solid #94A3B8; padding-left: 16px; }
-        .timbre-tag { display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: #1E3A8A; margin-bottom: 3px; }
-        .timbre-title h1 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.2px; color: #0F172A; }
-        .timbre-title p { margin: 3px 0 0 0; font-size: 11px; color: #475569; max-width: 560px; line-height: 1.35; }
-        .timbre-meta { text-align: right; font-size: 10.5px; color: #475569; line-height: 1.6; white-space: nowrap; }
-        .timbre-meta strong { color: #0F172A; }
-        .kpi-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 14px; }
-        .kpi-box { border: 1px solid #E2E8F0; border-top: 4px solid #2563EB; border-radius: 8px; padding: 9px 11px; background: #F8FAFC; }
-        .kpi-box .lbl { font-size: 9.5px; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.3px; }
-        .kpi-box .val { font-size: 22px; font-weight: 900; margin-top: 2px; line-height: 1.1; }
-        .kpi-box .pct { font-size: 10px; color: #64748B; font-weight: 600; margin-top: 2px; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; page-break-inside: avoid; }
-        .summary-card { border: 1px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; background: #FFFFFF; }
-        .summary-card h3 { margin: 0 0 8px 0; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: #334155; border-bottom: 1px solid #E2E8F0; padding-bottom: 5px; }
-        .bar-row { display: grid; grid-template-columns: 150px 1fr 90px; align-items: center; gap: 8px; margin-bottom: 5px; }
-        .bar-label { font-size: 10.5px; font-weight: 700; color: #1E293B; }
-        .bar-track { height: 9px; background: #F1F5F9; border-radius: 99px; overflow: hidden; }
-        .bar-fill { height: 100%; border-radius: 99px; }
-        .bar-val { font-size: 10.5px; text-align: right; white-space: nowrap; }
-        .bar-val span { color: #64748B; font-weight: 600; margin-left: 3px; }
-        .section-head { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 8px 0; }
-        .section-head h2 { margin: 0; font-size: 13px; font-weight: 800; color: #0F172A; border-left: 4px solid #2563EB; padding-left: 9px; }
-        .section-head span { font-size: 10.5px; color: #64748B; font-weight: 600; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 10.5px; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+          color: #0F172A;
+          margin: 0;
+          padding: 18px 20px 36px 20px;
+          font-size: 11px;
+          background: #E2E8F0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .no-print-bar {
+          max-width: 277mm;
+          margin: 0 auto 14px auto;
+          background: #0F172A;
+          color: #FFF;
+          padding: 10px 16px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .no-print-bar button {
+          background: #2563EB;
+          color: #FFF;
+          border: none;
+          padding: 7px 14px;
+          border-radius: 5px;
+          font-weight: 700;
+          cursor: pointer;
+          font-size: 12px;
+        }
+        .report-sheet {
+          max-width: 277mm;
+          margin: 0 auto;
+          background: #FFFFFF;
+          padding: 24px 28px;
+          border: 1px solid #CBD5E1;
+          box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        }
+        .timbre-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          border-bottom: 1.5px solid #CBD5E1;
+          padding-bottom: 12px;
+          margin-bottom: 14px;
+        }
+        .timbre-title {
+          border-left: 1.5px solid #94A3B8;
+          padding-left: 16px;
+          text-align: right;
+        }
+        .timbre-title h1 {
+          margin: 0;
+          font-size: 15px;
+          font-weight: 800;
+          color: #0F172A;
+          letter-spacing: -0.2px;
+        }
+        .timbre-title p {
+          margin: 2px 0 0 0;
+          font-size: 11px;
+          color: #475569;
+          line-height: 1.35;
+        }
+        .timbre-meta-line {
+          margin-top: 4px;
+          font-size: 10px;
+          color: #475569;
+        }
+        .timbre-meta-line strong { color: #0F172A; }
+
+        .exec-summary-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 12px;
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+        }
+        .exec-summary-table th {
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+          color: #475569;
+          background: #F1F5F9;
+          padding: 5px 10px;
+          border: 1px solid #CBD5E1;
+          text-align: left;
+        }
+        .exec-summary-table td {
+          background: #FFFFFF;
+          padding: 7px 10px;
+          border: 1px solid #CBD5E1;
+          vertical-align: top;
+        }
+        .exec-summary-table .es-val {
+          font-size: 15px;
+          font-weight: 800;
+          color: #0F172A;
+          font-variant-numeric: tabular-nums;
+          line-height: 1.15;
+        }
+        .exec-summary-table .es-sub {
+          font-size: 9.5px;
+          color: #64748B;
+          margin-top: 2px;
+        }
+
+        .inst-box {
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          padding: 9px 12px;
+          margin-bottom: 12px;
+        }
+        .inst-title {
+          font-size: 10px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+          color: #334155;
+          margin-bottom: 6px;
+          border-bottom: 1px solid #CBD5E1;
+          padding-bottom: 4px;
+        }
+        .inst-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 5px 16px;
+          font-size: 10.5px;
+          line-height: 1.4;
+        }
+
+        .section-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin: 6px 0 6px 0;
+        }
+        .section-head h2 {
+          margin: 0;
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          color: #0F172A;
+        }
+        .section-head span {
+          font-size: 10px;
+          color: #64748B;
+          font-weight: 600;
+        }
+
+        table:not(.exec-summary-table) {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 10px;
+          border: 1px solid #CBD5E1;
+        }
         thead { display: table-header-group; }
-        th { background: #0F172A; color: #FFF; text-align: left; padding: 8px 9px; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 800; }
-        td { border-bottom: 1px solid #E2E8F0; padding: 6px 9px; vertical-align: middle; }
-        tbody tr:nth-child(even) td { background: #F8FAFC; }
+        table:not(.exec-summary-table) th {
+          background: #0F172A;
+          color: #FFFFFF;
+          text-align: left;
+          padding: 7px 8px;
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+          font-weight: 700;
+          border: 1px solid #1E293B;
+        }
+        table:not(.exec-summary-table) td {
+          border: 1px solid #E2E8F0;
+          padding: 5px 8px;
+          vertical-align: middle;
+          color: #0F172A;
+        }
+        table:not(.exec-summary-table) tbody tr:nth-child(even) td {
+          background: #F8FAFC;
+        }
         tr { page-break-inside: avoid; }
-        tr.tr-est td { background: #ECFDF5 !important; }
-        tr.tr-def td { background: #FFF1F2 !important; }
-        tr.tr-est td:first-child { border-left: 3px solid #10B981; }
-        tr.tr-def td:first-child { border-left: 3px solid #E11D48; }
-        .timbre-footer { margin-top: 18px; padding-top: 8px; border-top: 1.5px solid #CBD5E1; display: flex; justify-content: space-between; align-items: flex-start; font-size: 10px; color: #475569; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 9.5px; font-weight: 800; white-space: nowrap; border: 1px solid transparent; }
-        .b-ok { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
-        .b-warn { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
-        .b-bad { background: #FFE4E6; color: #9F1239; border-color: #FDA4AF; }
-        .b-gray { background: #F1F5F9; color: #475569; border-color: #CBD5E1; }
-        .b-sky { background: #E0F2FE; color: #075985; border-color: #7DD3FC; }
-        .b-ind { background: #E0E7FF; color: #3730A3; border-color: #A5B4FC; }
-        .b-pur { background: #F3E8FF; color: #6B21A8; border-color: #D8B4FE; }
-        .b-teal { background: #CCFBF1; color: #115E59; border-color: #5EEAD4; }
-        .b-amb { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
-        .b-blue { background: #DBEAFE; color: #1E40AF; border-color: #93C5FD; }
-        .insights-card { border: 1px solid #BFDBFE; background: #EFF6FF; border-radius: 10px; padding: 11px 16px; margin-bottom: 14px; page-break-inside: avoid; }
-        .insights-card h3 { margin: 0 0 7px 0; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: #1E3A8A; }
-        .insights-card ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 20px; }
-        .insights-card li { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; line-height: 1.4; color: #1E293B; }
-        .lg-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; display: inline-block; }
-        .donut-box { display: flex; align-items: center; gap: 16px; }
-        .lg-list { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .lg-row { display: flex; align-items: center; gap: 7px; font-size: 10.5px; }
-        .lg-row .lg-dot { margin-top: 0; }
-        .lg-name { flex: 1; font-weight: 700; color: #1E293B; }
-        .lg-val { color: #475569; white-space: nowrap; }
-        table.mini-table { font-size: 10.5px; }
-        table.mini-table td, table.mini-table th { padding: 5px 8px; }
-        .cycle-boxes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
-        .cbox { border: 1px solid #E2E8F0; border-top: 4px solid #2563EB; border-radius: 8px; padding: 9px 12px; background: #F8FAFC; }
-        .cbox .v { font-size: 24px; font-weight: 900; line-height: 1.1; }
-        .cbox .l { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #475569; margin-top: 2px; }
-        .gov-signatures-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; page-break-inside: avoid; }
-        .gov-sig-card { border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; background: #FFFFFF; display: flex; flex-direction: column; justify-content: space-between; }
-        .gov-sig-title { font-size: 11px; font-weight: 800; color: #0F172A; margin-bottom: 5px; }
-        .gov-sig-meta { font-size: 10px; color: #334155; line-height: 1.45; margin-bottom: 8px; }
+        tr.tr-def td:first-child { color: #9F1239; font-weight: 800; }
+        .mono { font-family: "Courier New", Consolas, monospace; font-weight: 700; white-space: nowrap; }
+
+        .tag {
+          display: inline-block;
+          border: 1px solid #CBD5E1;
+          background: #F8FAFC;
+          color: #0F172A;
+          border-radius: 3px;
+          padding: 1px 6px;
+          font-size: 9.5px;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+        .tag-ok { border-color: #A7F3D0; background: #F0FDF4; color: #065F46; }
+        .tag-warn { border-color: #FCD34D; background: #FFFBEB; color: #92400E; }
+        .tag-bad { border-color: #FDA4AF; background: #FFF1F2; color: #9F1239; }
+        .tag-neutral { border-color: #CBD5E1; background: #F8FAFC; color: #334155; }
+
+        .gov-signatures-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-top: 22px;
+          page-break-inside: avoid;
+        }
+        .gov-sig-card {
+          border: 1px solid #CBD5E1;
+          border-radius: 4px;
+          padding: 10px 12px;
+          background: #FFFFFF;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .gov-sig-title { font-size: 10.5px; font-weight: 800; color: #0F172A; margin-bottom: 5px; }
+        .gov-sig-meta { font-size: 9.5px; color: #334155; line-height: 1.45; margin-bottom: 8px; }
         .gov-meta-line { display: flex; align-items: baseline; gap: 5px; margin-bottom: 2px; }
-        .gov-meta-line span.fill { flex: 1; border-bottom: 1px solid #94A3B8; min-height: 14px; font-weight: 600; color: #0F172A; }
-        .gov-stamp-area { height: 90px; border: 1px dashed #CBD5E1; border-radius: 4px; background: #FFFFFF; margin-bottom: 7px; }
-        .gov-sig-hint { border-top: 1px solid #334155; padding-top: 4px; font-size: 9.5px; color: #475569; text-align: center; font-weight: 600; }
+        .gov-meta-line span.fill { flex: 1; border-bottom: 1px solid #94A3B8; min-height: 13px; font-weight: 600; color: #0F172A; }
+        .gov-stamp-area { height: 92px; border: 1px dashed #CBD5E1; border-radius: 4px; background: #FFFFFF; margin-bottom: 7px; }
+        .gov-sig-hint { border-top: 1px solid #334155; padding-top: 4px; font-size: 9px; color: #475569; text-align: center; font-weight: 600; }
+
+        .timbre-footer {
+          margin-top: 18px;
+          padding-top: 8px;
+          border-top: 1.5px solid #CBD5E1;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          font-size: 10px;
+          color: #475569;
+        }
         @media print {
           .no-print-bar { display: none !important; }
-          body { padding: 0 0 15mm 0; }
+          body { background: #FFFFFF !important; padding: 0 0 15mm 0 !important; }
+          .report-sheet { border: none !important; box-shadow: none !important; padding: 0 !important; max-width: 100% !important; }
           .timbre-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; margin: 0; padding: 6px 0 0 0; }
         }
       </style>
@@ -5139,33 +5173,32 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
           <button style="background:#475569;" onclick="window.close()">Fechar</button>
         </div>
       </div>
-      <div class="timbre-header">
-        <div class="left">
+
+      <div class="report-sheet">
+        <div class="timbre-header">
           <div>${logoImg}</div>
           <div class="timbre-title">
-            <span class="timbre-tag">Relatório Oficial LYDA i-STAT</span>
             <h1>${escapeHtml(reportTitle)}</h1>
             <p>${escapeHtml(reportSub)}</p>
+            <div class="timbre-meta-line">Emissão: <strong>${escapeHtml(nowStr)}</strong> &nbsp;|&nbsp; Emitido por: <strong>${escapeHtml(userStr)}</strong> &nbsp;|&nbsp; Registros: <strong>${recordCount}</strong></div>
           </div>
         </div>
-        <div class="timbre-meta">
-          <div><strong>Emissão:</strong> ${escapeHtml(nowStr)}</div>
-          <div><strong>Emitido por:</strong> ${escapeHtml(userStr)}</div>
-          <div><strong>Registros listados:</strong> ${recordCount}</div>
+
+        ${execSummaryHtml}
+        ${clientMetaHtml}
+
+        <div class="section-head">
+          <h2>Detalhamento dos Registros</h2>
+          <span>${recordCount} registro(s)</span>
         </div>
-      </div>
-      ${kpiStripHtml}
-      ${richSections}
-      <div class="section-head">
-        <h2>Detalhamento</h2>
-        <span>${recordCount} registro(s)</span>
-      </div>
-      ${tableHtml}
-      ${signatureHtml}
-      <div class="timbre-footer">
-        <div>Alameda 3 de Outubro, 795 — Sarandi, Porto Alegre/RS</div>
-        <div style="text-align:center;">(51) 2700-2025</div>
-        <div style="text-align:right;">comercial@lyda.com.br</div>
+        ${tableHtml}
+        ${signatureHtml}
+
+        <div class="timbre-footer">
+          <div>Alameda 3 de Outubro, 795 — Sarandi, Porto Alegre/RS</div>
+          <div style="text-align:center;">(51) 2700-2025</div>
+          <div style="text-align:right;">comercial@lyda.com.br</div>
+        </div>
       </div>
     </body>
     </html>
@@ -5468,12 +5501,12 @@ function renderZebraStudio() {
   const vendaCount = items.filter(it => String(it.MODALIDADE || "").toUpperCase() === "VENDA").length;
   const maintCount = items.filter(it => it._row_state === "DEFEITO").length;
   const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
-  setTxt("lblBtnZebraAllCount", `Todos os Aparelhos (${items.length})`);
-  setTxt("lblBtnZebraStockCount", `Só Estoque LYDA (${stockCount})`);
-  setTxt("lblBtnZebraHospCount", `Só em Hospitais (${hospCount})`);
-  setTxt("lblBtnZebraComodatoCount", `Só Comodato (${comodatoCount})`);
-  setTxt("lblBtnZebraVendaCount", `Só Venda (${vendaCount})`);
-  setTxt("lblBtnZebraMaintCount", `Em Manutenção / SP (${maintCount})`);
+  setTxt("lblBtnZebraAllCount", `Todos (${items.length})`);
+  setTxt("lblBtnZebraStockCount", `Estoque (${stockCount})`);
+  setTxt("lblBtnZebraHospCount", `Hospitais (${hospCount})`);
+  setTxt("lblBtnZebraComodatoCount", `Comodato (${comodatoCount})`);
+  setTxt("lblBtnZebraVendaCount", `Venda (${vendaCount})`);
+  setTxt("lblBtnZebraMaintCount", `Manutenção (${maintCount})`);
 
   // Popula dropdown de filtro por Local / Hospital na lista da Zebra
   const selLocal = document.getElementById("selZebraFilterLocal");
@@ -5731,15 +5764,15 @@ function renderZebraVisualPreview() {
   const topPrintBtn = document.getElementById("lblZebraTopPrintBtn");
   if (topPrintBtn) {
     topPrintBtn.innerText = totalMini > 0
-      ? `Imprimir ${totalMini} Etiqueta(s) (${totalBigPages} Folha${totalBigPages > 1 ? 's' : ''}) na Zebra ZD230`
-      : `Imprimir Selecionados na Zebra ZD230`;
+      ? `Imprimir Zebra (${totalMini} etiq.)`
+      : `Imprimir na Zebra ZD230`;
   }
 
   const topPrnBtn = document.getElementById("lblZebraTopPrnBtn");
   if (topPrnBtn) {
     topPrnBtn.innerText = totalMini > 0
-      ? `Baixar Arquivo .PRN (${totalMini} Etiquetas)`
-      : `Baixar Arquivo .PRN`;
+      ? `Baixar .PRN (${totalMini})`
+      : `Baixar .PRN`;
   }
 
   const footerPrnBtn = document.getElementById("lblZebraFooterPrnBtn");
@@ -6394,7 +6427,7 @@ function switchTab(tabId) {
       if (indices.length) {
         loadRouteFromIndices(indices);
       } else {
-        loadRouteFromMode("FROM_INDICES");
+        loadRouteFromMode("PENDING_6M");
       }
     } else {
       setTimeout(() => {
