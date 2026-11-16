@@ -23,6 +23,26 @@ from logo_zpl import get_default_logo_path
 _LOGO_URI_CACHE: Dict[str, str] = {}
 
 
+def get_official_timbre_logo_path() -> str:
+    """Retorna o caminho do logotipo oficial do timbre LYDA, priorizando lyda_timbre_logo.png."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(base_dir, "web_static", "lyda_timbre_logo.png"),
+        os.path.join(base_dir, "lyda_timbre_logo.png"),
+        get_default_logo_path(),
+    ]
+    for path in candidates:
+        if path and os.path.exists(path):
+            return path
+    return ""
+
+
+def _safe_ascii_barcode_value(text: str) -> str:
+    """Normaliza um serial para caracteres ASCII imprimíveis aceitos pelo Code 128 Subset B."""
+    clean = "".join(ch if 32 <= ord(ch) <= 126 else "-" for ch in str(text or "").strip())
+    return clean or "000000"
+
+
 def get_logo_base64_data_uri(logo_path: str = "", white_ink: bool = False) -> str:
     """
     Gera Data URI PNG da logo da LYDA com fundo 100% transparente (sem caixa branca quadrada).
@@ -1459,12 +1479,18 @@ def generate_and_open_nurse_route_html(
 
     now = datetime.now()
     protocol_num = now.strftime("%Y%m%d-%H%M%S")
-    logo_uri = get_logo_base64_data_uri(get_default_logo_path())
+    data_digital = now.strftime("%Y.%m.%d %H:%M:%S -03'00'")
+    logo_uri = get_logo_base64_data_uri(get_official_timbre_logo_path())
     logo_img_tag = (
-        f'<img src="{logo_uri}" alt="LYDA" style="height:46px; width:auto; object-fit:contain;" />'
+        f'<img src="{logo_uri}" alt="LYDA" style="height:48px; width:auto; object-fit:contain;" />'
         if logo_uri
-        else '<div style="font-size:24px;font-weight:900;letter-spacing:2px;">LYDA</div>'
+        else '<div style="font-size:24px;font-weight:900;letter-spacing:2px;color:#0F172A;">LYDA</div>'
     )
+
+    try:
+        from romaneio_generator import generate_code128_svg
+    except Exception:
+        generate_code128_svg = None  # type: ignore[assignment]
 
     full_maps_url = build_google_maps_multi_stop_url(origin_address, stops, return_to_origin=return_to_origin)
     total_aparelhos = sum(len(s.get("ITEMS", [])) for s in stops)
@@ -1484,15 +1510,20 @@ def generate_and_open_nurse_route_html(
         items_rows = ""
         for it in st.get("ITEMS", []):
             tipo = html.escape(it.get("TIPO", ""))
-            cod = html.escape(it.get("CODIGO", ""))
+            cod_raw = str(it.get("CODIGO", "") or "").strip()
+            cod = html.escape(cod_raw)
             setor_it = html.escape(it.get("SETOR", "-"))
             mod_it = html.escape(it.get("MODALIDADE", "-"))
             ult_att = html.escape(it.get("ULTIMA_ATUALIZACAO", "Pendente"))
+            bc_html = ""
+            if generate_code128_svg and cod_raw:
+                bc_svg = generate_code128_svg(cod_raw, height=28, module_width=1.4, show_text=False)
+                bc_html = f'<div style="margin-top:3px;">{bc_svg}</div>'
             items_rows += f"""
             <tr>
                 <td style="width:28px;text-align:center;"><span class="chk-box"></span></td>
                 <td><strong>{tipo}</strong></td>
-                <td class="mono">{cod}</td>
+                <td class="mono">{cod}{bc_html}</td>
                 <td>{setor_it}</td>
                 <td>{mod_it}</td>
                 <td>{ult_att}</td>
@@ -1542,32 +1573,43 @@ def generate_and_open_nurse_route_html(
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Rota de Atualização Enfermeira #{protocol_num} - LYDA i-STAT</title>
+<title>Roteiro Oficial da Enfermeira #{protocol_num} - LYDA i-STAT</title>
 <style>
-    @page {{ size: A4 portrait; margin: 12mm; }}
-    * {{ box-sizing: border-box; font-family: 'Segoe UI', Arial, Helvetica, sans-serif; }}
+    @page {{ size: A4 portrait; margin: 12mm 14mm 18mm 14mm; }}
+    * {{ box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, Helvetica, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
     body {{ margin: 0; padding: 18px; color: #0F172A; background: #F1F5F9; }}
     .page {{
         max-width: 210mm;
+        min-height: 277mm;
         margin: 0 auto;
         background: #FFFFFF;
-        padding: 20px 24px;
+        padding: 26px 30px;
         border: 1px solid #CBD5E1;
         box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }}
-    .top-bar {{
+    .timbre-header {{
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 3px solid #0F172A;
+        border-bottom: 1.5px solid #CBD5E1;
         padding-bottom: 12px;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
+        gap: 16px;
+    }}
+    .timbre-title {{
+        border-left: 1.5px solid #94A3B8;
+        padding-left: 16px;
+        text-align: right;
     }}
     .doc-title {{
-        font-size: 16px;
+        font-size: 14.5px;
         font-weight: 800;
         color: #0F172A;
         text-transform: uppercase;
+        line-height: 1.3;
     }}
     .doc-sub {{
         font-size: 11px;
@@ -1576,9 +1618,9 @@ def generate_and_open_nurse_route_html(
         font-weight: 600;
     }}
     .route-summary {{
-        background: #EFF6FF;
-        border: 1px solid #BFDBFE;
-        border-left: 5px solid #2563EB;
+        background: #F8FAFC;
+        border: 1px solid #CBD5E1;
+        border-left: 4px solid #1E3A8A;
         border-radius: 6px;
         padding: 10px 14px;
         margin-bottom: 16px;
@@ -1610,7 +1652,7 @@ def generate_and_open_nurse_route_html(
         margin-right: 8px;
     }}
     .stop-title {{ font-size: 13px; font-weight: 800; }}
-    .stop-city {{ font-size: 11px; color: #38BDF8; margin-left: 6px; font-weight: 700; }}
+    .stop-city {{ font-size: 11px; color: #93C5FD; margin-left: 6px; font-weight: 700; }}
     .stop-address-grid {{
         background: #F8FAFC;
         padding: 8px 12px;
@@ -1635,8 +1677,9 @@ def generate_and_open_nurse_route_html(
     .items-table td {{
         padding: 7px 8px;
         border-bottom: 1px solid #E2E8F0;
+        vertical-align: middle;
     }}
-    .mono {{ font-family: 'Consolas', 'Courier New', monospace; font-weight: 700; font-size: 12px; }}
+    .mono {{ font-family: 'Consolas', 'Courier New', monospace; font-weight: 700; font-size: 12px; white-space: nowrap; }}
     .chk-box {{
         display: inline-block;
         width: 13px;
@@ -1681,28 +1724,61 @@ def generate_and_open_nurse_route_html(
     .sig-row {{
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 32px;
-        margin-top: 28px;
-        padding-top: 12px;
+        gap: 28px;
+        margin-top: 24px;
+        padding-top: 10px;
+        page-break-inside: avoid;
     }}
     .sig-box {{
         border-top: 1px solid #334155;
         text-align: center;
-        padding-top: 6px;
+        padding-top: 8px;
         font-size: 11px;
         color: #334155;
     }}
+    .digital-cert-box {{
+        border: 1px solid #D1D5DB;
+        border-left: 3px solid #2563EB;
+        background: #F9FAFB;
+        border-radius: 4px;
+        padding: 6px 10px;
+        font-family: monospace;
+        font-size: 9.5px;
+        color: #374151;
+        line-height: 1.35;
+        margin-top: 6px;
+        text-align: left;
+    }}
+    .timbre-footer {{
+        border-top: 1.5px solid #CBD5E1;
+        padding-top: 8px;
+        margin-top: 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        font-size: 10.5px;
+        color: #475569;
+    }}
     @media print {{
-        body {{ background: #FFFFFF; padding: 0; }}
-        .page {{ box-shadow: none; border: none; padding: 0; max-width: 100%; }}
+        body {{ background: #FFFFFF; padding: 0 0 18mm 0; }}
+        .page {{ box-shadow: none; border: none; padding: 0; max-width: 100%; min-height: auto; }}
         .no-print, .no-print-bar {{ display: none !important; }}
+        .timbre-footer {{
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            margin: 0;
+            padding: 6px 0 0 0;
+        }}
     }}
 </style>
 </head>
 <body>
     <div class="no-print-bar">
         <div>
-            <strong>ROTA DA ENFERMEIRA PRONTA</strong> — Abra o mapa completo ou imprima / salve em PDF (Ctrl+P / Cmd+P)
+            <strong>ROTA DA ENFERMEIRA PRONTA (TIMBRE OFICIAL LYDA)</strong> — Abra o mapa ou salve em PDF
         </div>
         <div>
             <a href="{full_maps_url}" target="_blank" class="btn-action btn-green">Abrir Rota Completa no Google Maps</a>
@@ -1711,32 +1787,45 @@ def generate_and_open_nurse_route_html(
     </div>
 
     <div class="page">
-        <div class="top-bar">
-            <div>{logo_img_tag}</div>
-            <div style="text-align:right;">
-                <div class="doc-title">Roteiro &amp; Checklist de Atualização Externa i-STAT</div>
-                <div class="doc-sub">Rota Nº {protocol_num} &nbsp;|&nbsp; Data Prevista: {html.escape(route_date)} &nbsp;|&nbsp; Enfermeira(o): {html.escape(nurse_name)}</div>
+        <div>
+            <div class="timbre-header">
+                <div>{logo_img_tag}</div>
+                <div class="timbre-title">
+                    <div class="doc-title">Roteiro Oficial de Visita Técnica<br/>e Atualização i-STAT</div>
+                    <div class="doc-sub">Rota Nº {protocol_num} &nbsp;|&nbsp; Data: {html.escape(route_date)} &nbsp;|&nbsp; Enfermeira(o): {html.escape(nurse_name)}</div>
+                </div>
+            </div>
+
+            <div class="route-summary">
+                <div><strong>PONTO DE PARTIDA (SEDE LYDA):</strong> {html.escape(origin_address)}</div>
+                <div><strong>PACOTE / VERSÃO DE ATUALIZAÇÃO:</strong> {html.escape(update_version)} &nbsp;|&nbsp; <strong>RETORNO À SEDE:</strong> {retorno_txt}</div>
+                <div><strong>RESUMO DO ROTEIRO:</strong> {len(stops)} parada(s) / hospital(is) &nbsp;|&nbsp; <strong>TOTAL DE APARELHOS A ATUALIZAR:</strong> {total_aparelhos} equipamento(s)</div>
+                {f'<div><strong>OBSERVAÇÕES DA ROTA:</strong> {html.escape(observacoes_rota)}</div>' if observacoes_rota else ''}
+            </div>
+
+            {stops_html}
+
+            <div class="sig-row">
+                <div class="sig-box">
+                    <strong>Enfermeira(o) Responsável — LYDA</strong><br/>
+                    {html.escape(nurse_name)}<br/>
+                    <span style="font-size:10px; color:#64748B;">Data de Conclusão: ____/____/202___</span>
+                </div>
+                <div class="sig-box">
+                    <strong>Lyda Comércio Importação e Exportação Ltda</strong>
+                    <div class="digital-cert-box">
+                        LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150<br/>
+                        Assinado digitalmente por LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA<br/>
+                        Dados: {data_digital}
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="route-summary">
-            <div><strong>PONTO DE PARTIDA (SEDE LYDA):</strong> {html.escape(origin_address)}</div>
-            <div><strong>PACOTE / VERSÃO DE ATUALIZAÇÃO:</strong> {html.escape(update_version)} &nbsp;|&nbsp; <strong>RETORNO À SEDE:</strong> {retorno_txt}</div>
-            <div><strong>RESUMO DO ROTEIRO:</strong> {len(stops)} parada(s) / hospital(is) &nbsp;|&nbsp; <strong>TOTAL DE APARELHOS A ATUALIZAR:</strong> {total_aparelhos} equipamento(s)</div>
-            {f'<div><strong>OBSERVAÇÕES DA ROTA:</strong> {html.escape(observacoes_rota)}</div>' if observacoes_rota else ''}
-        </div>
-
-        {stops_html}
-
-        <div class="sig-row">
-            <div class="sig-box">
-                <strong>Enfermeira(o) Responsável — LYDA</strong><br/>
-                {html.escape(nurse_name)}
-            </div>
-            <div class="sig-box">
-                <strong>Conferência / Coordenação Técnica — LYDA</strong><br/>
-                Data de Conclusão: ____/____/202___
-            </div>
+        <div class="timbre-footer">
+            <div>Alameda 3 de Outubro, 795<br/>Sarandi, Porto Alegre/RS</div>
+            <div style="text-align:center;">(51) 2700-2025</div>
+            <div style="text-align:right;">comercial@lyda.com.br</div>
         </div>
     </div>
 </body>
@@ -1799,10 +1888,12 @@ def generate_nurse_route_pdf(
     - Tabela de todos os aparelhos i-STAT a atualizar em cada hospital + campos de check e assinatura
     """
     import io
+    from reportlab.graphics.barcode.code128 import Code128
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import mm
+    from reportlab.lib.utils import ImageReader
     from reportlab.platypus import (
         Image as RLImage,
         KeepTogether,
@@ -1819,6 +1910,7 @@ def generate_nurse_route_pdf(
     now = datetime.now()
     date_slug = re.sub(r"[^0-9]", "-", route_date or now.strftime("%d-%m-%Y"))
     protocol_num = now.strftime("%Y%m%d_%H%M")
+    data_digital = now.strftime("%Y.%m.%d %H:%M:%S -03'00'")
     if custom_output_path:
         pdf_path = custom_output_path
     else:
@@ -1838,13 +1930,89 @@ def generate_nurse_route_pdf(
     total_aparelhos = sum(len(s.get("ITEMS", [])) for s in stops)
     retorno_txt = "Sim (Retorno à Sede da LYDA no final)" if return_to_origin else "Não (Encerra na última parada)"
 
+    # Pré-carrega o logotipo oficial do timbre LYDA para repetir em todas as páginas
+    logo_p = get_official_timbre_logo_path()
+    logo_reader = None
+    logo_draw_w = 34 * mm
+    logo_draw_h = 12 * mm
+    if logo_p and os.path.exists(logo_p):
+        try:
+            from PIL import Image as PILImage
+
+            with PILImage.open(logo_p) as pim:
+                w_px, h_px = pim.size
+            logo_draw_h = 12 * mm
+            logo_draw_w = min(46 * mm, logo_draw_h * (w_px / max(1, h_px)))
+            logo_reader = ImageReader(logo_p)
+        except Exception:
+            logo_reader = None
+
+    def _draw_timbre_page(canvas_obj: Any, doc_obj: Any) -> None:
+        canvas_obj.saveState()
+        page_w, page_h = A4
+        margin_x = 12 * mm
+
+        # Cabeçalho Oficial LYDA
+        if logo_reader is not None:
+            canvas_obj.drawImage(
+                logo_reader,
+                margin_x,
+                page_h - 21.5 * mm,
+                width=logo_draw_w,
+                height=logo_draw_h,
+                preserveAspectRatio=True,
+                mask="auto",
+            )
+        else:
+            canvas_obj.setFillColor(colors.HexColor("#0F172A"))
+            canvas_obj.setFont("Helvetica-Bold", 18)
+            canvas_obj.drawString(margin_x, page_h - 17 * mm, "LYDA")
+
+        x_div = page_w - 102 * mm
+        canvas_obj.setStrokeColor(colors.HexColor("#94A3B8"))
+        canvas_obj.setLineWidth(1.0)
+        canvas_obj.line(x_div, page_h - 22.5 * mm, x_div, page_h - 9.5 * mm)
+
+        x_txt = x_div + 4.5 * mm
+        canvas_obj.setFillColor(colors.HexColor("#0F172A"))
+        canvas_obj.setFont("Helvetica-Bold", 10.0)
+        canvas_obj.drawString(x_txt, page_h - 13.3 * mm, "Roteiro Oficial de Visita Técnica")
+        canvas_obj.drawString(x_txt, page_h - 17.5 * mm, "e Atualização de Equipamentos i-STAT")
+        canvas_obj.setFillColor(colors.HexColor("#475569"))
+        canvas_obj.setFont("Helvetica", 7.8)
+        canvas_obj.drawString(
+            x_txt,
+            page_h - 21.5 * mm,
+            f"Data: {route_date}   |   Resp.: {str(nurse_name or '')[:30]}",
+        )
+
+        canvas_obj.setStrokeColor(colors.HexColor("#CBD5E1"))
+        canvas_obj.setLineWidth(0.8)
+        canvas_obj.line(margin_x, page_h - 24.5 * mm, page_w - margin_x, page_h - 24.5 * mm)
+
+        # Rodapé Oficial do Timbre LYDA (3 colunas)
+        canvas_obj.setStrokeColor(colors.HexColor("#CBD5E1"))
+        canvas_obj.setLineWidth(0.8)
+        canvas_obj.line(margin_x, 16.5 * mm, page_w - margin_x, 16.5 * mm)
+
+        canvas_obj.setFillColor(colors.HexColor("#475569"))
+        canvas_obj.setFont("Helvetica", 7.8)
+        canvas_obj.drawString(margin_x, 12.2 * mm, "Alameda 3 de Outubro, 795")
+        canvas_obj.drawString(margin_x, 8.8 * mm, "Sarandi, Porto Alegre/RS")
+        canvas_obj.drawCentredString(page_w / 2.0, 10.5 * mm, "(51) 2700-2025")
+        canvas_obj.drawRightString(page_w - margin_x, 12.2 * mm, "comercial@lyda.com.br")
+        canvas_obj.setFillColor(colors.HexColor("#64748B"))
+        canvas_obj.setFont("Helvetica", 7.2)
+        canvas_obj.drawRightString(page_w - margin_x, 8.8 * mm, f"Página {doc_obj.page}")
+        canvas_obj.restoreState()
+
     doc = SimpleDocTemplate(
         pdf_path,
         pagesize=A4,
         leftMargin=12 * mm,
         rightMargin=12 * mm,
-        topMargin=11 * mm,
-        bottomMargin=11 * mm,
+        topMargin=28 * mm,
+        bottomMargin=20 * mm,
         title=f"Roteiro Enfermeira LYDA i-STAT - {route_date}",
         author="LYDA - Controle de Estoque i-STAT",
     )
@@ -1854,49 +2022,39 @@ def generate_nurse_route_pdf(
         "LydaTitle",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=13,
-        leading=16,
+        fontSize=12,
+        leading=15,
         textColor=colors.HexColor("#0F172A"),
-        alignment=2,
-    )
-    st_sub = ParagraphStyle(
-        "LydaSub",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=8.5,
-        leading=12,
-        textColor=colors.HexColor("#475569"),
-        alignment=2,
     )
     st_box = ParagraphStyle(
         "LydaBox",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=9,
-        leading=13,
+        fontSize=8.8,
+        leading=12.5,
         textColor=colors.HexColor("#0F172A"),
     )
     st_maps_btn = ParagraphStyle(
         "LydaMapsBtn",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=9.5,
-        leading=13,
+        fontSize=9.2,
+        leading=12.5,
         textColor=colors.HexColor("#1D4ED8"),
     )
     st_stop_hdr = ParagraphStyle(
         "LydaStopHdr",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=9.5,
-        leading=13,
+        fontSize=9.2,
+        leading=12.5,
         textColor=colors.white,
     )
     st_stop_links = ParagraphStyle(
         "LydaStopLinks",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=8.5,
+        fontSize=8.2,
         leading=11,
         textColor=colors.HexColor("#93C5FD"),
         alignment=2,
@@ -1905,16 +2063,16 @@ def generate_nurse_route_pdf(
         "LydaAddr",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=8.5,
-        leading=12,
+        fontSize=8.4,
+        leading=11.5,
         textColor=colors.HexColor("#1E293B"),
     )
     st_cell = ParagraphStyle(
         "LydaCell",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=8,
-        leading=10.5,
+        fontSize=7.8,
+        leading=10,
         textColor=colors.HexColor("#0F172A"),
     )
     st_cell_bold = ParagraphStyle(
@@ -1922,55 +2080,60 @@ def generate_nurse_route_pdf(
         parent=st_cell,
         fontName="Helvetica-Bold",
     )
+    st_cell_center_bold = ParagraphStyle(
+        "LydaCellCenterBold",
+        parent=st_cell_bold,
+        alignment=1,
+    )
     st_th = ParagraphStyle(
         "LydaTH",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=8,
-        leading=10,
+        fontSize=7.8,
+        leading=9.5,
         textColor=colors.HexColor("#1E293B"),
+    )
+    st_cert = ParagraphStyle(
+        "LydaCert",
+        parent=styles["Normal"],
+        fontName="Courier",
+        fontSize=6.8,
+        leading=9.5,
+        textColor=colors.HexColor("#334155"),
     )
 
     story: List[Any] = []
     usable_w = A4[0] - 24 * mm
 
-    # 1. CABEÇALHO COM LOGO DA LYDA E DADOS DA ROTA
-    logo_p = get_default_logo_path()
-    logo_flowable: Any = Paragraph("<b>LYDA</b>", st_title)
-    if logo_p and os.path.exists(logo_p):
-        try:
-            from PIL import Image as PILImage
-
-            with PILImage.open(logo_p) as pim:
-                w_px, h_px = pim.size
-            target_h = 13 * mm
-            target_w = target_h * (w_px / max(1, h_px))
-            logo_flowable = RLImage(logo_p, width=min(target_w, 55 * mm), height=target_h)
-        except Exception:
-            pass
-
-    hdr_right = [
-        Paragraph("ROTEIRO DE VISITA &amp; ATUALIZAÇÃO i-STAT (6 MESES)", st_title),
-        Paragraph(
-            f"Data da Rota: <b>{html.escape(route_date)}</b> &nbsp;|&nbsp; "
-            f"Enfermeira(o): <b>{html.escape(nurse_name)}</b> &nbsp;|&nbsp; "
-            f"Percurso: <b>{tot_km:.1f} km (~{tot_min} min)</b> &nbsp;|&nbsp; "
-            f"<b>{len(stops)} parada(s) / {total_aparelhos} aparelho(s)</b>",
-            st_sub,
-        ),
-    ]
-    hdr_tbl = Table([[logo_flowable, hdr_right]], colWidths=[58 * mm, usable_w - 58 * mm])
-    hdr_tbl.setStyle(
+    # 1. FAIXA DE RESUMO EXECUTIVO DA ROTA
+    meta_strip = Table(
+        [
+            [
+                Paragraph(f"<b>ROTA Nº:</b> {protocol_num}", st_box),
+                Paragraph(f"<b>DATA PREVISTA:</b> {html.escape(route_date)}", st_box),
+                Paragraph(f"<b>PARADAS:</b> {len(stops)} hospital(is)", st_box),
+                Paragraph(f"<b>APARELHOS:</b> {total_aparelhos} equip.", st_box),
+                Paragraph(f"<b>PERCURSO:</b> {tot_km:.1f} km (~{tot_min} min)", st_box),
+            ]
+        ],
+        colWidths=[usable_w * 0.21, usable_w * 0.18, usable_w * 0.18, usable_w * 0.16, usable_w * 0.27],
+    )
+    meta_strip.setStyle(
         TableStyle(
             [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+                ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#CBD5E1")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LINEBELOW", (0, 0), (-1, 0), 2, colors.HexColor("#0F172A")),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
             ]
         )
     )
-    story.append(hdr_tbl)
-    story.append(Spacer(1, 3.5 * mm))
+    story.append(meta_strip)
+    story.append(Spacer(1, 3 * mm))
 
     # 2. QUADRO PRINCIPAL DE NAVEGAÇÃO GOOGLE MAPS + QR CODE
     qr_flowable: Any = Paragraph("", st_box)
@@ -1984,7 +2147,7 @@ def generate_nurse_route_pdf(
         bio = io.BytesIO()
         qr_img.save(bio, format="PNG")
         bio.seek(0)
-        qr_flowable = RLImage(bio, width=28 * mm, height=28 * mm)
+        qr_flowable = RLImage(bio, width=27 * mm, height=27 * mm)
     except Exception:
         pass
 
@@ -1997,7 +2160,7 @@ def generate_nurse_route_pdf(
     summary_left = [
         Paragraph(f"<b>PONTO DE PARTIDA (SEDE LYDA):</b> {html.escape(origin_address)}", st_box),
         Paragraph(
-            f"<b>DISTÂNCIA TOTAL ESTIMADA:</b> <b>{tot_km:.1f} km (~{tot_min} min de carro)</b> &nbsp;&nbsp;|&nbsp;&nbsp; "
+            f"<b>ENFERMEIRA(O) RESPONSÁVEL:</b> {html.escape(nurse_name)} &nbsp;&nbsp;|&nbsp;&nbsp; "
             f"<b>RETORNO À SEDE:</b> {html.escape(retorno_txt)}",
             st_box,
         ),
@@ -2015,33 +2178,33 @@ def generate_nurse_route_pdf(
     )
     summary_left.append(
         Paragraph(
-            '<font size="7.5" color="#475569">Dica: No celular ou WhatsApp, toque no link azul acima ou aponte a câmera para o QR Code ao lado para abrir o trajeto completo no Google Maps.</font>',
+            '<font size="7.2" color="#475569">No celular, toque no link azul ou aponte a câmera para o QR Code ao lado para iniciar a navegação.</font>',
             st_box,
         )
     )
 
     qr_col = [
         qr_flowable,
-        Paragraph('<font size="7" color="#1E3A8A"><b>QR Code Google Maps</b></font>', ParagraphStyle("QRC", parent=st_cell, alignment=1)),
+        Paragraph('<font size="6.8" color="#1E3A8A"><b>QR Code Google Maps</b></font>', ParagraphStyle("QRC", parent=st_cell, alignment=1)),
     ]
 
-    nav_tbl = Table([[summary_left, qr_col]], colWidths=[usable_w - 34 * mm, 34 * mm])
+    nav_tbl = Table([[summary_left, qr_col]], colWidths=[usable_w - 33 * mm, 33 * mm])
     nav_tbl.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#EFF6FF")),
-                ("BOX", (0, 0), (-1, -1), 1.2, colors.HexColor("#2563EB")),
+                ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor("#2563EB")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (1, 0), (1, 0), "CENTER"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 7),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                ("LEFTPADDING", (0, 0), (-1, -1), 9),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
             ]
         )
     )
     story.append(nav_tbl)
-    story.append(Spacer(1, 3.5 * mm))
+    story.append(Spacer(1, 3 * mm))
 
     # 2.5. MAPA VISUAL DO TRAJETO (RUAS + PINOS NUMERADOS #1..#N) EMBUTIDO NO PDF
     try:
@@ -2051,7 +2214,7 @@ def generate_nurse_route_pdf(
             stops=stops,
             return_to_origin=return_to_origin,
             width=720,
-            height=300,
+            height=290,
             zoom_offset=0,
             selected_stop_idx=None,
             route_metrics=metrics,
@@ -2060,13 +2223,13 @@ def generate_nurse_route_pdf(
         map_bio = io.BytesIO()
         map_pil.save(map_bio, format="PNG")
         map_bio.seek(0)
-        pdf_map_h = usable_w * (300.0 / 720.0)
+        pdf_map_h = usable_w * (290.0 / 720.0)
         map_rl = RLImage(map_bio, width=usable_w, height=pdf_map_h)
         map_tbl = Table([[map_rl]], colWidths=[usable_w])
         map_tbl.setStyle(
             TableStyle(
                 [
-                    ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor("#0F172A")),
+                    ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#0F172A")),
                     ("LEFTPADDING", (0, 0), (-1, -1), 0),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
@@ -2075,11 +2238,11 @@ def generate_nurse_route_pdf(
             )
         )
         story.append(map_tbl)
-        story.append(Spacer(1, 4 * mm))
+        story.append(Spacer(1, 3.5 * mm))
     except Exception:
         pass
 
-    # 3. CARTÕES DE CADA PARADA (HOSPITAL / CLÍNICA + TABELA DE APARELHOS)
+    # 3. CARTÕES DE CADA PARADA (HOSPITAL / CLÍNICA + TABELA COM CÓDIGO DE BARRAS CODE 128)
     for idx, st in enumerate(stops, start=1):
         cli = html.escape(st.get("CLIENTE", "-"))
         end = html.escape(st.get("ENDERECO") or "Endereço pelo nome do Hospital")
@@ -2089,7 +2252,7 @@ def generate_nurse_route_pdf(
         setores = html.escape(", ".join(st.get("SETORES", [])) or "-")
         leg_badge = ""
         if (idx - 1) < len(legs):
-            leg_badge = f" &nbsp;&bull;&nbsp; <font color='#38BDF8'>Trecho: +{legs[idx - 1]['label']}</font>"
+            leg_badge = f" &nbsp;&bull;&nbsp; <font color='#93C5FD'>Trecho: +{legs[idx - 1]['label']}</font>"
 
         single_maps_url = html.escape(build_single_stop_maps_url(st), quote=True)
         single_waze_url = html.escape(build_single_stop_waze_url(st), quote=True)
@@ -2106,7 +2269,7 @@ def generate_nurse_route_pdf(
                     ),
                 ]
             ],
-            colWidths=[usable_w * 0.70, usable_w * 0.30],
+            colWidths=[usable_w * 0.62, usable_w * 0.38],
         )
         stop_hdr_tbl.setStyle(
             TableStyle(
@@ -2115,8 +2278,8 @@ def generate_nurse_route_pdf(
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                     ("LEFTPADDING", (0, 0), (-1, -1), 8),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                    ("TOPPADDING", (0, 0), (-1, -1), 6),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5.5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5.5),
                 ]
             )
         )
@@ -2141,18 +2304,18 @@ def generate_nurse_route_pdf(
                     ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#CBD5E1")),
                     ("LEFTPADDING", (0, 0), (-1, -1), 8),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                    ("TOPPADDING", (0, 0), (-1, -1), 5),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4.5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
                 ]
             )
         )
 
-        # Tabela de Aparelhos desta Parada
+        # Tabela de Aparelhos desta Parada (com Código de Barras Code 128 para bipar no local)
         rows_data: List[List[Any]] = [
             [
                 Paragraph("<b>OK</b>", st_th),
                 Paragraph("<b>Equipamento</b>", st_th),
-                Paragraph("<b>Nº de Série</b>", st_th),
+                Paragraph("<b>Nº de Série / Cód. Barras</b>", st_th),
                 Paragraph("<b>Setor / Ala</b>", st_th),
                 Paragraph("<b>Modalidade</b>", st_th),
                 Paragraph("<b>Ciclo 6 Meses</b>", st_th),
@@ -2163,11 +2326,23 @@ def generate_nurse_route_pdf(
         for it in st.get("ITEMS", []):
             c_info = compute_update_cycle_info(it)
             obs_it = (it.get("OBSERVACOES") or "").strip()
+            serial_raw = str(it.get("CODIGO", "") or "").strip()
+            safe_bc = _safe_ascii_barcode_value(serial_raw)
+            serial_cell_flowables: List[Any] = [Paragraph(html.escape(serial_raw or "-"), st_cell_center_bold)]
+            if serial_raw:
+                try:
+                    bar_w = min(0.58, max(0.36, (37.0 * mm) / max(1, 52 + 11 * len(safe_bc))))
+                    bc_flow = Code128(safe_bc, barWidth=bar_w, barHeight=13, humanReadable=False, quiet=True)
+                    serial_cell_flowables.append(Spacer(1, 0.8 * mm))
+                    serial_cell_flowables.append(bc_flow)
+                except Exception:
+                    pass
+
             rows_data.append(
                 [
                     Paragraph("[ &nbsp;&nbsp; ]", st_cell_bold),
                     Paragraph(html.escape(it.get("TIPO", "")), st_cell_bold),
-                    Paragraph(html.escape(it.get("CODIGO", "")), st_cell_bold),
+                    serial_cell_flowables,
                     Paragraph(html.escape(it.get("SETOR", "-")), st_cell),
                     Paragraph(html.escape(it.get("MODALIDADE", "-")), st_cell),
                     Paragraph(html.escape(c_info["badge_text"]), st_cell),
@@ -2176,13 +2351,13 @@ def generate_nurse_route_pdf(
             )
 
         col_w = [
-            12 * mm,
-            25 * mm,
+            10 * mm,
+            22 * mm,
+            43 * mm,
             24 * mm,
-            26 * mm,
-            24 * mm,
-            32 * mm,
-            usable_w - (12 + 25 + 24 + 26 + 24 + 32) * mm,
+            21 * mm,
+            27 * mm,
+            usable_w - (10 + 22 + 43 + 24 + 21 + 27) * mm,
         ]
         items_tbl = Table(rows_data, colWidths=col_w)
         items_tbl.setStyle(
@@ -2191,8 +2366,9 @@ def generate_nurse_route_pdf(
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E2E8F0")),
                     ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                    ("ALIGN", (2, 1), (2, -1), "CENTER"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                     ("TOPPADDING", (0, 0), (-1, -1), 4),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ]
@@ -2226,21 +2402,62 @@ def generate_nurse_route_pdf(
 
         story.append(KeepTogether([stop_hdr_tbl, addr_info_tbl, items_tbl, sig_stop_tbl, Spacer(1, 3.5 * mm)]))
 
-    # 4. ASSINATURAS FINAIS DO ROTEIRO
-    story.append(Spacer(1, 3 * mm))
+    # 4. ASSINATURAS FINAIS DO ROTEIRO + BLOCO INSTITUCIONAL LYDA
+    story.append(Spacer(1, 4 * mm))
+    lyda_cert_tbl = Table(
+        [
+            [
+                Paragraph(
+                    f"<b>LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150</b><br/>"
+                    f"Assinado de forma digital por Lyda Comércio Imp. e Exp. Ltda<br/>"
+                    f"Dados: {data_digital}",
+                    st_cert,
+                )
+            ]
+        ],
+        colWidths=[usable_w * 0.46],
+    )
+    lyda_cert_tbl.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+                ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CBD5E1")),
+                ("LINEBEFORE", (0, 0), (0, -1), 2.5, colors.HexColor("#2563EB")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ]
+        )
+    )
+
     footer_sig = Table(
         [
             [
-                Paragraph("_____________________________________________<br/><b>Enfermeira(o) Responsável — LYDA</b><br/>" + html.escape(nurse_name), ParagraphStyle("Sig1", parent=st_cell, alignment=1)),
-                Paragraph("_____________________________________________<br/><b>Coordenação / Controle de Estoque i-STAT — LYDA</b><br/>Data de Conclusão: ____/____/202___", ParagraphStyle("Sig2", parent=st_cell, alignment=1)),
+                Paragraph(
+                    "_____________________________________________<br/>"
+                    "<b>Enfermeira(o) Responsável — LYDA</b><br/>"
+                    + html.escape(nurse_name)
+                    + "<br/>Data de Conclusão: ____/____/202___",
+                    ParagraphStyle("Sig1", parent=st_cell, alignment=1),
+                ),
+                lyda_cert_tbl,
             ]
         ],
-        colWidths=[usable_w * 0.5, usable_w * 0.5],
+        colWidths=[usable_w * 0.50, usable_w * 0.50],
     )
-    footer_sig.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("TOPPADDING", (0, 0), (-1, -1), 6)]))
-    story.append(footer_sig)
+    footer_sig.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (1, 0), (1, 0), "CENTER"),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
+    story.append(KeepTogether([footer_sig]))
 
-    doc.build(story)
+    doc.build(story, onFirstPage=_draw_timbre_page, onLaterPages=_draw_timbre_page)
 
     if auto_open_pdf:
         open_or_reveal_file(pdf_path, reveal_in_folder=reveal_in_folder)

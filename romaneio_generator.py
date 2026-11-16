@@ -223,12 +223,15 @@ def generate_termo_substituicao_html(
     .timbre-header {{
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: center;
+      gap: 16px;
       border-bottom: 1.5px solid #CBD5E1;
       padding-bottom: 12px;
       margin-bottom: 24px;
     }}
     .timbre-title {{
+      border-left: 1.5px solid #94A3B8;
+      padding-left: 16px;
       text-align: right;
       font-size: 15px;
       font-weight: 700;
@@ -368,14 +371,14 @@ def generate_termo_substituicao_html(
       margin-top: 24px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       font-size: 11px;
       color: #6B7280;
     }}
     @media print {{
       body {{
         background: #FFFFFF !important;
-        padding: 0 !important;
+        padding: 0 0 16mm 0 !important;
       }}
       .no-print-bar {{
         display: none !important;
@@ -385,6 +388,15 @@ def generate_termo_substituicao_html(
         border: none !important;
         padding: 0 !important;
         min-height: auto !important;
+      }}
+      .timbre-footer {{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #FFFFFF;
+        margin: 0;
+        padding: 6px 0 0 0;
       }}
     }}
   </style>
@@ -484,9 +496,9 @@ def generate_termo_substituicao_html(
 
     <!-- RODAPÉ DO TIMBRE PROFISSIONAL LYDA -->
     <div class="timbre-footer">
-      <div>Alameda 3 de Outubro, 795 — Sarandi, Porto Alegre/RS</div>
-      <div>(51) 2700-2025</div>
-      <div>comercial@lyda.com.br</div>
+      <div>Alameda 3 de Outubro, 795<br/>Sarandi, Porto Alegre/RS</div>
+      <div style="text-align:center;">(51) 2700-2025</div>
+      <div style="text-align:right;">comercial@lyda.com.br</div>
     </div>
   </div>
 </body>
@@ -624,12 +636,15 @@ def generate_and_open_romaneio(
     .timbre-header {{
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: center;
+      gap: 16px;
       border-bottom: 1.5px solid #CBD5E1;
       padding-bottom: 12px;
       margin-bottom: 20px;
     }}
     .timbre-title {{
+      border-left: 1.5px solid #94A3B8;
+      padding-left: 16px;
       text-align: right;
     }}
     .timbre-title h1 {{
@@ -751,14 +766,14 @@ def generate_and_open_romaneio(
       margin-top: 24px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       font-size: 11px;
       color: #6B7280;
     }}
     @media print {{
       body {{
         background: #FFFFFF !important;
-        padding: 0 !important;
+        padding: 0 0 16mm 0 !important;
       }}
       .toolbar {{
         display: none !important;
@@ -768,6 +783,15 @@ def generate_and_open_romaneio(
         padding: 0 !important;
         max-width: 100% !important;
         min-height: auto !important;
+      }}
+      .timbre-footer {{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #FFFFFF;
+        margin: 0;
+        padding: 6px 0 0 0;
       }}
     }}
   </style>
@@ -853,9 +877,9 @@ def generate_and_open_romaneio(
 
     <!-- RODAPÉ DO TIMBRE PROFISSIONAL LYDA -->
     <div class="timbre-footer">
-      <div>Alameda 3 de Outubro, 795 — Sarandi, Porto Alegre/RS</div>
-      <div>(51) 2700-2025</div>
-      <div>comercial@lyda.com.br</div>
+      <div>Alameda 3 de Outubro, 795<br/>Sarandi, Porto Alegre/RS</div>
+      <div style="text-align:center;">(51) 2700-2025</div>
+      <div style="text-align:right;">comercial@lyda.com.br</div>
     </div>
   </div>
 </body>

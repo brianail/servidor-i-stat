@@ -3556,7 +3556,43 @@ function routePickerSelectOnlyPending() {
   showToast(`${APP_STATE.routeSelectedIndices.size} aparelhos pendentes selecionados para a rota.`, "info");
 }
 
-async function applyRouteSelectedEquipments() {
+function toggleRouteEquipPickerDrawer(forceState) {
+  const body = document.getElementById("divRouteEquipPickerBody");
+  const btn = document.getElementById("btnToggleRoutePicker");
+  if (!body) return;
+  const isOpen = body.style.display !== "none";
+  const nextState = typeof forceState === "boolean" ? forceState : !isOpen;
+  body.style.display = nextState ? "block" : "none";
+  if (btn) {
+    btn.innerText = nextState ? "Recolher Lista" : "Expandir Seleção";
+  }
+}
+
+function onRouteEquipSearchKeydown(e) {
+  if (!e || e.key !== "Enter") return;
+  e.preventDefault();
+  const inp = document.getElementById("inpRouteEquipSearch");
+  const raw = ((inp && inp.value) || "").trim();
+  if (!raw) return;
+  const norm = raw.toUpperCase();
+  const items = APP_STATE.items || [];
+  let match = items.find(it => String(it.CODIGO || "").trim().toUpperCase() === norm);
+  if (!match) {
+    match = items.find(it => String(it.CODIGO || "").trim().toUpperCase().endsWith(norm));
+  }
+  if (!match) {
+    playScanBeep(false);
+    showToast(`Serial '${raw}' não encontrado para seleção na rota.`, "error");
+    return;
+  }
+  APP_STATE.routeSelectedIndices.add(match._idx);
+  playScanBeep(true);
+  if (inp) inp.value = "";
+  renderRouteEquipmentPicker();
+  showToast(`Aparelho ${match.CODIGO} (${match.CLIENTE || "Sem cliente"}) marcado na rota.`, "success");
+}
+
+function applyRouteSelectedEquipments() {
   const indices = Array.from(APP_STATE.routeSelectedIndices);
   if (!indices.length) {
     showToast("Selecione ao menos 1 aparelho na lista acima para montar a rota.", "warning");
@@ -3564,7 +3600,37 @@ async function applyRouteSelectedEquipments() {
   }
 
   showToast(`Montando rota com ${indices.length} aparelho(s) selecionado(s)...`, "info");
-  await loadRouteFromIndices(indices);
+  loadRouteFromIndices(indices);
+}
+
+async function markSingleRouteStopUpdated6m(stopIdx) {
+  const stops = APP_STATE.routeStops || [];
+  const st = stops[stopIdx];
+  if (!st) return;
+
+  const stopSerials = new Set(
+    (st.ITEMS || [])
+      .map(it => String(it.CODIGO || "").trim().toUpperCase())
+      .filter(Boolean)
+  );
+  let indices = (APP_STATE.items || [])
+    .filter(it => stopSerials.has(String(it.CODIGO || "").trim().toUpperCase()))
+    .map(it => it._idx);
+
+  if (!indices.length && st.CLIENTE) {
+    const cliUp = String(st.CLIENTE).trim().toUpperCase();
+    indices = (APP_STATE.items || [])
+      .filter(it => String(it.CLIENTE || "").trim().toUpperCase() === cliUp && it._row_state !== "ESTOQUE")
+      .map(it => it._idx);
+  }
+
+  if (!indices.length) {
+    showToast(`Nenhum aparelho vinculado encontrado para ${st.CLIENTE}.`, "error");
+    return;
+  }
+
+  APP_STATE.selectedIndices = new Set(indices);
+  openBatchModal("MARCAR_ATUALIZADO_6M");
 }
 
 async function loadRouteFromMode(mode) {
@@ -3622,10 +3688,23 @@ async function requestRouteBuild(extraParams) {
       APP_STATE.selectedRouteStopIdx = 0;
     }
 
+    const totalItemsInStops = APP_STATE.routeStops.reduce(
+      (acc, st) => acc + (st.ITEMS_COUNT || (st.ITEMS || []).length),
+      0
+    );
+    const elStopsKpi = document.getElementById("valRouteKpiStops");
+    const elItemsKpi = document.getElementById("valRouteKpiItems");
+    const elKmKpi = document.getElementById("valRouteKpiKm");
+    const elTimeKpi = document.getElementById("valRouteKpiTime");
+    if (elStopsKpi) elStopsKpi.innerText = String(APP_STATE.routeStops.length);
+    if (elItemsKpi) elItemsKpi.innerText = String(totalItemsInStops);
+    if (elKmKpi) elKmKpi.innerText = `${Number(data.metrics.total_km || 0).toFixed(1)} km`;
+    if (elTimeKpi) elTimeKpi.innerText = data.metrics.total_time_str || "0 min";
+
     document.getElementById("inpRouteGoogleMapsUrl").value = data.google_maps_url || "";
     document.getElementById("txtRouteWhatsappPreview").value = data.whatsapp_text || "";
     document.getElementById("lblRouteMetricsBanner").innerText =
-      `3. Google Maps da Rota: ${data.metrics.total_km || 0} km | ~${data.metrics.total_time_str || "0 min"} | ${APP_STATE.routeStops.length} Parada(s)`;
+      `4. Google Maps da Rota: ${data.metrics.total_km || 0} km | ~${data.metrics.total_time_str || "0 min"} | ${APP_STATE.routeStops.length} Parada(s)`;
 
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=4&data=${encodeURIComponent(data.google_maps_url || "https://maps.google.com")}`;
     document.getElementById("imgRouteQrCode").src = qrUrl;
@@ -3645,18 +3724,39 @@ function renderRouteStopsTable() {
     ? stops.map((st, idx) => {
         const isSel = idx === APP_STATE.selectedRouteStopIdx;
         const legTxt = st._leg_km ? `+${st._leg_km} km (~${st._leg_min} min)` : "-";
+        const cidUf = [st.CIDADE, st.UF].filter(Boolean).join(" / ");
+        const setoresTxt = (Array.isArray(st.SETORES) && st.SETORES.length ? st.SETORES.join(", ") : st.SETORES_RESUMO) || "";
+        const contatoTxt = st.CONTATO_LOCAL || "";
+        const mapsLink = st._maps_single_url
+          ? `<a href="${escapeHtml(st._maps_single_url)}" target="_blank" style="color:#1D4ED8; font-weight:700; text-decoration:none;">Maps</a>`
+          : "";
+        const wazeLink = st._waze_single_url
+          ? `<a href="${escapeHtml(st._waze_single_url)}" target="_blank" style="color:#0284C7; font-weight:700; text-decoration:none;">Waze</a>`
+          : "";
+        const navLinks = [mapsLink, wazeLink].filter(Boolean).join(" · ");
+
         return `
           <tr class="${isSel ? "row-selected" : ""}" style="cursor:pointer;" onclick="selectRouteStop(${idx})">
             <td style="font-weight:800; color:#1E40AF;">#${idx + 1}</td>
-            <td style="font-weight:700;">${escapeHtml(st.CLIENTE)}</td>
-            <td>${escapeHtml(st.ENDERECO || "-")}</td>
-            <td style="white-space:nowrap; font-weight:700; color:#1D4ED8;">${escapeHtml(legTxt)}</td>
+            <td>
+              <div style="font-weight:700; color:#0F172A;">${escapeHtml(st.CLIENTE)}</div>
+              <div class="cell-sub">${escapeHtml(cidUf || "RS")}${setoresTxt ? ` • Setor: ${escapeHtml(setoresTxt)}` : ""}</div>
+            </td>
+            <td>
+              <div>${escapeHtml(st.ENDERECO || "-")}</div>
+              ${contatoTxt ? `<div class="cell-sub">Contato: ${escapeHtml(contatoTxt)}</div>` : ""}
+            </td>
+            <td style="white-space:nowrap;">
+              <div style="font-weight:700; color:#1D4ED8;">${escapeHtml(legTxt)}</div>
+              ${navLinks ? `<div class="cell-sub">${navLinks}</div>` : ""}
+            </td>
             <td style="text-align:center; font-weight:800;">${st.ITEMS_COUNT || (st.ITEMS || []).length}</td>
             <td style="font-family:monospace; font-size:11px;">${escapeHtml(st.SERIAIS_RESUMO || "")}</td>
             <td style="text-align:right; white-space:nowrap;" onclick="event.stopPropagation()">
-              <button class="btn btn-secondary btn-sm" onclick="moveRouteStop(${idx}, -1)">Subir</button>
-              <button class="btn btn-secondary btn-sm" onclick="moveRouteStop(${idx}, 1)">Descer</button>
-              <button class="btn btn-danger btn-sm" onclick="removeRouteStop(${idx})">X</button>
+              <button class="btn btn-primary btn-sm" onclick="markSingleRouteStopUpdated6m(${idx})" title="Marcar aparelhos desta parada como atualizados (6m)">Concluir 6m</button>
+              <button class="btn btn-secondary btn-sm" onclick="moveRouteStop(${idx}, -1)" title="Mover parada para cima">↑</button>
+              <button class="btn btn-secondary btn-sm" onclick="moveRouteStop(${idx}, 1)" title="Mover parada para baixo">↓</button>
+              <button class="btn btn-danger btn-sm" onclick="removeRouteStop(${idx})" title="Remover parada da rota">Remover</button>
             </td>
           </tr>
         `;
@@ -4409,16 +4509,21 @@ function renderExecutiveDashboard() {
   }
 }
 
-// GERADOR DE RELATÓRIOS EXECUTIVOS A4 / PDF (PRONTOS PARA IMPRIMIR OU SALVAR PDF)
+// GERADOR DE RELATÓRIOS EXECUTIVOS A4 / PDF (PRONTOS PARA IMPRIMIR OU SALVAR PDF NO TIMBRE LYDA)
 function openExecutiveReportPrintWindow(reportType = "GERAL") {
   const items = APP_STATE.items || [];
   const clients = APP_STATE.clients || [];
   const k = APP_STATE.kpis || {};
-  const nowStr = new Date().toLocaleString("pt-BR");
+  const now = new Date();
+  const nowStr = now.toLocaleString("pt-BR");
+  const pad2 = n => String(n).padStart(2, "0");
+  const dataDigital = `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())} -03'00'`;
   const userStr = (APP_STATE.current_user && APP_STATE.current_user.nome) || "Administrador LYDA";
-  const logoImg = APP_STATE.logo_data_uri
-    ? `<img src="${APP_STATE.logo_data_uri}" style="height:42px; width:auto; object-fit:contain;" alt="LYDA" />`
-    : `<strong style="font-size:24px; color:#0F172A;">LYDA</strong>`;
+  const timbreLogoUrl = `${window.location.origin}/static/lyda_timbre_logo.png`;
+  const fallbackLogoAttr = APP_STATE.logo_data_uri
+    ? `onerror="this.onerror=null;this.src='${APP_STATE.logo_data_uri}'"`
+    : "";
+  const logoImg = `<img src="${timbreLogoUrl}" ${fallbackLogoAttr} style="height:48px; width:auto; object-fit:contain;" alt="LYDA" />`;
 
   const cycBadge = it => {
     const code = (it._cycle && it._cycle.status_code) || "SEM_DATA";
@@ -4750,8 +4855,14 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
   const signatureHtml = `
     <div class="signature-row">
       <div><div class="line"></div><span>Responsável pela emissão — ${escapeHtml(userStr)}</span></div>
-      <div><div class="line"></div><span>Conferido por</span></div>
-      <div><div class="line"></div><span>Data da conferência</span></div>
+      <div><div class="line"></div><span>Conferido por / Data: ____/____/202___</span></div>
+      <div>
+        <div class="digital-cert-box">
+          <strong>Lyda Comércio Importação e Exportação Ltda</strong><br/>
+          LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150<br/>
+          Emissão: ${escapeHtml(dataDigital)}
+        </div>
+      </div>
     </div>`;
 
   const kpiBox = (lbl, val, color) => `
@@ -4767,21 +4878,22 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     <html lang="pt-BR">
     <head>
       <meta charset="UTF-8" />
+      <base href="${window.location.origin}/" />
       <title>${escapeHtml(reportTitle)} — LYDA</title>
       <style>
-        @page { size: A4 landscape; margin: 10mm 10mm 14mm 10mm; }
+        @page { size: A4 landscape; margin: 10mm 12mm 18mm 12mm; }
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #0F172A; margin: 0; padding: 22px 26px 40px 26px; font-size: 11.5px; background: #FFFFFF; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .no-print-bar { background: #0F172A; color: #FFF; padding: 11px 18px; border-radius: 10px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
         .no-print-bar button { background: #2563EB; color: #FFF; border: none; padding: 8px 16px; border-radius: 7px; font-weight: 700; cursor: pointer; font-size: 12px; }
-        .cover { background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); color: #FFFFFF; border-radius: 12px; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 14px; }
-        .cover .logo-box { background: #FFFFFF; border-radius: 9px; padding: 8px 14px; display: flex; align-items: center; }
-        .cover .left { display: flex; align-items: center; gap: 18px; }
-        .cover h1 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -0.3px; }
-        .cover p { margin: 4px 0 0 0; font-size: 11.5px; color: #CBD5E1; max-width: 560px; line-height: 1.4; }
-        .cover .meta { text-align: right; font-size: 11px; color: #CBD5E1; line-height: 1.7; }
-        .cover .meta strong { color: #FFFFFF; }
-        .cover .tag { display: inline-block; background: rgba(96,165,250,0.25); border: 1px solid rgba(147,197,253,0.5); color: #BFDBFE; font-size: 9.5px; font-weight: 800; letter-spacing: 0.7px; text-transform: uppercase; padding: 2px 9px; border-radius: 99px; margin-bottom: 6px; }
+        .timbre-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1.5px solid #CBD5E1; padding-bottom: 12px; margin-bottom: 14px; }
+        .timbre-header .left { display: flex; align-items: center; gap: 18px; }
+        .timbre-title { border-left: 1.5px solid #94A3B8; padding-left: 16px; }
+        .timbre-tag { display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: #1E3A8A; margin-bottom: 3px; }
+        .timbre-title h1 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.2px; color: #0F172A; }
+        .timbre-title p { margin: 3px 0 0 0; font-size: 11px; color: #475569; max-width: 560px; line-height: 1.35; }
+        .timbre-meta { text-align: right; font-size: 10.5px; color: #475569; line-height: 1.6; white-space: nowrap; }
+        .timbre-meta strong { color: #0F172A; }
         .kpi-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 14px; }
         .kpi-box { border: 1px solid #E2E8F0; border-top: 4px solid #2563EB; border-radius: 8px; padding: 9px 11px; background: #F8FAFC; }
         .kpi-box .lbl { font-size: 9.5px; font-weight: 800; text-transform: uppercase; color: #475569; letter-spacing: 0.3px; }
@@ -4809,7 +4921,8 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
         tr.tr-def td { background: #FFF1F2 !important; }
         tr.tr-est td:first-child { border-left: 3px solid #10B981; }
         tr.tr-def td:first-child { border-left: 3px solid #E11D48; }
-        .doc-footer { margin-top: 14px; padding-top: 8px; border-top: 1px solid #CBD5E1; display: flex; justify-content: space-between; font-size: 9.5px; color: #64748B; }
+        .timbre-footer { margin-top: 18px; padding-top: 8px; border-top: 1.5px solid #CBD5E1; display: flex; justify-content: space-between; align-items: flex-start; font-size: 10px; color: #475569; }
+        .digital-cert-box { border: 1px solid #D1D5DB; border-left: 3px solid #2563EB; background: #F9FAFB; border-radius: 4px; padding: 6px 10px; font-family: monospace; font-size: 9px; color: #334155; line-height: 1.35; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 9.5px; font-weight: 800; white-space: nowrap; border: 1px solid transparent; }
         .b-ok { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
         .b-warn { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
@@ -4838,34 +4951,34 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
         .cbox { border: 1px solid #E2E8F0; border-top: 4px solid #2563EB; border-radius: 8px; padding: 9px 12px; background: #F8FAFC; }
         .cbox .v { font-size: 24px; font-weight: 900; line-height: 1.1; }
         .cbox .l { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #475569; margin-top: 2px; }
-        .signature-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 34px; page-break-inside: avoid; }
+        .signature-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 28px; margin-top: 28px; align-items: end; page-break-inside: avoid; }
         .signature-row .line { border-top: 1px solid #0F172A; margin-bottom: 4px; }
         .signature-row span { font-size: 10px; color: #475569; font-weight: 600; }
         @media print {
           .no-print-bar { display: none !important; }
-          body { padding: 0; }
-          .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; margin: 0; padding: 4px 0 0 0; }
+          body { padding: 0 0 15mm 0; }
+          .timbre-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; margin: 0; padding: 6px 0 0 0; }
         }
       </style>
     </head>
     <body>
       <div class="no-print-bar">
-        <span><strong>Visualização Oficial de Impressão A4 / PDF</strong> — ${escapeHtml(reportTitle)}</span>
+        <span><strong>Timbre Oficial LYDA — Impressão A4 / PDF</strong> — ${escapeHtml(reportTitle)}</span>
         <div style="display:flex; gap:8px;">
           <button onclick="window.print()">Imprimir / Salvar como PDF</button>
           <button style="background:#475569;" onclick="window.close()">Fechar</button>
         </div>
       </div>
-      <div class="cover">
+      <div class="timbre-header">
         <div class="left">
-          <div class="logo-box">${logoImg}</div>
-          <div>
-            <span class="tag">Relatório Oficial LYDA i-STAT</span>
+          <div>${logoImg}</div>
+          <div class="timbre-title">
+            <span class="timbre-tag">Relatório Oficial LYDA i-STAT</span>
             <h1>${escapeHtml(reportTitle)}</h1>
             <p>${escapeHtml(reportSub)}</p>
           </div>
         </div>
-        <div class="meta">
+        <div class="timbre-meta">
           <div><strong>Emissão:</strong> ${escapeHtml(nowStr)}</div>
           <div><strong>Emitido por:</strong> ${escapeHtml(userStr)}</div>
           <div><strong>Registros listados:</strong> ${recordCount}</div>
@@ -4887,9 +5000,10 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
       </div>
       ${tableHtml}
       ${signatureHtml}
-      <div class="doc-footer">
-        <span>LYDA — Controle de Estoque &amp; Rotas i-STAT</span>
-        <span>${escapeHtml(reportTitle)} • Emitido em ${escapeHtml(nowStr)}</span>
+      <div class="timbre-footer">
+        <div>Alameda 3 de Outubro, 795 — Sarandi, Porto Alegre/RS</div>
+        <div style="text-align:center;">(51) 2700-2025</div>
+        <div style="text-align:right;">comercial@lyda.com.br</div>
       </div>
     </body>
     </html>
