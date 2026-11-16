@@ -1721,33 +1721,49 @@ def generate_and_open_nurse_route_html(
         margin-left: 8px;
     }}
     .btn-green {{ background: #059669; }}
-    .sig-row {{
+    .gov-signatures-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 28px;
-        margin-top: 24px;
-        padding-top: 10px;
+        gap: 20px;
+        margin-top: 22px;
+        padding-top: 6px;
         page-break-inside: avoid;
     }}
-    .sig-box {{
-        border-top: 1px solid #334155;
-        text-align: center;
-        padding-top: 8px;
+    .gov-sig-card {{
+        border: 1px solid #CBD5E1;
+        border-radius: 6px;
+        padding: 12px 14px;
+        background: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }}
+    .gov-sig-title {{
+        font-size: 12px;
+        font-weight: 800;
+        color: #0F172A;
+        margin-bottom: 5px;
+    }}
+    .gov-sig-meta {{
         font-size: 11px;
         color: #334155;
+        line-height: 1.5;
+        margin-bottom: 10px;
     }}
-    .digital-cert-box {{
-        border: 1px solid #D1D5DB;
-        border-left: 3px solid #2563EB;
-        background: #F9FAFB;
+    .gov-stamp-area {{
+        height: 92px;
+        border: 1px dashed #CBD5E1;
         border-radius: 4px;
-        padding: 6px 10px;
-        font-family: monospace;
-        font-size: 9.5px;
-        color: #374151;
-        line-height: 1.35;
-        margin-top: 6px;
-        text-align: left;
+        background: #FFFFFF;
+        margin-bottom: 8px;
+    }}
+    .gov-sig-hint {{
+        border-top: 1px solid #334155;
+        padding-top: 5px;
+        font-size: 10px;
+        color: #475569;
+        text-align: center;
+        font-weight: 600;
     }}
     .timbre-footer {{
         border-top: 1.5px solid #CBD5E1;
@@ -1805,18 +1821,31 @@ def generate_and_open_nurse_route_html(
 
             {stops_html}
 
-            <div class="sig-row">
-                <div class="sig-box">
-                    <strong>Enfermeira(o) Responsável — LYDA</strong><br/>
-                    {html.escape(nurse_name)}<br/>
-                    <span style="font-size:10px; color:#64748B;">Data de Conclusão: ____/____/202___</span>
+            <div class="gov-signatures-grid">
+                <div class="gov-sig-card">
+                    <div>
+                        <div class="gov-sig-title">Enfermeira(o) Responsável — LYDA</div>
+                        <div class="gov-sig-meta">
+                            <strong>Nome:</strong> {html.escape(nurse_name)}<br/>
+                            <strong>Data de Conclusão:</strong> ____/____/202___
+                        </div>
+                    </div>
+                    <div>
+                        <div class="gov-stamp-area"></div>
+                        <div class="gov-sig-hint">Assinatura Física ou Assinatura Digital Gov.br / ICP-Brasil</div>
+                    </div>
                 </div>
-                <div class="sig-box">
-                    <strong>Lyda Comércio Importação e Exportação Ltda</strong>
-                    <div class="digital-cert-box">
-                        LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150<br/>
-                        Assinado digitalmente por LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA<br/>
-                        Dados: {data_digital}
+                <div class="gov-sig-card">
+                    <div>
+                        <div class="gov-sig-title">Lyda Comércio Importação e Exportação Ltda</div>
+                        <div class="gov-sig-meta">
+                            <strong>CNPJ:</strong> 61.817.692/0001-50<br/>
+                            <strong>Conferência / Data:</strong> ____/____/202___
+                        </div>
+                    </div>
+                    <div>
+                        <div class="gov-stamp-area"></div>
+                        <div class="gov-sig-hint">Coordenação Técnica / Assinatura Digital Gov.br / ICP-Brasil</div>
                     </div>
                 </div>
             </div>
@@ -2375,83 +2404,109 @@ def generate_nurse_route_pdf(
             )
         )
 
-        # Linha de Assinatura / Recebimento do Hospital
+        # Linha de Assinatura / Recebimento do Hospital (espaço confortável p/ assinatura física, carimbo ou Gov.br)
         sig_stop_tbl = Table(
             [
                 [
                     Paragraph(
-                        "<b>Conferência no Hospital:</b> Responsável Setor: __________________________ &nbsp;&nbsp; "
-                        "Horário: ____:____ &nbsp;&nbsp; Assinatura/Carimbo: __________________________",
+                        "<b>Conferência no Hospital / Unidade:</b><br/>"
+                        "Nome Legível / Coren / CPF: ___________________________________________<br/>"
+                        "Horário: ____:____ &nbsp;&nbsp;|&nbsp;&nbsp; Data: ____/____/202___",
                         st_cell,
-                    )
+                    ),
+                    [
+                        Spacer(1, 11 * mm),
+                        Paragraph(
+                            "_____________________________________________<br/>"
+                            "<font size='7' color='#475569'>Assinatura / Carimbo Local ou Gov.br</font>",
+                            ParagraphStyle("StopSig", parent=st_cell, alignment=1),
+                        ),
+                    ],
                 ]
             ],
-            colWidths=[usable_w],
+            colWidths=[usable_w * 0.56, usable_w * 0.44],
         )
         sig_stop_tbl.setStyle(
             TableStyle(
                 [
                     ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFFFFF")),
                     ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
+                    ("LINEBEFORE", (1, 0), (1, -1), 0.5, colors.HexColor("#E2E8F0")),
+                    ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
                     ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                    ("TOPPADDING", (0, 0), (-1, -1), 5),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ("TOPPADDING", (0, 0), (-1, -1), 8),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                 ]
             )
         )
 
         story.append(KeepTogether([stop_hdr_tbl, addr_info_tbl, items_tbl, sig_stop_tbl, Spacer(1, 3.5 * mm)]))
 
-    # 4. ASSINATURAS FINAIS DO ROTEIRO + BLOCO INSTITUCIONAL LYDA
+    # 4. QUADROS AMPLOS DE ASSINATURA FINAL (GOV.BR / ICP-BRASIL OU ASSINATURA FÍSICA)
     story.append(Spacer(1, 4 * mm))
-    lyda_cert_tbl = Table(
+    st_sig_hdr = ParagraphStyle("LydaSigHdr", parent=st_cell, fontName="Helvetica-Bold", fontSize=8.5, leading=11, textColor=colors.HexColor("#0F172A"))
+    st_sig_hint = ParagraphStyle("LydaSigHint", parent=st_cell, fontSize=7.2, leading=9.5, textColor=colors.HexColor("#475569"), alignment=1)
+    box_w = usable_w * 0.48
+
+    sig_card_1 = Table(
         [
-            [
-                Paragraph(
-                    f"<b>LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150</b><br/>"
-                    f"Assinado de forma digital por Lyda Comércio Imp. e Exp. Ltda<br/>"
-                    f"Dados: {data_digital}",
-                    st_cert,
-                )
-            ]
+            [Paragraph(f"<b>Enfermeira(o) Responsável — LYDA</b><br/><font color='#334155'>{html.escape(nurse_name)}</font>", st_sig_hdr)],
+            [Spacer(1, 22 * mm)],
+            [Paragraph("Assinatura Física ou Digital Gov.br / ICP-Brasil<br/>Data de Conclusão: ____/____/202___", st_sig_hint)],
         ],
-        colWidths=[usable_w * 0.46],
+        colWidths=[box_w - 6 * mm],
     )
-    lyda_cert_tbl.setStyle(
+    sig_card_1.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
-                ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CBD5E1")),
-                ("LINEBEFORE", (0, 0), (0, -1), 2.5, colors.HexColor("#2563EB")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 7),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("LINEABOVE", (0, 2), (0, 2), 0.8, colors.HexColor("#334155")),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+
+    sig_card_2 = Table(
+        [
+            [Paragraph("<b>Lyda Comércio Importação e Exportação Ltda</b><br/><font color='#334155'>CNPJ: 61.817.692/0001-50</font>", st_sig_hdr)],
+            [Spacer(1, 22 * mm)],
+            [Paragraph("Conferência / Assinatura Digital Gov.br • Data: ____/____/202___", st_sig_hint)],
+        ],
+        colWidths=[box_w - 6 * mm],
+    )
+    sig_card_2.setStyle(
+        TableStyle(
+            [
+                ("LINEABOVE", (0, 2), (0, 2), 0.8, colors.HexColor("#334155")),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
 
     footer_sig = Table(
-        [
-            [
-                Paragraph(
-                    "_____________________________________________<br/>"
-                    "<b>Enfermeira(o) Responsável — LYDA</b><br/>"
-                    + html.escape(nurse_name)
-                    + "<br/>Data de Conclusão: ____/____/202___",
-                    ParagraphStyle("Sig1", parent=st_cell, alignment=1),
-                ),
-                lyda_cert_tbl,
-            ]
-        ],
-        colWidths=[usable_w * 0.50, usable_w * 0.50],
+        [[sig_card_1, "", sig_card_2]],
+        colWidths=[box_w, usable_w * 0.04, box_w],
     )
     footer_sig.setStyle(
         TableStyle(
             [
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (1, 0), (1, 0), "CENTER"),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#FFFFFF")),
+                ("BACKGROUND", (2, 0), (2, 0), colors.HexColor("#FFFFFF")),
+                ("BOX", (0, 0), (0, 0), 0.7, colors.HexColor("#CBD5E1")),
+                ("BOX", (2, 0), (2, 0), 0.7, colors.HexColor("#CBD5E1")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (0, 0), 3 * mm),
+                ("RIGHTPADDING", (0, 0), (0, 0), 3 * mm),
+                ("LEFTPADDING", (2, 0), (2, 0), 3 * mm),
+                ("RIGHTPADDING", (2, 0), (2, 0), 3 * mm),
+                ("TOPPADDING", (0, 0), (-1, -1), 3 * mm),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3 * mm),
             ]
         )
     )

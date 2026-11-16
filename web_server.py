@@ -6,6 +6,7 @@ com Sistema de Login/Senha, Perfis de Acesso (ADMIN e USUARIO), Auditoria Comple
 Backup Diário Automático enviado para a pasta do SharePoint da LYDA.
 """
 
+import base64
 import csv
 import io
 import json
@@ -57,6 +58,7 @@ from rota_enfermeira import (
     compute_update_cycle_info,
     generate_nurse_route_pdf,
     get_logo_base64_data_uri,
+    get_official_timbre_logo_path,
     get_suggested_hospital_address,
     group_items_into_route_stops,
     lookup_cep_viacep,
@@ -589,12 +591,32 @@ def api_admin_export_logs_csv():
 # ROTAS PRINCIPAIS DA INTERFACE WEB E API REST
 # =============================================================================
 
+_TIMBRE_URI_CACHE: Dict[str, str] = {}
+
+
+def get_timbre_logo_data_uri() -> str:
+    """Retorna o logotipo oficial do timbre LYDA em Data URI PNG preservando suas cores originais."""
+    if "default" in _TIMBRE_URI_CACHE:
+        return _TIMBRE_URI_CACHE["default"]
+    p = get_official_timbre_logo_path()
+    if p and os.path.exists(p):
+        try:
+            with open(p, "rb") as f:
+                uri = "data:image/png;base64," + base64.b64encode(f.read()).decode("ascii")
+            _TIMBRE_URI_CACHE["default"] = uri
+            return uri
+        except Exception:
+            pass
+    return get_logo_base64_data_uri(white_ink=False)
+
+
 @app.route("/api/bootstrap", methods=["GET"])
 def api_bootstrap():
     with db_lock:
         current_user = get_current_user()
         logo_uri = get_logo_base64_data_uri(white_ink=False)
         logo_white_uri = get_logo_base64_data_uri(white_ink=True)
+        timbre_logo_uri = get_timbre_logo_data_uri()
         if not current_user:
             return jsonify(
                 {
@@ -602,6 +624,7 @@ def api_bootstrap():
                     "authenticated": False,
                     "logo_data_uri": logo_uri,
                     "logo_white_data_uri": logo_white_uri,
+                    "timbre_logo_data_uri": timbre_logo_uri,
                     "login_hints": [],
                 }
             )
@@ -635,6 +658,7 @@ def api_bootstrap():
                 "current_user": current_user,
                 "logo_data_uri": logo_uri,
                 "logo_white_data_uri": logo_white_uri,
+                "timbre_logo_data_uri": timbre_logo_uri,
                 "server_info": {
                     "hostname": db_manager.pc_hostname,
                     "os_name": platform.system(),

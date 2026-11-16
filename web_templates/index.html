@@ -1020,6 +1020,8 @@
             <div class="section-title">
               <span>Central de Monitoramento de Atualizações Semestrais (Ciclo de 6 em 6 Meses)</span>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="openExecutiveReportPrintWindow('RADAR_6M')">Emitir
+                  Relatório PDF (Timbre LYDA)</button>
                 <button class="btn btn-secondary btn-sm" onclick="selectAllRadarVisible(true)">Marcar Todos desta
                   Lista</button>
                 <button class="btn btn-secondary btn-sm" onclick="openBatchModal('MARCAR_ATUALIZADO_6M')">Registrar
@@ -1109,8 +1111,12 @@
                   <span style="font-size:12px; font-weight:500; color:var(--slate-500); margin-left:8px;"
                     id="lblClientsTotalSub">Selecione um hospital para visualizar aparelhos e endereço</span>
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="prepareNewClientForm()">+ Novo Hospital /
-                  Cliente</button>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="btn btn-secondary btn-sm" onclick="openExecutiveReportPrintWindow('HOSPITAIS')">Relatório
+                    PDF de Hospitais</button>
+                  <button class="btn btn-primary btn-sm" onclick="prepareNewClientForm()">+ Novo Hospital /
+                    Cliente</button>
+                </div>
               </div>
 
               <div style="display:grid; grid-template-columns: 1.6fr auto; gap:12px; align-items:end;">
@@ -1200,6 +1206,9 @@
                   </button>
                   <button class="btn btn-secondary btn-sm" onclick="generateRomaneioForSelectedClient()">
                     Romaneio A4
+                  </button>
+                  <button class="btn btn-secondary btn-sm" onclick="openExecutiveReportPrintWindow('CLIENTE_ATUAL')">
+                    Relatório PDF deste Hospital
                   </button>
                   <button class="btn btn-primary btn-sm" onclick="createRouteForSelectedClient()">
                     Criar Rota p/ este Hospital
@@ -2175,6 +2184,8 @@
               <div class="section-title">
                 <span>Central de Administração de Logs & Auditoria Completa</span>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button class="btn btn-secondary btn-sm" onclick="openExecutiveReportPrintWindow('AUDITORIA')">Emitir
+                    Relatório PDF (Timbre LYDA)</button>
                   <a href="/api/admin/logs/export_csv" class="btn btn-secondary btn-sm">Exportar Logs (.CSV / Excel)</a>
                   <button class="btn btn-danger btn-sm" onclick="clearOldAuditLogs()">Arquivar Antigos</button>
                 </div>

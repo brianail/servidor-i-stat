@@ -166,7 +166,7 @@ def generate_termo_substituicao_html(
   <style>
     @page {{
       size: A4 portrait;
-      margin: 15mm 18mm 15mm 18mm;
+      margin: 13mm 16mm 18mm 16mm;
     }}
     * {{
       box-sizing: border-box;
@@ -226,8 +226,8 @@ def generate_termo_substituicao_html(
       align-items: center;
       gap: 16px;
       border-bottom: 1.5px solid #CBD5E1;
-      padding-bottom: 12px;
-      margin-bottom: 24px;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
     }}
     .timbre-title {{
       border-left: 1.5px solid #94A3B8;
@@ -244,17 +244,17 @@ def generate_termo_substituicao_html(
       margin-top: 2px;
     }}
     .date-row {{
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 600;
       color: #111827;
-      margin-bottom: 22px;
+      margin-bottom: 12px;
     }}
     .declaration-p {{
-      font-size: 14.5px;
+      font-size: 13.5px;
       color: #1F2937;
       text-align: justify;
-      margin-bottom: 24px;
-      line-height: 1.6;
+      margin-bottom: 14px;
+      line-height: 1.55;
     }}
     .client-highlight {{
       font-weight: 800;
@@ -265,8 +265,8 @@ def generate_termo_substituicao_html(
       background: #F8FAFC;
       border: 1.5px solid #E2E8F0;
       border-radius: 8px;
-      padding: 16px 20px;
-      margin-bottom: 16px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
     }}
     .equip-card.returning {{
       background: #FFFBEB;
@@ -276,8 +276,8 @@ def generate_termo_substituicao_html(
       display: flex;
       gap: 10px;
       align-items: flex-start;
-      margin-bottom: 8px;
-      font-size: 14.5px;
+      margin-bottom: 6px;
+      font-size: 13.5px;
     }}
     .bullet-dot {{
       font-size: 18px;
@@ -306,63 +306,68 @@ def generate_termo_substituicao_html(
     .declaration-accept {{
       display: flex;
       gap: 10px;
-      font-size: 13.5px;
+      font-size: 13px;
       color: #374151;
-      margin: 20px 0 32px 0;
+      margin: 12px 0 18px 0;
       font-style: italic;
     }}
-    /* SEÇÃO RECEBEDOR */
-    .receiver-block {{
-      margin-top: 24px;
-      margin-bottom: 24px;
-    }}
-    .receiver-title {{
-      font-size: 14px;
-      font-weight: 800;
-      color: #111827;
+    /* QUADROS AMPLOS PARA ASSINATURA FÍSICA OU GOV.BR / ICP-BRASIL */
+    .gov-signatures-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
       margin-bottom: 12px;
+      page-break-inside: avoid;
     }}
-    .receiver-line {{
+    .gov-sig-card {{
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      padding: 12px 14px;
+      background: #FFFFFF;
       display: flex;
-      align-items: flex-end;
-      margin-bottom: 12px;
-      font-size: 13.5px;
+      flex-direction: column;
+      justify-content: space-between;
     }}
-    .receiver-line span.label {{
-      width: 90px;
-      font-weight: 700;
-      color: #374151;
+    .gov-sig-title {{
+      font-size: 12px;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 6px;
     }}
-    .receiver-line .fill-line {{
+    .gov-sig-meta {{
+      font-size: 11.5px;
+      color: #334155;
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }}
+    .gov-meta-line {{
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 3px;
+    }}
+    .gov-meta-line span.fill {{
       flex: 1;
-      border-bottom: 1.5px solid #1F2937;
-      min-height: 22px;
-      padding-left: 6px;
+      border-bottom: 1px solid #94A3B8;
+      min-height: 16px;
       font-weight: 600;
       color: #0F172A;
     }}
-    /* ASSINATURA DIGITAL LYDA */
-    .lyda-signature-wrap {{
-      margin-top: 28px;
-      margin-bottom: 30px;
-    }}
-    .lyda-company-name {{
-      font-size: 14px;
-      font-weight: 700;
-      color: #111827;
+    .gov-stamp-area {{
+      height: 92px;
+      border: 1px dashed #CBD5E1;
+      border-radius: 4px;
+      background: #FFFFFF;
       margin-bottom: 8px;
     }}
-    .digital-cert-box {{
-      border: 1px solid #D1D5DB;
-      border-left: 4px solid #2563EB;
-      background: #F9FAFB;
-      border-radius: 4px;
-      padding: 8px 12px;
-      display: inline-block;
-      font-family: monospace;
-      font-size: 10.5px;
-      color: #374151;
-      line-height: 1.4;
+    .gov-sig-hint {{
+      border-top: 1px solid #334155;
+      padding-top: 5px;
+      font-size: 10px;
+      color: #475569;
+      text-align: center;
+      font-weight: 600;
     }}
     /* RODAPÉ DO TIMBRE PROFISSIONAL LYDA */
     .timbre-footer {{
@@ -462,34 +467,36 @@ def generate_termo_substituicao_html(
         <span>Declaro o recebimento do equipamento acima identificado, que permanecerá alocado na unidade informada.</span>
       </div>
 
-      <!-- SEÇÃO RECEBEDOR -->
-      <div class="receiver-block">
-        <div class="receiver-title">Recebedor:</div>
-        <div class="receiver-line">
-          <span class="label">Nome:</span>
-          <div class="fill-line">{html.escape(recebedor_nome)}</div>
+      <!-- QUADROS AMPLOS PARA ASSINATURA (RECEBEDOR & LYDA - GOV.BR / FÍSICA) -->
+      <div class="gov-signatures-grid">
+        <div class="gov-sig-card">
+          <div>
+            <div class="gov-sig-title">Recebedor (Unidade Hospitalar / Cliente)</div>
+            <div class="gov-sig-meta">
+              <div class="gov-meta-line"><strong>Nome:</strong><span class="fill">{html.escape(recebedor_nome)}</span></div>
+              <div class="gov-meta-line"><strong>CPF:</strong><span class="fill">{html.escape(recebedor_cpf)}</span></div>
+              <div class="gov-meta-line"><strong>Data:</strong><span class="fill">{html.escape(data_str)}</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="gov-stamp-area"></div>
+            <div class="gov-sig-hint">Assinatura Física ou Assinatura Digital Gov.br / ICP-Brasil</div>
+          </div>
         </div>
-        <div class="receiver-line">
-          <span class="label">CPF:</span>
-          <div class="fill-line">{html.escape(recebedor_cpf)}</div>
-        </div>
-        <div class="receiver-line">
-          <span class="label">Assinatura:</span>
-          <div class="fill-line"></div>
-        </div>
-        <div class="receiver-line">
-          <span class="label">Data:</span>
-          <div class="fill-line">{html.escape(data_str)}</div>
-        </div>
-      </div>
 
-      <!-- ASSINATURA DA LYDA -->
-      <div class="lyda-signature-wrap">
-        <div class="lyda-company-name">Lyda Comércio Importação e Exportação Ltda</div>
-        <div class="digital-cert-box">
-          LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150<br/>
-          Assinado de forma digital por LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150<br/>
-          Dados: {data_hora_digital}
+        <div class="gov-sig-card">
+          <div>
+            <div class="gov-sig-title">Lyda Comércio Importação e Exportação Ltda</div>
+            <div class="gov-sig-meta">
+              <div class="gov-meta-line"><strong>CNPJ:</strong><span class="fill">61.817.692/0001-50</span></div>
+              <div class="gov-meta-line"><strong>Responsável:</strong><span class="fill">{html.escape(responsavel_lyda if responsavel_lyda != "Lyda Comércio Importação e Exportação Ltda" else "")}</span></div>
+              <div class="gov-meta-line"><strong>Data:</strong><span class="fill">{html.escape(data_str)}</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="gov-stamp-area"></div>
+            <div class="gov-sig-hint">Assinatura Digital Gov.br / ICP-Brasil ou Responsável LYDA</div>
+          </div>
         </div>
       </div>
     </div>
@@ -733,32 +740,62 @@ def generate_and_open_romaneio(
       font-size: 11.5px;
       margin-bottom: 22px;
     }}
-    .signatures {{
+    .gov-signatures-grid {{
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      margin-top: 32px;
-      margin-bottom: 24px;
+      gap: 20px;
+      margin-top: 20px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
     }}
-    .sig-line {{
-      border-top: 1.5px solid #0F172A;
-      padding-top: 8px;
-      text-align: center;
-      font-size: 11.5px;
+    .gov-sig-card {{
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      padding: 12px 14px;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }}
+    .gov-sig-title {{
+      font-size: 12px;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 6px;
+    }}
+    .gov-sig-meta {{
+      font-size: 11px;
       color: #334155;
+      line-height: 1.5;
+      margin-bottom: 10px;
     }}
-    .digital-cert-box {{
-      border: 1px solid #D1D5DB;
-      border-left: 3px solid #2563EB;
-      background: #F9FAFB;
+    .gov-meta-line {{
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 3px;
+    }}
+    .gov-meta-line span.fill {{
+      flex: 1;
+      border-bottom: 1px solid #94A3B8;
+      min-height: 15px;
+      font-weight: 600;
+      color: #0F172A;
+    }}
+    .gov-stamp-area {{
+      height: 92px;
+      border: 1px dashed #CBD5E1;
       border-radius: 4px;
-      padding: 6px 10px;
-      font-family: monospace;
+      background: #FFFFFF;
+      margin-bottom: 8px;
+    }}
+    .gov-sig-hint {{
+      border-top: 1px solid #334155;
+      padding-top: 5px;
       font-size: 10px;
-      color: #374151;
-      line-height: 1.35;
-      margin-top: 6px;
-      text-align: left;
+      color: #475569;
+      text-align: center;
+      font-weight: 600;
     }}
     .timbre-footer {{
       border-top: 1.5px solid #CBD5E1;
@@ -856,20 +893,34 @@ def generate_and_open_romaneio(
         {html.escape(defeito + " — " + observacoes if (defeito and observacoes) else (defeito or observacoes or "Nenhuma observação adicional registrada."))}
       </div>
 
-      <div class="signatures">
-        <div class="sig-line">
-          <strong>Lyda Comércio Importação e Exportação Ltda</strong>
-          <div class="digital-cert-box">
-            LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150<br/>
-            Responsável: {html.escape(responsavel or "EXPEDIÇÃO LYDA")}<br/>
-            Assinado Digitalmente: {data_digital}
+      <div class="gov-signatures-grid">
+        <div class="gov-sig-card">
+          <div>
+            <div class="gov-sig-title">Lyda Comércio Importação e Exportação Ltda</div>
+            <div class="gov-sig-meta">
+              <div class="gov-meta-line"><strong>CNPJ:</strong><span class="fill">61.817.692/0001-50</span></div>
+              <div class="gov-meta-line"><strong>Responsável:</strong><span class="fill">{html.escape(responsavel or "EXPEDIÇÃO LYDA")}</span></div>
+              <div class="gov-meta-line"><strong>Data:</strong><span class="fill">{data_dia_str}</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="gov-stamp-area"></div>
+            <div class="gov-sig-hint">Expedição / Responsável LYDA (Gov.br / ICP-Brasil ou Física)</div>
           </div>
         </div>
-        <div class="sig-line">
-          <strong>Recebido por (Cliente / Hospital)</strong>
-          <div style="margin-top:20px; font-size:11px; color:#64748B;">
-            Nome Legível: _______________________________<br/>
-            CPF: ___________________ Data: {data_dia_str}
+
+        <div class="gov-sig-card">
+          <div>
+            <div class="gov-sig-title">Recebedor (Cliente / Unidade Hospitalar)</div>
+            <div class="gov-sig-meta">
+              <div class="gov-meta-line"><strong>Nome Legível:</strong><span class="fill"></span></div>
+              <div class="gov-meta-line"><strong>CPF:</strong><span class="fill"></span></div>
+              <div class="gov-meta-line"><strong>Data:</strong><span class="fill">{data_dia_str}</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="gov-stamp-area"></div>
+            <div class="gov-sig-hint">Recebedor no Hospital / Cliente (Gov.br ou Assinatura e Carimbo)</div>
           </div>
         </div>
       </div>

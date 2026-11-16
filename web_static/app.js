@@ -107,6 +107,7 @@ async function loadBootstrapData(preserveSelection = true) {
     APP_STATE.config = data.config || {};
     APP_STATE.server_info = data.server_info || {};
     APP_STATE.logo_data_uri = data.logo_data_uri || "";
+    APP_STATE.timbre_logo_data_uri = data.timbre_logo_data_uri || data.logo_data_uri || "";
 
     if (!preserveSelection) {
       APP_STATE.selectedIndices.clear();
@@ -4514,16 +4515,13 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
   const items = APP_STATE.items || [];
   const clients = APP_STATE.clients || [];
   const k = APP_STATE.kpis || {};
-  const now = new Date();
-  const nowStr = now.toLocaleString("pt-BR");
-  const pad2 = n => String(n).padStart(2, "0");
-  const dataDigital = `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())} -03'00'`;
+  const nowStr = new Date().toLocaleString("pt-BR");
   const userStr = (APP_STATE.current_user && APP_STATE.current_user.nome) || "Administrador LYDA";
-  const timbreLogoUrl = `${window.location.origin}/static/lyda_timbre_logo.png`;
-  const fallbackLogoAttr = APP_STATE.logo_data_uri
+  const timbreSrc = APP_STATE.timbre_logo_data_uri || `${window.location.origin}/static/lyda_timbre_logo.png`;
+  const fallbackLogoAttr = (!APP_STATE.timbre_logo_data_uri && APP_STATE.logo_data_uri)
     ? `onerror="this.onerror=null;this.src='${APP_STATE.logo_data_uri}'"`
     : "";
-  const logoImg = `<img src="${timbreLogoUrl}" ${fallbackLogoAttr} style="height:48px; width:auto; object-fit:contain;" alt="LYDA" />`;
+  const logoImg = `<img src="${timbreSrc}" ${fallbackLogoAttr} style="height:48px; width:auto; object-fit:contain;" alt="LYDA" />`;
 
   const cycBadge = it => {
     const code = (it._cycle && it._cycle.status_code) || "SEM_DATA";
@@ -4545,8 +4543,133 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
   let reportTitle = "Relatório Executivo Geral de Equipamentos i-STAT";
   let reportSub = "Mapeamento completo de analisadores, impressoras, simuladores, downloaders, modalidades e ciclo semestral";
   let tableHtml = "";
+  let customRichHtml = "";
+  let customKpiStripHtml = "";
 
-  if (reportType === "GERAL") {
+  if (reportType === "CLIENTE_ATUAL") {
+    const cliName = APP_STATE.selectedClientName || "";
+    if (!cliName) {
+      showToast("Selecione um hospital / cliente antes de emitir o relatório.", "info");
+      return;
+    }
+    const cliRec = clients.find(c => (c.CLIENTE || "").toUpperCase() === cliName.toUpperCase()) || {};
+    const cliItems = items.filter(it => (it.CLIENTE || "").toUpperCase() === cliName.toUpperCase());
+    reportTitle = `Relatório Oficial de Equipamentos — ${cliName}`;
+    reportSub = "Relação detalhada dos aparelhos i-STAT alocados na instituição, setores, modalidades e ciclo semestral";
+
+    const cliComodato = cliItems.filter(it => ["COMODATO", "ALUGUEL"].includes(String(it.MODALIDADE || "").toUpperCase())).length;
+    const cliVenda = cliItems.filter(it => String(it.MODALIDADE || "").toUpperCase() === "VENDA").length;
+    const cliOk = cliItems.filter(it => it._cycle && it._cycle.status_code === "EM_DIA").length;
+    const cliPend = cliItems.length - cliOk;
+    const cliManut = cliItems.filter(it => it._row_state === "DEFEITO").length;
+
+    customKpiStripHtml = `
+      <div class="kpi-strip" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="kpi-box" style="border-top-color:#2563EB;"><div class="lbl">Aparelhos na Unidade</div><div class="val" style="color:#2563EB;">${cliItems.length}</div><div class="pct">Vinculados ao hospital</div></div>
+        <div class="kpi-box" style="border-top-color:#0284C7;"><div class="lbl">Em Comodato</div><div class="val" style="color:#0284C7;">${cliComodato}</div><div class="pct">Patrimônio LYDA</div></div>
+        <div class="kpi-box" style="border-top-color:#6366F1;"><div class="lbl">Venda Direta</div><div class="val" style="color:#6366F1;">${cliVenda}</div><div class="pct">Patrimônio Cliente</div></div>
+        <div class="kpi-box" style="border-top-color:#059669;"><div class="lbl">Ciclo 6m Em Dia</div><div class="val" style="color:#059669;">${cliOk}</div><div class="pct">${cliPend} pendente(s)</div></div>
+        <div class="kpi-box" style="border-top-color:#E11D48;"><div class="lbl">Em Manutenção</div><div class="val" style="color:#E11D48;">${cliManut}</div><div class="pct">Assistência / reparo</div></div>
+      </div>`;
+
+    customRichHtml = `
+      <div class="summary-card" style="margin-bottom:14px;">
+        <h3>Dados Cadastrais da Instituição</h3>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px 18px; font-size:11px; line-height:1.5;">
+          <div><strong>Hospital / Cliente:</strong> ${escapeHtml(cliRec.CLIENTE || cliName)}</div>
+          <div><strong>CNPJ:</strong> ${escapeHtml(cliRec.CNPJ || "-")}</div>
+          <div><strong>Cidade / UF:</strong> ${escapeHtml(cliRec.CIDADE || "PORTO ALEGRE")} / ${escapeHtml(cliRec.UF || "RS")}</div>
+          <div style="grid-column: span 2;"><strong>Endereço:</strong> ${escapeHtml(cliRec.ENDERECO || "-")} ${cliRec.CEP ? `— CEP: ${escapeHtml(cliRec.CEP)}` : ""}</div>
+          <div><strong>Setores:</strong> ${escapeHtml(cliRec._setores_ativos || cliRec.SETORES || "-")}</div>
+          <div><strong>Contato Local:</strong> ${escapeHtml(cliRec.CONTATO_LOCAL || "-")}</div>
+          <div><strong>Telefone:</strong> ${escapeHtml(cliRec.TELEFONE || "-")}</div>
+          <div><strong>Observações:</strong> ${escapeHtml(cliRec.OBSERVACOES || "-")}</div>
+        </div>
+      </div>`;
+
+    tableHtml = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tipo</th>
+            <th>Serial</th>
+            <th>Setor / Ala</th>
+            <th>Modalidade</th>
+            <th>Situação</th>
+            <th>Últ. Atualização</th>
+            <th>Próx. 6m</th>
+            <th>Ciclo 6m</th>
+            <th>Observações</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${cliItems.map((it, i) => `
+            <tr class="${it._row_state === 'DEFEITO' ? 'tr-def' : ''}">
+              <td>${i + 1}</td>
+              <td>${tipoBadge(it)}</td>
+              <td style="font-family:monospace; font-weight:800;">${escapeHtml(it.CODIGO)}</td>
+              <td>${escapeHtml(it.SETOR || "-")}</td>
+              <td>${modBadge(it)}</td>
+              <td>${escapeHtml(it.STATUS || "-")}</td>
+              <td>${escapeHtml(it.ULTIMA_ATUALIZACAO || "-")}</td>
+              <td>${escapeHtml((it._cycle && it._cycle.next_date_str) || "PENDENTE")}</td>
+              <td>${cycBadge(it)}</td>
+              <td>${escapeHtml([it.DEFEITO, it.OBSERVACOES].filter(Boolean).join(" — ") || "-")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  } else if (reportType === "AUDITORIA") {
+    const allLogs = APP_STATE.audit_logs || [];
+    const logsSlice = allLogs.slice(0, 400);
+    reportTitle = "Relatório Oficial de Auditoria & Rastreabilidade do Sistema";
+    reportSub = "Histórico cronológico de acessos, movimentações de estoque, emissões de rotas, romaneios e termos";
+
+    const logOk = logsSlice.filter(lg => lg.severity === "SUCCESS").length;
+    const logWarn = logsSlice.filter(lg => lg.severity === "WARNING").length;
+    const logErr = logsSlice.filter(lg => lg.severity === "DANGER" || lg.category === "SEGURANCA").length;
+
+    customKpiStripHtml = `
+      <div class="kpi-strip" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="kpi-box" style="border-top-color:#2563EB;"><div class="lbl">Registros no Relatório</div><div class="val" style="color:#2563EB;">${logsSlice.length}</div><div class="pct">de ${allLogs.length} evento(s) totais</div></div>
+        <div class="kpi-box" style="border-top-color:#059669;"><div class="lbl">Operações Concluídas</div><div class="val" style="color:#059669;">${logOk}</div><div class="pct">Status SUCCESS</div></div>
+        <div class="kpi-box" style="border-top-color:#D97706;"><div class="lbl">Alertas / Avisos</div><div class="val" style="color:#D97706;">${logWarn}</div><div class="pct">Status WARNING</div></div>
+        <div class="kpi-box" style="border-top-color:#E11D48;"><div class="lbl">Segurança / Críticos</div><div class="val" style="color:#E11D48;">${logErr}</div><div class="pct">Bloqueios ou falhas</div></div>
+      </div>`;
+
+    tableHtml = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Data / Hora</th>
+            <th>Usuário</th>
+            <th>Perfil / IP</th>
+            <th>Categoria</th>
+            <th>Ação Executada</th>
+            <th>Alvo / Serial</th>
+            <th>Detalhes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${logsSlice.map((lg, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td style="white-space:nowrap; font-weight:700;">${escapeHtml(lg.timestamp || "-")}</td>
+              <td><strong>${escapeHtml(lg.user_nome || "-")}</strong></td>
+              <td style="font-size:10px; color:#475569;">${escapeHtml(lg.user_role || "-")} • ${escapeHtml(lg.ip_address || "-")}</td>
+              <td><span class="badge b-blue">${escapeHtml(lg.category || "-")}</span></td>
+              <td style="font-weight:700;">${escapeHtml(lg.action || "-")}</td>
+              <td style="font-family:monospace; font-weight:700;">${escapeHtml(lg.target || "-")}</td>
+              <td>${escapeHtml(lg.details || "-")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  } else if (reportType === "GERAL") {
     tableHtml = `
       <table>
         <thead>
@@ -4847,20 +4970,53 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
     </div>`;
 
   let richSections = "";
-  if (reportType === "GERAL") richSections = insightsHtml + summaryHtml + analyticsHtml + rankingHtml;
+  if (reportType === "CLIENTE_ATUAL" || reportType === "AUDITORIA") richSections = customRichHtml;
+  else if (reportType === "GERAL") richSections = insightsHtml + summaryHtml + analyticsHtml + rankingHtml;
   else if (reportType === "RADAR_6M") richSections = insightsHtml + cycleBoxesHtml;
   else if (reportType === "HOSPITAIS") richSections = insightsHtml + rankingHtml;
   else richSections = insightsHtml + summaryHtml;
 
   const signatureHtml = `
-    <div class="signature-row">
-      <div><div class="line"></div><span>Responsável pela emissão — ${escapeHtml(userStr)}</span></div>
-      <div><div class="line"></div><span>Conferido por / Data: ____/____/202___</span></div>
-      <div>
-        <div class="digital-cert-box">
-          <strong>Lyda Comércio Importação e Exportação Ltda</strong><br/>
-          LYDA COMERCIO IMPORTACAO E EXPORTACAO LTDA:61817692000150<br/>
-          Emissão: ${escapeHtml(dataDigital)}
+    <div class="gov-signatures-grid">
+      <div class="gov-sig-card">
+        <div>
+          <div class="gov-sig-title">Responsável pela Emissão — LYDA</div>
+          <div class="gov-sig-meta">
+            <div class="gov-meta-line"><strong>Nome:</strong><span class="fill">${escapeHtml(userStr)}</span></div>
+            <div class="gov-meta-line"><strong>Data:</strong><span class="fill">${escapeHtml(nowStr)}</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="gov-stamp-area"></div>
+          <div class="gov-sig-hint">Assinatura Física ou Assinatura Digital Gov.br / ICP-Brasil</div>
+        </div>
+      </div>
+
+      <div class="gov-sig-card">
+        <div>
+          <div class="gov-sig-title">Lyda Comércio Importação e Exportação Ltda</div>
+          <div class="gov-sig-meta">
+            <div class="gov-meta-line"><strong>CNPJ:</strong><span class="fill">61.817.692/0001-50</span></div>
+            <div class="gov-meta-line"><strong>Coordenação / Diretoria:</strong><span class="fill"></span></div>
+          </div>
+        </div>
+        <div>
+          <div class="gov-stamp-area"></div>
+          <div class="gov-sig-hint">Assinatura Digital Gov.br / e-CNPJ ou Coordenação LYDA</div>
+        </div>
+      </div>
+
+      <div class="gov-sig-card">
+        <div>
+          <div class="gov-sig-title">Conferência / Recebimento (Hospital / Auditoria)</div>
+          <div class="gov-sig-meta">
+            <div class="gov-meta-line"><strong>Nome / CPF:</strong><span class="fill"></span></div>
+            <div class="gov-meta-line"><strong>Data:</strong><span class="fill">____/____/202___</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="gov-stamp-area"></div>
+          <div class="gov-sig-hint">Assinatura Física, Carimbo ou Assinatura Digital Gov.br</div>
         </div>
       </div>
     </div>`;
@@ -4871,6 +5027,16 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
       <div class="val" style="color:${color};">${val}</div>
       <div class="pct">${formatRealPct(val, totalAll)} do total</div>
     </div>`;
+  const kpiStripHtml = customKpiStripHtml || `
+      <div class="kpi-strip">
+        ${kpiBox("Total Cadastrados", k.total || 0, "#2563EB")}
+        ${kpiBox("Em Hospitais", k.em_cliente || 0, "#0284C7")}
+        ${kpiBox("No Estoque LYDA", k.em_estoque || 0, "#10B981")}
+        ${kpiBox("Em Comodato", k.comodato_aluguel || 0, "#0369A1")}
+        ${kpiBox("Venda (Clientes)", k.venda || 0, "#6366F1")}
+        ${kpiBox("Pendentes 6m", k.ciclo_pendente_vencido || 0, "#D97706")}
+        ${kpiBox("Manutenção / Reparo", defCountRep, "#E11D48")}
+      </div>`;
   const recordCount = (tableHtml.match(/<tr/g) || []).length - 1;
 
   const html = `
@@ -4922,7 +5088,6 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
         tr.tr-est td:first-child { border-left: 3px solid #10B981; }
         tr.tr-def td:first-child { border-left: 3px solid #E11D48; }
         .timbre-footer { margin-top: 18px; padding-top: 8px; border-top: 1.5px solid #CBD5E1; display: flex; justify-content: space-between; align-items: flex-start; font-size: 10px; color: #475569; }
-        .digital-cert-box { border: 1px solid #D1D5DB; border-left: 3px solid #2563EB; background: #F9FAFB; border-radius: 4px; padding: 6px 10px; font-family: monospace; font-size: 9px; color: #334155; line-height: 1.35; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 9.5px; font-weight: 800; white-space: nowrap; border: 1px solid transparent; }
         .b-ok { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
         .b-warn { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
@@ -4951,9 +5116,14 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
         .cbox { border: 1px solid #E2E8F0; border-top: 4px solid #2563EB; border-radius: 8px; padding: 9px 12px; background: #F8FAFC; }
         .cbox .v { font-size: 24px; font-weight: 900; line-height: 1.1; }
         .cbox .l { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #475569; margin-top: 2px; }
-        .signature-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 28px; margin-top: 28px; align-items: end; page-break-inside: avoid; }
-        .signature-row .line { border-top: 1px solid #0F172A; margin-bottom: 4px; }
-        .signature-row span { font-size: 10px; color: #475569; font-weight: 600; }
+        .gov-signatures-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; page-break-inside: avoid; }
+        .gov-sig-card { border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; background: #FFFFFF; display: flex; flex-direction: column; justify-content: space-between; }
+        .gov-sig-title { font-size: 11px; font-weight: 800; color: #0F172A; margin-bottom: 5px; }
+        .gov-sig-meta { font-size: 10px; color: #334155; line-height: 1.45; margin-bottom: 8px; }
+        .gov-meta-line { display: flex; align-items: baseline; gap: 5px; margin-bottom: 2px; }
+        .gov-meta-line span.fill { flex: 1; border-bottom: 1px solid #94A3B8; min-height: 14px; font-weight: 600; color: #0F172A; }
+        .gov-stamp-area { height: 90px; border: 1px dashed #CBD5E1; border-radius: 4px; background: #FFFFFF; margin-bottom: 7px; }
+        .gov-sig-hint { border-top: 1px solid #334155; padding-top: 4px; font-size: 9.5px; color: #475569; text-align: center; font-weight: 600; }
         @media print {
           .no-print-bar { display: none !important; }
           body { padding: 0 0 15mm 0; }
@@ -4984,15 +5154,7 @@ function openExecutiveReportPrintWindow(reportType = "GERAL") {
           <div><strong>Registros listados:</strong> ${recordCount}</div>
         </div>
       </div>
-      <div class="kpi-strip">
-        ${kpiBox("Total Cadastrados", k.total || 0, "#2563EB")}
-        ${kpiBox("Em Hospitais", k.em_cliente || 0, "#0284C7")}
-        ${kpiBox("No Estoque LYDA", k.em_estoque || 0, "#10B981")}
-        ${kpiBox("Em Comodato", k.comodato_aluguel || 0, "#0369A1")}
-        ${kpiBox("Venda (Clientes)", k.venda || 0, "#6366F1")}
-        ${kpiBox("Pendentes 6m", k.ciclo_pendente_vencido || 0, "#D97706")}
-        ${kpiBox("Manutenção / Reparo", defCountRep, "#E11D48")}
-      </div>
+      ${kpiStripHtml}
       ${richSections}
       <div class="section-head">
         <h2>Detalhamento</h2>
